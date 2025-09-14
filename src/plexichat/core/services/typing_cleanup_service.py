@@ -65,9 +65,7 @@ class TypingCleanupService:
 
         try:
             # Schedule cleanup to run in cleanup_interval seconds
-            next_run = datetime.now(UTC) + timedelta(
-                seconds=self.cleanup_interval
-            )
+            next_run = datetime.now(UTC) + timedelta(seconds=self.cleanup_interval)
 
             self.cleanup_task_id = await submit_scheduled_task(
                 self._run_cleanup,

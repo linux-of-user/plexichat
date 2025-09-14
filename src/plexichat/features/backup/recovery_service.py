@@ -28,13 +28,19 @@ class RecoveryService:
     - Recovery audit logging
     """
 
-    def __init__(self, storage_manager: StorageManager, encryption_service: EncryptionService):
+    def __init__(
+        self, storage_manager: StorageManager, encryption_service: EncryptionService
+    ):
         self.storage_manager = storage_manager
         self.encryption_service = encryption_service
         self.logger = logger
 
-    async def recover_backup(self, backup_id: str, recovery_type: str = "full",
-                        target_location: str | None = None) -> dict[str, Any]:
+    async def recover_backup(
+        self,
+        backup_id: str,
+        recovery_type: str = "full",
+        target_location: str | None = None,
+    ) -> dict[str, Any]:
         """
         Recover a backup from distributed shards.
 
@@ -53,7 +59,9 @@ class RecoveryService:
             shards = await self.storage_manager.retrieve_shards(backup_id)
 
             if len(shards) < MIN_SHARDS_FOR_RECOVERY:
-                raise ValueError(f"Insufficient shards for recovery. Found {len(shards)}, need at least {MIN_SHARDS_FOR_RECOVERY}")
+                raise ValueError(
+                    f"Insufficient shards for recovery. Found {len(shards)}, need at least {MIN_SHARDS_FOR_RECOVERY}"
+                )
 
             # Reconstruct data from shards
             reconstructed_data = await self._reconstruct_from_shards(shards)
@@ -64,11 +72,17 @@ class RecoveryService:
 
             # Process recovery based on type
             if recovery_type == "full":
-                result = await self._perform_full_recovery(reconstructed_data, target_location)
+                result = await self._perform_full_recovery(
+                    reconstructed_data, target_location
+                )
             elif recovery_type == "partial":
-                result = await self._perform_partial_recovery(reconstructed_data, target_location)
+                result = await self._perform_partial_recovery(
+                    reconstructed_data, target_location
+                )
             elif recovery_type == "emergency":
-                result = await self._perform_emergency_recovery(reconstructed_data, target_location)
+                result = await self._perform_emergency_recovery(
+                    reconstructed_data, target_location
+                )
             else:
                 raise ValueError(f"Unknown recovery type: {recovery_type}")
 
@@ -83,7 +97,7 @@ class RecoveryService:
                 "data_size": len(reconstructed_data),
                 "shards_used": len(shards),
                 "target_location": target_location,
-                "result": result
+                "result": result,
             }
 
         except Exception as e:
@@ -93,7 +107,7 @@ class RecoveryService:
                 "recovery_type": recovery_type,
                 "status": "failed",
                 "error": str(e),
-                "recovered_at": datetime.now(UTC).isoformat()
+                "recovered_at": datetime.now(UTC).isoformat(),
             }
 
     async def _reconstruct_from_shards(self, shards: list[dict[str, Any]]) -> bytes:
@@ -108,14 +122,16 @@ class RecoveryService:
         """
         try:
             # Sort shards by index to ensure correct order
-            sorted_shards = sorted(shards, key=lambda x: x['metadata']['shard_index'])
+            sorted_shards = sorted(shards, key=lambda x: x["metadata"]["shard_index"])
 
             # Combine shard data
             combined_data = b""
             for shard in sorted_shards:
-                combined_data += shard['data']
+                combined_data += shard["data"]
 
-            self.logger.debug(f"Reconstructed {len(combined_data)} bytes from {len(shards)} shards")
+            self.logger.debug(
+                f"Reconstructed {len(combined_data)} bytes from {len(shards)} shards"
+            )
             return combined_data
 
         except Exception as e:
@@ -136,7 +152,7 @@ class RecoveryService:
         try:
             # Basic verification - check if data is valid JSON
             try:
-                json.loads(data.decode('utf-8'))
+                json.loads(data.decode("utf-8"))
                 self.logger.debug("Data integrity verification passed")
                 return True
             except (json.JSONDecodeError, UnicodeDecodeError):
@@ -152,7 +168,9 @@ class RecoveryService:
             self.logger.error(f"Data verification failed: {e}")
             return False
 
-    async def _perform_full_recovery(self, data: bytes, target_location: str | None) -> dict[str, Any]:
+    async def _perform_full_recovery(
+        self, data: bytes, target_location: str | None
+    ) -> dict[str, Any]:
         """
         Perform full recovery of all data.
 
@@ -165,13 +183,13 @@ class RecoveryService:
         """
         try:
             # Parse the backup data
-            backup_data = json.loads(data.decode('utf-8'))
+            backup_data = json.loads(data.decode("utf-8"))
 
             # Extract different data types
-            messages = backup_data.get('messages', [])
-            users = backup_data.get('users', [])
-            channels = backup_data.get('channels', [])
-            files = backup_data.get('files', [])
+            messages = backup_data.get("messages", [])
+            users = backup_data.get("users", [])
+            channels = backup_data.get("channels", [])
+            files = backup_data.get("files", [])
 
             result = {
                 "recovery_type": "full",
@@ -179,15 +197,16 @@ class RecoveryService:
                 "users_recovered": len(users),
                 "channels_recovered": len(channels),
                 "files_recovered": len(files),
-                "total_items": len(messages) + len(users) + len(channels) + len(files)
+                "total_items": len(messages) + len(users) + len(channels) + len(files),
             }
 
             if target_location:
                 # Save recovered data to target location
                 import os
+
                 os.makedirs(target_location, exist_ok=True)
 
-                with open(f"{target_location}/recovered_data.json", 'w') as f:
+                with open(f"{target_location}/recovered_data.json", "w") as f:
                     json.dump(backup_data, f, indent=2)
 
                 result["saved_to"] = f"{target_location}/recovered_data.json"
@@ -199,7 +218,9 @@ class RecoveryService:
             self.logger.error(f"Full recovery failed: {e}")
             raise
 
-    async def _perform_partial_recovery(self, data: bytes, target_location: str | None) -> dict[str, Any]:
+    async def _perform_partial_recovery(
+        self, data: bytes, target_location: str | None
+    ) -> dict[str, Any]:
         """
         Perform partial recovery of specific data types.
 
@@ -212,11 +233,11 @@ class RecoveryService:
         """
         try:
             # Parse the backup data
-            backup_data = json.loads(data.decode('utf-8'))
+            backup_data = json.loads(data.decode("utf-8"))
 
             # For partial recovery, focus on critical data
-            messages = backup_data.get('messages', [])
-            users = backup_data.get('users', [])
+            messages = backup_data.get("messages", [])
+            users = backup_data.get("users", [])
 
             # Filter for recent/important data
             recent_messages = [msg for msg in messages if self._is_recent_message(msg)]
@@ -226,31 +247,33 @@ class RecoveryService:
                 "recovery_type": "partial",
                 "recent_messages_recovered": len(recent_messages),
                 "active_users_recovered": len(active_users),
-                "total_items": len(recent_messages) + len(active_users)
+                "total_items": len(recent_messages) + len(active_users),
             }
 
             if target_location:
                 import os
+
                 os.makedirs(target_location, exist_ok=True)
 
-                partial_data = {
-                    "messages": recent_messages,
-                    "users": active_users
-                }
+                partial_data = {"messages": recent_messages, "users": active_users}
 
-                with open(f"{target_location}/partial_recovery.json", 'w') as f:
+                with open(f"{target_location}/partial_recovery.json", "w") as f:
                     json.dump(partial_data, f, indent=2)
 
                 result["saved_to"] = f"{target_location}/partial_recovery.json"
 
-            self.logger.info(f"Partial recovery completed: {result['total_items']} items")
+            self.logger.info(
+                f"Partial recovery completed: {result['total_items']} items"
+            )
             return result
 
         except Exception as e:
             self.logger.error(f"Partial recovery failed: {e}")
             raise
 
-    async def _perform_emergency_recovery(self, data: bytes, target_location: str | None) -> dict[str, Any]:
+    async def _perform_emergency_recovery(
+        self, data: bytes, target_location: str | None
+    ) -> dict[str, Any]:
         """
         Perform emergency recovery with minimal processing.
 
@@ -266,21 +289,22 @@ class RecoveryService:
             result = {
                 "recovery_type": "emergency",
                 "raw_data_size": len(data),
-                "status": "raw_data_saved"
+                "status": "raw_data_saved",
             }
 
             if target_location:
                 import os
+
                 os.makedirs(target_location, exist_ok=True)
 
                 # Save raw data
-                with open(f"{target_location}/emergency_recovery.bin", 'wb') as f:
+                with open(f"{target_location}/emergency_recovery.bin", "wb") as f:
                     f.write(data)
 
                 # Try to save as JSON if possible
                 try:
-                    backup_data = json.loads(data.decode('utf-8'))
-                    with open(f"{target_location}/emergency_recovery.json", 'w') as f:
+                    backup_data = json.loads(data.decode("utf-8"))
+                    with open(f"{target_location}/emergency_recovery.json", "w") as f:
                         json.dump(backup_data, f, indent=2)
                     result["json_saved"] = True
                 except:

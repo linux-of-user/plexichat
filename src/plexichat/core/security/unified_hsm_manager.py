@@ -640,9 +640,9 @@ class UnifiedHSMManager:
             self.operation_metrics["key_generations"] += 1
 
             # Schedule key rotation
-            self.key_rotation_schedule[key.key_id] = datetime.now(
-                UTC
-            ) + timedelta(days=300)
+            self.key_rotation_schedule[key.key_id] = datetime.now(UTC) + timedelta(
+                days=300
+            )
 
         return key
 
@@ -682,9 +682,9 @@ class UnifiedHSMManager:
             self.operation_metrics["key_generations"] += 1
 
             # Schedule key rotation
-            self.key_rotation_schedule[key.key_id] = datetime.now(
-                UTC
-            ) + timedelta(days=600)
+            self.key_rotation_schedule[key.key_id] = datetime.now(UTC) + timedelta(
+                days=600
+            )
 
         return key
 
@@ -811,9 +811,7 @@ class UnifiedHSMManager:
                     hsm.device.performance_metrics = {
                         "uptime_hours": (
                             datetime.now(UTC)
-                            - datetime.now(UTC).replace(
-                                hour=0, minute=0, second=0
-                            )
+                            - datetime.now(UTC).replace(hour=0, minute=0, second=0)
                         ).total_seconds()
                         / 3600,
                         "key_count": len(hsm.keys),

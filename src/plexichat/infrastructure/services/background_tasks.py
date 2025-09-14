@@ -16,12 +16,14 @@ import uuid
 try:
     from plexichat.core.config import get_config
     from plexichat.core.logging import get_logger
+
     settings = get_config()
 except ImportError:
     get_logger = lambda name: logging.getLogger(name)
     settings = {}
 
 logger = get_logger(__name__)
+
 
 class TaskStatus(Enum):
     PENDING = "pending"
@@ -31,24 +33,29 @@ class TaskStatus(Enum):
     CANCELLED = "cancelled"
     RETRYING = "retrying"
 
+
 class TaskPriority(Enum):
     LOW = 1
     NORMAL = 2
     HIGH = 3
     CRITICAL = 4
 
+
 @dataclass
 class TaskResult:
     """Task execution result."""
+
     success: bool
     result: Any = None
     error: str | None = None
     execution_time: float = 0.0
     metadata: dict[str, Any] = field(default_factory=dict)
 
+
 @dataclass
 class BackgroundTask:
     """Background task definition."""
+
     id: str
     name: str
     func: Callable
@@ -65,8 +72,10 @@ class BackgroundTask:
     result: TaskResult | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
+
 class TaskQueue:
     """Priority-based task queue."""
+
     def __init__(self):
         self.tasks: dict[str, BackgroundTask] = {}
         self.pending_tasks: list[str] = []
@@ -90,7 +99,9 @@ class TaskQueue:
             if not inserted:
                 self.pending_tasks.append(task.id)
 
-            logger.debug(f"Added task {task.id} to queue (priority: {task.priority.name})")
+            logger.debug(
+                f"Added task {task.id} to queue (priority: {task.priority.name})"
+            )
 
     async def get_next_task(self) -> BackgroundTask | None:
         """Get next task from queue."""
@@ -117,13 +128,17 @@ class TaskQueue:
             if task_id in self.tasks:
                 task = self.tasks[task_id]
                 task.result = result
-                task.status = TaskStatus.COMPLETED if result.success else TaskStatus.FAILED
+                task.status = (
+                    TaskStatus.COMPLETED if result.success else TaskStatus.FAILED
+                )
 
                 # Remove from running tasks
                 if task_id in self.running_tasks:
                     del self.running_tasks[task_id]
 
-                logger.debug(f"Task {task_id} completed with status: {task.status.value}")
+                logger.debug(
+                    f"Task {task_id} completed with status: {task.status.value}"
+                )
 
     async def retry_task(self, task_id: str) -> bool:
         """Retry a failed task."""
@@ -136,16 +151,22 @@ class TaskQueue:
                     task.status = TaskStatus.RETRYING
 
                     # Schedule retry with delay
-                    task.scheduled_at = datetime.now() + timedelta(seconds=task.retry_delay * task.retries)
+                    task.scheduled_at = datetime.now() + timedelta(
+                        seconds=task.retry_delay * task.retries
+                    )
 
                     # Re-add to pending queue
                     self.pending_tasks.append(task_id)
 
-                    logger.info(f"Retrying task {task_id} (attempt {task.retries}/{task.max_retries})")
+                    logger.info(
+                        f"Retrying task {task_id} (attempt {task.retries}/{task.max_retries})"
+                    )
                     return True
                 else:
                     task.status = TaskStatus.FAILED
-                    logger.error(f"Task {task_id} failed after {task.max_retries} retries")
+                    logger.error(
+                        f"Task {task_id} failed after {task.max_retries} retries"
+                    )
                     return False
 
             return False
@@ -183,12 +204,18 @@ class TaskQueue:
                 "retries": task.retries,
                 "max_retries": task.max_retries,
                 "created_at": task.created_at.isoformat(),
-                "scheduled_at": task.scheduled_at.isoformat() if task.scheduled_at else None,
-                "result": {
-                    "success": task.result.success,
-                    "error": task.result.error,
-                    "execution_time": task.result.execution_time
-                } if task.result else None
+                "scheduled_at": (
+                    task.scheduled_at.isoformat() if task.scheduled_at else None
+                ),
+                "result": (
+                    {
+                        "success": task.result.success,
+                        "error": task.result.error,
+                        "execution_time": task.result.execution_time,
+                    }
+                    if task.result
+                    else None
+                ),
             }
 
         return None
@@ -200,18 +227,22 @@ class TaskQueue:
                 "total_tasks": len(self.tasks),
                 "pending_tasks": len(self.pending_tasks),
                 "running_tasks": len(self.running_tasks),
-                "status_counts": {}
+                "status_counts": {},
             }
 
             # Count by status
             for task in self.tasks.values():
                 status = task.status.value
-                stats["status_counts"][status] = stats["status_counts"].get(status, 0) + 1
+                stats["status_counts"][status] = (
+                    stats["status_counts"].get(status, 0) + 1
+                )
 
             return stats
 
+
 class BackgroundTaskManager:
     """Background task manager."""
+
     def __init__(self, max_workers: int = 5):
         self.max_workers = max_workers
         self.queue = TaskQueue()
@@ -297,8 +328,7 @@ class BackgroundTaskManager:
             # Execute with timeout if specified
             if task.timeout:
                 result = await asyncio.wait_for(
-                    task.func(*task.args, **task.kwargs),
-                    timeout=task.timeout
+                    task.func(*task.args, **task.kwargs), timeout=task.timeout
                 )
             else:
                 result = await task.func(*task.args, **task.kwargs)
@@ -306,9 +336,7 @@ class BackgroundTaskManager:
             execution_time = (datetime.now() - start_time).total_seconds()
 
             return TaskResult(
-                success=True,
-                result=result,
-                execution_time=execution_time
+                success=True, result=result, execution_time=execution_time
             )
 
         except TimeoutError:
@@ -316,15 +344,13 @@ class BackgroundTaskManager:
             return TaskResult(
                 success=False,
                 error=f"Task timed out after {task.timeout} seconds",
-                execution_time=execution_time
+                execution_time=execution_time,
             )
 
         except Exception as e:
             execution_time = (datetime.now() - start_time).total_seconds()
             return TaskResult(
-                success=False,
-                error=str(e),
-                execution_time=execution_time
+                success=False, error=str(e), execution_time=execution_time
             )
 
     async def submit_task(
@@ -337,7 +363,7 @@ class BackgroundTaskManager:
         retry_delay: float = 1.0,
         timeout: float | None = None,
         scheduled_at: datetime | None = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         """Submit a task for background execution."""
 
@@ -354,7 +380,7 @@ class BackgroundTaskManager:
             max_retries=max_retries,
             retry_delay=retry_delay,
             timeout=timeout,
-            scheduled_at=scheduled_at
+            scheduled_at=scheduled_at,
         )
 
         await self.queue.add_task(task)
@@ -378,35 +404,37 @@ class BackgroundTaskManager:
             "running": self.running,
             "max_workers": self.max_workers,
             "active_workers": len([w for w in self.workers if not w.done()]),
-            "queue_stats": queue_stats
+            "queue_stats": queue_stats,
         }
+
 
 # Global task manager
 task_manager = BackgroundTaskManager(
-    max_workers=settings.get('background_tasks', {}).get('max_workers', 5)
+    max_workers=settings.get("background_tasks", {}).get("max_workers", 5)
 )
+
 
 # Convenience functions
 async def submit_task(func: Callable, *args, **kwargs) -> str:
     """Submit a background task."""
     return await task_manager.submit_task(func, *args, **kwargs)
 
+
 async def submit_scheduled_task(
-    func: Callable,
-    scheduled_at: datetime,
-    *args,
-    **kwargs
+    func: Callable, scheduled_at: datetime, *args, **kwargs
 ) -> str:
     """Submit a scheduled background task."""
     return await task_manager.submit_task(
         func, *args, scheduled_at=scheduled_at, **kwargs
     )
 
+
 async def submit_high_priority_task(func: Callable, *args, **kwargs) -> str:
     """Submit a high priority background task."""
     return await task_manager.submit_task(
         func, *args, priority=TaskPriority.HIGH, **kwargs
     )
+
 
 # Example background tasks
 async def cleanup_old_files():
@@ -416,21 +444,23 @@ async def cleanup_old_files():
     logger.info("Cleanup completed")
     return {"files_cleaned": 42}
 
+
 async def send_notification(user_id: str, message: str):
     """Example notification task."""
     logger.info(f"Sending notification to user {user_id}: {message}")
     await asyncio.sleep(1)  # Simulate sending
     return {"notification_sent": True}
 
+
 __all__ = [
-    'BackgroundTask',
-    'BackgroundTaskManager',
-    'TaskPriority',
-    'TaskQueue',
-    'TaskResult',
-    'TaskStatus',
-    'submit_high_priority_task',
-    'submit_scheduled_task',
-    'submit_task',
-    'task_manager'
+    "BackgroundTask",
+    "BackgroundTaskManager",
+    "TaskPriority",
+    "TaskQueue",
+    "TaskResult",
+    "TaskStatus",
+    "submit_high_priority_task",
+    "submit_scheduled_task",
+    "submit_task",
+    "task_manager",
 ]

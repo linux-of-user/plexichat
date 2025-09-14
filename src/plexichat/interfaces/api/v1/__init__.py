@@ -37,6 +37,7 @@ try:
     from plexichat.interfaces.api.routers.easter_eggs import (
         router as easter_eggs_router,
     )
+
     easter_eggs_available = True
 except ImportError as e:
     logger.warning(f"Easter eggs router not available: {e}")

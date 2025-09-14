@@ -5,6 +5,7 @@ class AnalyticsDataService:
     def __init__(self):
         try:
             from plexichat.core.database.manager import database_manager  # type: ignore
+
             self.db_manager = database_manager
         except ImportError:
             self.db_manager = None
@@ -13,7 +14,9 @@ class AnalyticsDataService:
         if self.db_manager:
             await self.db_manager.save_analytics_metric(metric)
 
-    async def get_metrics(self, filters: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    async def get_metrics(
+        self, filters: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
         if self.db_manager:
             return await self.db_manager.get_analytics_metrics(filters)
         return []
@@ -41,7 +44,9 @@ class AnalyticsDataService:
         if self.db_manager:
             await self.db_manager.save_alert(alert_data)  # type: ignore
 
-    async def get_usage_stats(self, start_time: Any, end_time: Any, provider: Any, model: Any) -> dict[str, Any]:
+    async def get_usage_stats(
+        self, start_time: Any, end_time: Any, provider: Any, model: Any
+    ) -> dict[str, Any]:
         """Get usage statistics."""
         if self.db_manager:
             return await self.db_manager.get_usage_stats(start_time, end_time, provider, model)  # type: ignore

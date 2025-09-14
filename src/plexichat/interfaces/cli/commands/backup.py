@@ -46,15 +46,17 @@ class SimpleFileBackupManager:
         self.metadata_dir = self.storage_dir / "metadata"
         self.metadata_dir.mkdir(parents=True, exist_ok=True)
 
-    async def create_backup(self,
-                            data: Any,
-                            backup_type: str = "full",
-                            user_id: str | None = None,
-                            data_source: str | None = None,
-                            tags: list[str] | None = None,
-                            retention_days: int | None = 90,
-                            metadata: dict[str, Any] | None = None,
-                            output_dir: Path | None = None) -> dict[str, Any]:
+    async def create_backup(
+        self,
+        data: Any,
+        backup_type: str = "full",
+        user_id: str | None = None,
+        data_source: str | None = None,
+        tags: list[str] | None = None,
+        retention_days: int | None = 90,
+        metadata: dict[str, Any] | None = None,
+        output_dir: Path | None = None,
+    ) -> dict[str, Any]:
         ts = int(datetime.now(UTC).timestamp() * 1000)
         backup_id = f"backup_{ts}"
         output_dir = Path(output_dir) if output_dir else self.storage_dir
@@ -92,14 +94,16 @@ class SimpleFileBackupManager:
         # For the simple manager, incremental behaves like a full backup.
         return await self.create_backup(*args, **kwargs)
 
-    async def list_backups(self, limit: int = 100, offset: int = 0) -> list[dict[str, Any]]:
+    async def list_backups(
+        self, limit: int = 100, offset: int = 0
+    ) -> list[dict[str, Any]]:
         metas = []
         for p in sorted(self.metadata_dir.glob("backup_*.json"), reverse=True):
             try:
                 metas.append(json.loads(p.read_text()))
             except Exception:
                 continue
-        return metas[offset: offset + limit]
+        return metas[offset : offset + limit]
 
     async def delete_backup(self, backup_id: str) -> dict[str, Any]:
         meta_path = self.metadata_dir / f"{backup_id}.json"
@@ -113,7 +117,9 @@ class SimpleFileBackupManager:
             deleted = True
         return {"success": deleted}
 
-    async def restore_backup(self, backup_id: str, target_dir: Path | None = None, dry_run: bool = False) -> dict[str, Any]:
+    async def restore_backup(
+        self, backup_id: str, target_dir: Path | None = None, dry_run: bool = False
+    ) -> dict[str, Any]:
         meta_path = self.metadata_dir / f"{backup_id}.json"
         data_path = self.storage_dir / f"{backup_id}.bin"
         if not meta_path.exists() or not data_path.exists():
@@ -127,7 +133,9 @@ class SimpleFileBackupManager:
         out_path.write_bytes(data_path.read_bytes())
         return {"success": True, "restored_path": str(out_path)}
 
-    async def verify_backup(self, backup_id: str, deep_verify: bool = False) -> dict[str, Any]:
+    async def verify_backup(
+        self, backup_id: str, deep_verify: bool = False
+    ) -> dict[str, Any]:
         meta_path = self.metadata_dir / f"{backup_id}.json"
         data_path = self.storage_dir / f"{backup_id}.bin"
         if not meta_path.exists() or not data_path.exists():
@@ -158,7 +166,9 @@ if RealBackupManager:
         backup_manager = RealBackupManager()
         USING_REAL_MANAGER = True
     except Exception:
-        logger.exception("Failed to initialize real BackupManager, falling back to simple manager.")
+        logger.exception(
+            "Failed to initialize real BackupManager, falling back to simple manager."
+        )
         backup_manager = SimpleFileBackupManager()
         USING_REAL_MANAGER = False
 else:
@@ -196,14 +206,41 @@ def backup():
 
 
 @backup.command()
-@click.option('--output-dir', '-o', default='./backups', help='Backup output directory.')
-@click.option('--type', '-t', 'backup_type', type=click.Choice(['full', 'incremental', 'differential']), default='full', help='Backup type to create.')
-@click.option('--data-source', '-s', 'data_source', default=None, help='Logical data source identifier (required for incremental/differential).')
-@click.option('--user-id', '-u', 'user_id', default=None, help='User id associated with backup.')
-@click.option('--tags', '-g', multiple=True, help='Tags to attach to backup.')
-@click.option('--retention-days', '-r', default=90, type=int, help='Retention period in days.')
-@click.option('--metadata', '-m', default=None, help='Additional JSON metadata.')
-def create(output_dir: str, backup_type: str, data_source: str | None, user_id: str | None, tags: list[str], retention_days: int, metadata: str | None):
+@click.option(
+    "--output-dir", "-o", default="./backups", help="Backup output directory."
+)
+@click.option(
+    "--type",
+    "-t",
+    "backup_type",
+    type=click.Choice(["full", "incremental", "differential"]),
+    default="full",
+    help="Backup type to create.",
+)
+@click.option(
+    "--data-source",
+    "-s",
+    "data_source",
+    default=None,
+    help="Logical data source identifier (required for incremental/differential).",
+)
+@click.option(
+    "--user-id", "-u", "user_id", default=None, help="User id associated with backup."
+)
+@click.option("--tags", "-g", multiple=True, help="Tags to attach to backup.")
+@click.option(
+    "--retention-days", "-r", default=90, type=int, help="Retention period in days."
+)
+@click.option("--metadata", "-m", default=None, help="Additional JSON metadata.")
+def create(
+    output_dir: str,
+    backup_type: str,
+    data_source: str | None,
+    user_id: str | None,
+    tags: list[str],
+    retention_days: int,
+    metadata: str | None,
+):
     """Create a backup (full / incremental / differential)."""
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -220,7 +257,11 @@ def create(output_dir: str, backup_type: str, data_source: str | None, user_id: 
     if USING_REAL_MANAGER:
         # Map names to real enums if available
         try:
-            btype_enum = getattr(RealBackupType, backup_type.upper()) if RealBackupType else backup_type
+            btype_enum = (
+                getattr(RealBackupType, backup_type.upper())
+                if RealBackupType
+                else backup_type
+            )
         except Exception:
             btype_enum = backup_type
 
@@ -228,15 +269,20 @@ def create(output_dir: str, backup_type: str, data_source: str | None, user_id: 
         try:
             result = run_async(
                 backup_manager.create_backup(
-                    data={"generated_by": "cli", "timestamp": datetime.now(UTC).isoformat()},
-                    backup_strategy=(RealBackupStrategy.SCHEDULED if RealBackupStrategy else None),
+                    data={
+                        "generated_by": "cli",
+                        "timestamp": datetime.now(UTC).isoformat(),
+                    },
+                    backup_strategy=(
+                        RealBackupStrategy.SCHEDULED if RealBackupStrategy else None
+                    ),
                     backup_type=btype_enum,
                     security_level=None,
                     user_id=user_id,
                     data_source=data_source,
                     tags=list(tags),
                     retention_days=retention_days,
-                    metadata=meta_obj
+                    metadata=meta_obj,
                 )
             )
         except Exception as e:
@@ -248,14 +294,17 @@ def create(output_dir: str, backup_type: str, data_source: str | None, user_id: 
         try:
             result = run_async(
                 backup_manager.create_backup(
-                    data={"generated_by": "cli", "timestamp": datetime.now(UTC).isoformat()},
+                    data={
+                        "generated_by": "cli",
+                        "timestamp": datetime.now(UTC).isoformat(),
+                    },
                     backup_type=backup_type,
                     user_id=user_id,
                     data_source=data_source,
                     tags=list(tags),
                     retention_days=retention_days,
                     metadata=meta_obj,
-                    output_dir=output_path
+                    output_dir=output_path,
                 )
             )
         except Exception as e:
@@ -263,13 +312,22 @@ def create(output_dir: str, backup_type: str, data_source: str | None, user_id: 
             logger.exception("create backup failed (fallback)")
             sys.exit(1)
 
-    click.echo(f"Backup created: {result.get('backup_id', result.get('backup_path', 'unknown'))}")
+    click.echo(
+        f"Backup created: {result.get('backup_id', result.get('backup_path', 'unknown'))}"
+    )
 
 
 @backup.command()
-@click.argument('backup_id', required=False)
-@click.option('--target-dir', '-t', default='.', help='Directory to restore backup into.')
-@click.option('--dry-run', is_flag=True, default=False, help='Simulate the restore without writing data.')
+@click.argument("backup_id", required=False)
+@click.option(
+    "--target-dir", "-t", default=".", help="Directory to restore backup into."
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    default=False,
+    help="Simulate the restore without writing data.",
+)
 def restore(backup_id: str | None, target_dir: str, dry_run: bool):
     """Restore a backup. If BACKUP_ID is omitted and manager supports recovery plans, a recovery plan will be used."""
     try:
@@ -279,51 +337,88 @@ def restore(backup_id: str | None, target_dir: str, dry_run: bool):
                 # Try to call restore directly
                 engine_restore = getattr(backup_manager, "backup_engine", None)
                 if engine_restore and hasattr(engine_restore, "restore_backup"):
-                    result = run_async(engine_restore.restore_backup(backup_id=backup_id, target_dir=Path(target_dir), dry_run=dry_run))
+                    result = run_async(
+                        engine_restore.restore_backup(
+                            backup_id=backup_id,
+                            target_dir=Path(target_dir),
+                            dry_run=dry_run,
+                        )
+                    )
                     if result.get("success"):
-                        click.echo(f"Restore completed. Target: {result.get('restored_path', target_dir)}")
+                        click.echo(
+                            f"Restore completed. Target: {result.get('restored_path', target_dir)}"
+                        )
                     else:
                         click.echo(f"Restore failed: {result}", err=True)
                         sys.exit(1)
                 else:
                     # Use create_recovery_plan + execute_recovery to restore specific backup
-                    plan_id = run_async(backup_manager.create_recovery_plan(
-                        name=f"cli-temp-restore-{int(datetime.now().timestamp())}",
-                        recovery_mode=(RealRecoveryMode.FULL_RESTORE if RealRecoveryMode else None),
-                        backup_sources=[backup_id],
-                        target_location=str(target_dir),
-                        estimated_time=60
-                    ))
-                    result = run_async(backup_manager.execute_recovery(plan_id=plan_id, backup_id=backup_id, dry_run=dry_run))
+                    plan_id = run_async(
+                        backup_manager.create_recovery_plan(
+                            name=f"cli-temp-restore-{int(datetime.now().timestamp())}",
+                            recovery_mode=(
+                                RealRecoveryMode.FULL_RESTORE
+                                if RealRecoveryMode
+                                else None
+                            ),
+                            backup_sources=[backup_id],
+                            target_location=str(target_dir),
+                            estimated_time=60,
+                        )
+                    )
+                    result = run_async(
+                        backup_manager.execute_recovery(
+                            plan_id=plan_id, backup_id=backup_id, dry_run=dry_run
+                        )
+                    )
                     if result.get("status") == "success":
-                        click.echo(f"Restore completed via recovery plan. Details: {result}")
+                        click.echo(
+                            f"Restore completed via recovery plan. Details: {result}"
+                        )
                     else:
                         click.echo(f"Restore failed: {result}", err=True)
                         sys.exit(1)
             else:
                 # No backup id: attempt to run a recovery plan that selects the latest backup
                 # Create minimal plan and execute
-                plan_id = run_async(backup_manager.create_recovery_plan(
-                    name=f"cli-temp-restore-latest-{int(datetime.now().timestamp())}",
-                    recovery_mode=(RealRecoveryMode.FULL_RESTORE if RealRecoveryMode else None),
-                    backup_sources=[],  # allow manager to find latest
-                    target_location=str(target_dir),
-                    estimated_time=60
-                ))
-                result = run_async(backup_manager.execute_recovery(plan_id=plan_id, dry_run=dry_run))
+                plan_id = run_async(
+                    backup_manager.create_recovery_plan(
+                        name=f"cli-temp-restore-latest-{int(datetime.now().timestamp())}",
+                        recovery_mode=(
+                            RealRecoveryMode.FULL_RESTORE if RealRecoveryMode else None
+                        ),
+                        backup_sources=[],  # allow manager to find latest
+                        target_location=str(target_dir),
+                        estimated_time=60,
+                    )
+                )
+                result = run_async(
+                    backup_manager.execute_recovery(plan_id=plan_id, dry_run=dry_run)
+                )
                 if result.get("status") == "success":
-                    click.echo(f"Restore completed via recovery plan. Details: {result}")
+                    click.echo(
+                        f"Restore completed via recovery plan. Details: {result}"
+                    )
                 else:
                     click.echo(f"Restore failed: {result}", err=True)
                     sys.exit(1)
         else:
             # Simple fallback restore requires backup_id
             if not backup_id:
-                click.echo("Backup ID is required for restore when using the fallback manager.", err=True)
+                click.echo(
+                    "Backup ID is required for restore when using the fallback manager.",
+                    err=True,
+                )
                 sys.exit(2)
-            result = run_async(backup_manager.restore_backup(backup_id=backup_id, target_dir=Path(target_dir), dry_run=dry_run))
+            result = run_async(
+                backup_manager.restore_backup(
+                    backup_id=backup_id, target_dir=Path(target_dir), dry_run=dry_run
+                )
+            )
             if result.get("success"):
-                click.echo(f"Restore completed. Restored to: {result.get('restored_path', target_dir)}")
+                click.echo(
+                    f"Restore completed. Restored to: {result.get('restored_path', target_dir)}"
+                )
             else:
                 click.echo(f"Restore failed: {result}", err=True)
                 sys.exit(1)
@@ -335,9 +430,9 @@ def restore(backup_id: str | None, target_dir: str, dry_run: bool):
 
 
 @backup.command(name="list")
-@click.option('--limit', '-l', default=100, help='Maximum number of backups to list.')
-@click.option('--offset', default=0, help='Offset into result set.')
-@click.option('--data-source', '-s', default=None, help='Filter by data source.')
+@click.option("--limit", "-l", default=100, help="Maximum number of backups to list.")
+@click.option("--offset", default=0, help="Offset into result set.")
+@click.option("--data-source", "-s", default=None, help="Filter by data source.")
 def list_backups(limit: int, offset: int, data_source: str | None):
     """List available backups."""
     try:
@@ -363,14 +458,18 @@ def list_backups(limit: int, offset: int, data_source: str | None):
 
 
 @backup.command()
-@click.argument('backup_id')
+@click.argument("backup_id")
 def verify(backup_id: str):
     """Verify backup integrity (lightweight by default)."""
     try:
         if USING_REAL_MANAGER:
-            result = run_async(backup_manager.verify_backup(backup_id, deep_verify=False))
+            result = run_async(
+                backup_manager.verify_backup(backup_id, deep_verify=False)
+            )
         else:
-            result = run_async(backup_manager.verify_backup(backup_id, deep_verify=False))
+            result = run_async(
+                backup_manager.verify_backup(backup_id, deep_verify=False)
+            )
         click.echo(f"Verification result for {backup_id}: {result.get('status')}")
         if result.get("issues"):
             click.echo("Issues:")
@@ -383,39 +482,73 @@ def verify(backup_id: str):
 
 
 @backup.command()
-@click.option('--name', '-n', required=True, help='Name of the schedule.')
-@click.option('--cron', '-c', required=True, help='Cron expression for schedule (simple parser expected by manager).')
-@click.option('--data-sources', '-s', multiple=True, required=True, help='One or more data source identifiers to back up.')
-@click.option('--backup-type', '-t', type=click.Choice(['full', 'incremental', 'differential']), default='incremental', help='Type of backups to create for schedule.')
-@click.option('--retention-days', '-r', default=90, help='Retention period for scheduled backups.')
-def schedule(name: str, cron: str, data_sources: list[str], backup_type: str, retention_days: int):
+@click.option("--name", "-n", required=True, help="Name of the schedule.")
+@click.option(
+    "--cron",
+    "-c",
+    required=True,
+    help="Cron expression for schedule (simple parser expected by manager).",
+)
+@click.option(
+    "--data-sources",
+    "-s",
+    multiple=True,
+    required=True,
+    help="One or more data source identifiers to back up.",
+)
+@click.option(
+    "--backup-type",
+    "-t",
+    type=click.Choice(["full", "incremental", "differential"]),
+    default="incremental",
+    help="Type of backups to create for schedule.",
+)
+@click.option(
+    "--retention-days", "-r", default=90, help="Retention period for scheduled backups."
+)
+def schedule(
+    name: str, cron: str, data_sources: list[str], backup_type: str, retention_days: int
+):
     """Create an automated backup schedule."""
     if not USING_REAL_MANAGER:
-        click.echo("Automated scheduling is only available when the full backup subsystem is present.", err=True)
+        click.echo(
+            "Automated scheduling is only available when the full backup subsystem is present.",
+            err=True,
+        )
         sys.exit(2)
 
     try:
         # Map backup_type to real enum if available
         try:
-            btype_enum = getattr(RealBackupType, backup_type.upper()) if RealBackupType else backup_type
+            btype_enum = (
+                getattr(RealBackupType, backup_type.upper())
+                if RealBackupType
+                else backup_type
+            )
         except Exception:
             btype_enum = backup_type
 
-        schedule_id = run_async(backup_manager.create_backup_schedule(
-            name=name,
-            cron_expression=cron,
-            data_sources=list(data_sources),
-            backup_strategy=(RealBackupStrategy.SCHEDULED if RealBackupStrategy else None),
-            backup_type=btype_enum,
-            security_level=None,
-            retention_days=retention_days,
-            target_nodes=None,
-            tags=[],
-            metadata={"created_by": "cli"}
-        ))
+        schedule_id = run_async(
+            backup_manager.create_backup_schedule(
+                name=name,
+                cron_expression=cron,
+                data_sources=list(data_sources),
+                backup_strategy=(
+                    RealBackupStrategy.SCHEDULED if RealBackupStrategy else None
+                ),
+                backup_type=btype_enum,
+                security_level=None,
+                retention_days=retention_days,
+                target_nodes=None,
+                tags=[],
+                metadata={"created_by": "cli"},
+            )
+        )
         click.echo(f"Schedule created: {schedule_id}")
     except NotImplementedError:
-        click.echo("Scheduling is not implemented by the current backup manager.", err=True)
+        click.echo(
+            "Scheduling is not implemented by the current backup manager.", err=True
+        )
         sys.exit(2)
     except Exception as e:
         logger.exception("schedule creation failed")
@@ -424,8 +557,19 @@ def schedule(name: str, cron: str, data_sources: list[str], backup_type: str, re
 
 
 @backup.command()
-@click.option('--days', '-d', required=True, type=int, help='Delete backups older than this many days.')
-@click.option('--dry-run', is_flag=True, default=False, help='Show what would be deleted without deleting.')
+@click.option(
+    "--days",
+    "-d",
+    required=True,
+    type=int,
+    help="Delete backups older than this many days.",
+)
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    default=False,
+    help="Show what would be deleted without deleting.",
+)
 def prune(days: int, dry_run: bool):
     """Delete backups older than X days (retention enforcement)."""
     try:
@@ -482,7 +626,7 @@ def prune(days: int, dry_run: bool):
 
 
 @backup.command()
-@click.argument('backup_id')
+@click.argument("backup_id")
 def delete(backup_id: str):
     """Delete a specific backup."""
     if not click.confirm(f"Are you sure you want to delete backup '{backup_id}'?"):
@@ -521,7 +665,9 @@ def status():
         else:
             # Provide simple status info for fallback manager
             backups = run_async(backup_manager.list_backups(limit=1000))
-            click.echo(f"Backup subsystem: {'real' if USING_REAL_MANAGER else 'fallback'}")
+            click.echo(
+                f"Backup subsystem: {'real' if USING_REAL_MANAGER else 'fallback'}"
+            )
             click.echo(f"Total backups: {len(backups)}")
     except Exception as e:
         logger.exception("status failed")
@@ -529,5 +675,5 @@ def status():
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     backup()

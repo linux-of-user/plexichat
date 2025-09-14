@@ -49,24 +49,31 @@ SHARD_RATE_LIMITS = {
     "shard_upload": {"requests_per_minute": 10, "burst_limit": 3},
     "shard_download": {"requests_per_minute": 30, "burst_limit": 10},
     "shard_verify": {"requests_per_minute": 60, "burst_limit": 20},
-    "shard_list": {"requests_per_minute": 120, "burst_limit": 30}
+    "shard_list": {"requests_per_minute": 120, "burst_limit": 30},
 }
 
 
 class ShardRequest(BaseModel):
     """Request model for shard operations."""
-    backup_id: str = Field(..., min_length=10, max_length=100, description="Backup ID containing the shard")
-    shard_index: int = Field(..., ge=0, description="Index of the shard within the backup")
-    operation: str = Field(..., description="Operation type (request, upload, download, verify)")
 
-    @validator('backup_id')
+    backup_id: str = Field(
+        ..., min_length=10, max_length=100, description="Backup ID containing the shard"
+    )
+    shard_index: int = Field(
+        ..., ge=0, description="Index of the shard within the backup"
+    )
+    operation: str = Field(
+        ..., description="Operation type (request, upload, download, verify)"
+    )
+
+    @validator("backup_id")
     def validate_backup_id(cls, v):
         """Validate backup ID format."""
-        if not re.match(r'^backup_\d+_[a-f0-9]+$', v):
+        if not re.match(r"^backup_\d+_[a-f0-9]+$", v):
             raise ValueError("Invalid backup ID format")
         return v
 
-    @validator('operation')
+    @validator("operation")
     def validate_operation(cls, v):
         """Validate operation type."""
         valid_operations = ["request", "upload", "download", "verify", "list"]
@@ -77,40 +84,46 @@ class ShardRequest(BaseModel):
 
 class ShardUploadRequest(BaseModel):
     """Request model for shard upload."""
+
     backup_id: str = Field(..., min_length=10, max_length=100)
     shard_index: int = Field(..., ge=0)
-    shard_data: str = Field(..., min_length=1, max_length=1048576, description="Base64 encoded shard data")
-    checksum: str = Field(..., min_length=64, max_length=64, description="SHA256 checksum of shard data")
+    shard_data: str = Field(
+        ..., min_length=1, max_length=1048576, description="Base64 encoded shard data"
+    )
+    checksum: str = Field(
+        ..., min_length=64, max_length=64, description="SHA256 checksum of shard data"
+    )
 
-    @validator('backup_id')
+    @validator("backup_id")
     def validate_backup_id(cls, v):
         """Validate backup ID format."""
-        if not re.match(r'^backup_\d+_[a-f0-9]+$', v):
+        if not re.match(r"^backup_\d+_[a-f0-9]+$", v):
             raise ValueError("Invalid backup ID format")
         return v
 
-    @validator('shard_data')
+    @validator("shard_data")
     def validate_shard_data(cls, v):
         """Validate and sanitize shard data."""
         if not v or not v.strip():
             raise ValueError("Shard data cannot be empty")
 
         # Remove any potentially dangerous content
-        v = re.sub(r'[<>]', '', v)  # Remove angle brackets
-        v = re.sub(r'javascript:', '', v, flags=re.IGNORECASE)  # Remove JS injection
+        v = re.sub(r"[<>]", "", v)  # Remove angle brackets
+        v = re.sub(r"javascript:", "", v, flags=re.IGNORECASE)  # Remove JS injection
 
         return v.strip()
 
-    @validator('checksum')
+    @validator("checksum")
     def validate_checksum(cls, v):
         """Validate checksum format."""
-        if not re.match(r'^[a-f0-9]{64}$', v):
+        if not re.match(r"^[a-f0-9]{64}$", v):
             raise ValueError("Invalid checksum format (must be 64-character hex)")
         return v
 
 
 class ShardResponse(BaseModel):
     """Response model for shard operations."""
+
     shard_id: str
     backup_id: str
     shard_index: int
@@ -127,14 +140,22 @@ def sanitize_log_data(data: dict[str, Any]) -> dict[str, Any]:
     sanitized = data.copy()
 
     # Redact PII and sensitive fields
-    sensitive_fields = ['password', 'token', 'key', 'secret', 'private', 'auth', 'shard_data']
+    sensitive_fields = [
+        "password",
+        "token",
+        "key",
+        "secret",
+        "private",
+        "auth",
+        "shard_data",
+    ]
     for field in sensitive_fields:
         if field in sanitized:
             sanitized[field] = "[REDACTED]"
 
     # Redact large data fields
-    if 'data' in sanitized and len(str(sanitized['data'])) > 100:
-        sanitized['data'] = f"[DATA_REDACTED_{len(str(sanitized['data']))}chars]"
+    if "data" in sanitized and len(str(sanitized["data"])) > 100:
+        sanitized["data"] = f"[DATA_REDACTED_{len(str(sanitized['data']))}chars]"
 
     return sanitized
 
@@ -158,7 +179,7 @@ def log_security_event(
     resource: str | None = None,
     details: dict[str, Any] | None = None,
     severity: SecuritySeverity = SecuritySeverity.INFO,
-    threat_level: ThreatLevel = ThreatLevel.LOW
+    threat_level: ThreatLevel = ThreatLevel.LOW,
 ):
     """Log security event with comprehensive context."""
     client_ip = get_client_ip(request)
@@ -175,7 +196,7 @@ def log_security_event(
         resource=resource,
         action=request.method,
         details=details or {},
-        compliance_tags=["shard_distribution", "p2p_backup"]
+        compliance_tags=["shard_distribution", "p2p_backup"],
     )
 
 
@@ -188,16 +209,22 @@ def check_shard_authorization(user_id: str, backup_id: str, operation: str) -> b
             return False
 
         # Check if user owns the backup
-        if backup_metadata.get('user_id') != user_id:
+        if backup_metadata.get("user_id") != user_id:
             return False
 
         # Additional authorization checks based on operation
-        if operation in ['upload', 'download']:
+        if operation in ["upload", "download"]:
             # Verify backup is in appropriate state for the operation
-            backup_status = backup_metadata.get('status', '').lower()
-            if operation == 'upload' and backup_status not in ['pending', 'in_progress']:
+            backup_status = backup_metadata.get("status", "").lower()
+            if operation == "upload" and backup_status not in [
+                "pending",
+                "in_progress",
+            ]:
                 return False
-            if operation == 'download' and backup_status not in ['completed', 'available']:
+            if operation == "download" and backup_status not in [
+                "completed",
+                "available",
+            ]:
                 return False
 
         return True
@@ -212,7 +239,7 @@ async def request_shard(
     request_data: ShardRequest,
     background_tasks: BackgroundTasks,
     current_user: dict = Depends(get_current_user),
-    req: Request = None
+    req: Request = None,
 ):
     """
     Request a shard for P2P distribution.
@@ -224,15 +251,17 @@ async def request_shard(
     """
     try:
         client_ip = get_client_ip(req)
-        user_id = current_user.get('id')
+        user_id = current_user.get("id")
 
         # Log sanitized request data
         log_data = sanitize_log_data(request_data.dict())
-        logger.info(f"Shard request by user {redact_pii(current_user.get('username', 'unknown'))}",
-                   extra={"user_id": user_id, "request": log_data, "client_ip": client_ip})
+        logger.info(
+            f"Shard request by user {redact_pii(current_user.get('username', 'unknown'))}",
+            extra={"user_id": user_id, "request": log_data, "client_ip": client_ip},
+        )
 
         # Check authorization
-        if not check_shard_authorization(user_id, request_data.backup_id, 'request'):
+        if not check_shard_authorization(user_id, request_data.backup_id, "request"):
             log_security_event(
                 SecurityEventType.AUTHORIZATION_FAILURE,
                 f"Unauthorized shard request attempt for backup {request_data.backup_id}",
@@ -241,12 +270,14 @@ async def request_shard(
                 f"shard:{request_data.backup_id}:{request_data.shard_index}",
                 {"operation": "request", "shard_index": request_data.shard_index},
                 SecuritySeverity.WARNING,
-                ThreatLevel.MEDIUM
+                ThreatLevel.MEDIUM,
             )
             raise HTTPException(status_code=403, detail="Access denied")
 
         # Get shard information
-        shard_info = await get_shard_info(request_data.backup_id, request_data.shard_index)
+        shard_info = await get_shard_info(
+            request_data.backup_id, request_data.shard_index
+        )
         if not shard_info:
             raise HTTPException(status_code=404, detail="Shard not found")
 
@@ -257,35 +288,37 @@ async def request_shard(
             req,
             user_id,
             f"shard:{request_data.backup_id}:{request_data.shard_index}",
-            {"operation": "request", "shard_size": shard_info.get('size_bytes', 0)}
+            {"operation": "request", "shard_size": shard_info.get("size_bytes", 0)},
         )
 
         return {
-            "shard_id": shard_info.get('shard_id'),
+            "shard_id": shard_info.get("shard_id"),
             "backup_id": request_data.backup_id,
             "shard_index": request_data.shard_index,
-            "size_bytes": shard_info.get('size_bytes', 0),
-            "checksum": shard_info.get('checksum'),
-            "available_peers": shard_info.get('peer_count', 0),
-            "status": "available"
+            "size_bytes": shard_info.get("size_bytes", 0),
+            "checksum": shard_info.get("checksum"),
+            "available_peers": shard_info.get("peer_count", 0),
+            "status": "available",
         }
 
     except HTTPException:
         raise
     except Exception as e:
         error_msg = str(e)
-        logger.error(f"Shard request failed: {redact_pii(error_msg)}",
-                    extra={"user_id": current_user.get('id')})
+        logger.error(
+            f"Shard request failed: {redact_pii(error_msg)}",
+            extra={"user_id": current_user.get("id")},
+        )
 
         log_security_event(
             SecurityEventType.SECURITY_ALERT,
             f"Shard request error: {redact_pii(error_msg)}",
             req,
-            current_user.get('id'),
+            current_user.get("id"),
             f"shard:{request_data.backup_id}:{request_data.shard_index}",
             {"error": redact_pii(error_msg)},
             SecuritySeverity.ERROR,
-            ThreatLevel.LOW
+            ThreatLevel.LOW,
         )
 
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -296,7 +329,7 @@ async def upload_shard(
     request_data: ShardUploadRequest,
     background_tasks: BackgroundTasks,
     current_user: dict = Depends(get_current_user),
-    req: Request = None
+    req: Request = None,
 ):
     """
     Upload a shard for P2P distribution.
@@ -308,15 +341,17 @@ async def upload_shard(
     """
     try:
         client_ip = get_client_ip(req)
-        user_id = current_user.get('id')
+        user_id = current_user.get("id")
 
         # Log sanitized request data
         log_data = sanitize_log_data(request_data.dict())
-        logger.info(f"Shard upload by user {redact_pii(current_user.get('username', 'unknown'))}",
-                   extra={"user_id": user_id, "request": log_data, "client_ip": client_ip})
+        logger.info(
+            f"Shard upload by user {redact_pii(current_user.get('username', 'unknown'))}",
+            extra={"user_id": user_id, "request": log_data, "client_ip": client_ip},
+        )
 
         # Check authorization
-        if not check_shard_authorization(user_id, request_data.backup_id, 'upload'):
+        if not check_shard_authorization(user_id, request_data.backup_id, "upload"):
             log_security_event(
                 SecurityEventType.AUTHORIZATION_FAILURE,
                 f"Unauthorized shard upload attempt for backup {request_data.backup_id}",
@@ -325,13 +360,14 @@ async def upload_shard(
                 f"shard:{request_data.backup_id}:{request_data.shard_index}",
                 {"operation": "upload", "shard_index": request_data.shard_index},
                 SecuritySeverity.WARNING,
-                ThreatLevel.HIGH
+                ThreatLevel.HIGH,
             )
             raise HTTPException(status_code=403, detail="Access denied")
 
         # Verify data integrity
         try:
             import base64
+
             shard_bytes = base64.b64decode(request_data.shard_data)
             calculated_checksum = hashlib.sha256(shard_bytes).hexdigest()
 
@@ -342,11 +378,16 @@ async def upload_shard(
                     req,
                     user_id,
                     f"shard:{request_data.backup_id}:{request_data.shard_index}",
-                    {"expected": request_data.checksum, "calculated": calculated_checksum},
+                    {
+                        "expected": request_data.checksum,
+                        "calculated": calculated_checksum,
+                    },
                     SecuritySeverity.CRITICAL,
-                    ThreatLevel.HIGH
+                    ThreatLevel.HIGH,
                 )
-                raise HTTPException(status_code=400, detail="Checksum verification failed")
+                raise HTTPException(
+                    status_code=400, detail="Checksum verification failed"
+                )
         except Exception:
             raise HTTPException(status_code=400, detail="Invalid shard data format")
 
@@ -356,10 +397,10 @@ async def upload_shard(
             request_data.shard_index,
             shard_bytes,
             request_data.checksum,
-            user_id
+            user_id,
         )
 
-        if not storage_result.get('success', False):
+        if not storage_result.get("success", False):
             raise HTTPException(status_code=500, detail="Shard storage failed")
 
         # Log successful upload
@@ -372,36 +413,38 @@ async def upload_shard(
             {
                 "operation": "upload",
                 "shard_size": len(shard_bytes),
-                "storage_location": storage_result.get('location', 'unknown')
-            }
+                "storage_location": storage_result.get("location", "unknown"),
+            },
         )
 
         return {
-            "shard_id": storage_result.get('shard_id'),
+            "shard_id": storage_result.get("shard_id"),
             "backup_id": request_data.backup_id,
             "shard_index": request_data.shard_index,
             "size_bytes": len(shard_bytes),
             "checksum": request_data.checksum,
-            "storage_location": storage_result.get('location'),
-            "status": "uploaded"
+            "storage_location": storage_result.get("location"),
+            "status": "uploaded",
         }
 
     except HTTPException:
         raise
     except Exception as e:
         error_msg = str(e)
-        logger.error(f"Shard upload failed: {redact_pii(error_msg)}",
-                    extra={"user_id": current_user.get('id')})
+        logger.error(
+            f"Shard upload failed: {redact_pii(error_msg)}",
+            extra={"user_id": current_user.get("id")},
+        )
 
         log_security_event(
             SecurityEventType.SECURITY_ALERT,
             f"Shard upload error: {redact_pii(error_msg)}",
             req,
-            current_user.get('id'),
+            current_user.get("id"),
             f"shard:{request_data.backup_id}:{request_data.shard_index}",
             {"error": redact_pii(error_msg)},
             SecuritySeverity.ERROR,
-            ThreatLevel.MEDIUM
+            ThreatLevel.MEDIUM,
         )
 
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -412,7 +455,7 @@ async def download_shard(
     backup_id: str,
     shard_index: int,
     current_user: dict = Depends(get_current_user),
-    req: Request = None
+    req: Request = None,
 ):
     """
     Download a shard for P2P distribution.
@@ -423,17 +466,24 @@ async def download_shard(
     """
     try:
         client_ip = get_client_ip(req)
-        user_id = current_user.get('id')
+        user_id = current_user.get("id")
 
         # Validate parameters
-        if not re.match(r'^backup_\d+_[a-f0-9]+$', backup_id):
+        if not re.match(r"^backup_\d+_[a-f0-9]+$", backup_id):
             raise HTTPException(status_code=400, detail="Invalid backup ID format")
 
-        logger.info(f"Shard download request by user {redact_pii(current_user.get('username', 'unknown'))}",
-                   extra={"user_id": user_id, "backup_id": backup_id, "shard_index": shard_index, "client_ip": client_ip})
+        logger.info(
+            f"Shard download request by user {redact_pii(current_user.get('username', 'unknown'))}",
+            extra={
+                "user_id": user_id,
+                "backup_id": backup_id,
+                "shard_index": shard_index,
+                "client_ip": client_ip,
+            },
+        )
 
         # Check authorization
-        if not check_shard_authorization(user_id, backup_id, 'download'):
+        if not check_shard_authorization(user_id, backup_id, "download"):
             log_security_event(
                 SecurityEventType.AUTHORIZATION_FAILURE,
                 f"Unauthorized shard download attempt for backup {backup_id}:{shard_index}",
@@ -442,7 +492,7 @@ async def download_shard(
                 f"shard:{backup_id}:{shard_index}",
                 {"operation": "download"},
                 SecuritySeverity.WARNING,
-                ThreatLevel.HIGH
+                ThreatLevel.HIGH,
             )
             raise HTTPException(status_code=403, detail="Access denied")
 
@@ -460,37 +510,40 @@ async def download_shard(
             f"shard:{backup_id}:{shard_index}",
             {
                 "operation": "download",
-                "shard_size": shard_data.get('size_bytes', 0),
-                "source": shard_data.get('source', 'unknown')
-            }
+                "shard_size": shard_data.get("size_bytes", 0),
+                "source": shard_data.get("source", "unknown"),
+            },
         )
 
         import base64
+
         return {
-            "shard_id": shard_data.get('shard_id'),
+            "shard_id": shard_data.get("shard_id"),
             "backup_id": backup_id,
             "shard_index": shard_index,
-            "data": base64.b64encode(shard_data.get('data', b'')).decode(),
-            "checksum": shard_data.get('checksum'),
-            "size_bytes": shard_data.get('size_bytes', 0)
+            "data": base64.b64encode(shard_data.get("data", b"")).decode(),
+            "checksum": shard_data.get("checksum"),
+            "size_bytes": shard_data.get("size_bytes", 0),
         }
 
     except HTTPException:
         raise
     except Exception as e:
         error_msg = str(e)
-        logger.error(f"Shard download failed: {redact_pii(error_msg)}",
-                    extra={"user_id": current_user.get('id')})
+        logger.error(
+            f"Shard download failed: {redact_pii(error_msg)}",
+            extra={"user_id": current_user.get("id")},
+        )
 
         log_security_event(
             SecurityEventType.SECURITY_ALERT,
             f"Shard download error: {redact_pii(error_msg)}",
             req,
-            current_user.get('id'),
+            current_user.get("id"),
             f"shard:{backup_id}:{shard_index}",
             {"error": redact_pii(error_msg)},
             SecuritySeverity.ERROR,
-            ThreatLevel.MEDIUM
+            ThreatLevel.MEDIUM,
         )
 
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -501,7 +554,7 @@ async def verify_shard(
     backup_id: str,
     shard_index: int,
     current_user: dict = Depends(get_current_user),
-    req: Request = None
+    req: Request = None,
 ):
     """
     Verify shard integrity.
@@ -512,17 +565,24 @@ async def verify_shard(
     """
     try:
         client_ip = get_client_ip(req)
-        user_id = current_user.get('id')
+        user_id = current_user.get("id")
 
         # Validate parameters
-        if not re.match(r'^backup_\d+_[a-f0-9]+$', backup_id):
+        if not re.match(r"^backup_\d+_[a-f0-9]+$", backup_id):
             raise HTTPException(status_code=400, detail="Invalid backup ID format")
 
-        logger.info(f"Shard verification request by user {redact_pii(current_user.get('username', 'unknown'))}",
-                   extra={"user_id": user_id, "backup_id": backup_id, "shard_index": shard_index, "client_ip": client_ip})
+        logger.info(
+            f"Shard verification request by user {redact_pii(current_user.get('username', 'unknown'))}",
+            extra={
+                "user_id": user_id,
+                "backup_id": backup_id,
+                "shard_index": shard_index,
+                "client_ip": client_ip,
+            },
+        )
 
         # Check authorization
-        if not check_shard_authorization(user_id, backup_id, 'verify'):
+        if not check_shard_authorization(user_id, backup_id, "verify"):
             log_security_event(
                 SecurityEventType.AUTHORIZATION_FAILURE,
                 f"Unauthorized shard verification attempt for backup {backup_id}:{shard_index}",
@@ -531,16 +591,26 @@ async def verify_shard(
                 f"shard:{backup_id}:{shard_index}",
                 {"operation": "verify"},
                 SecuritySeverity.WARNING,
-                ThreatLevel.MEDIUM
+                ThreatLevel.MEDIUM,
             )
             raise HTTPException(status_code=403, detail="Access denied")
 
         # Verify shard integrity
-        verification_result = await verify_shard_integrity(backup_id, shard_index, user_id)
+        verification_result = await verify_shard_integrity(
+            backup_id, shard_index, user_id
+        )
 
         # Log verification result
-        severity = SecuritySeverity.INFO if verification_result.get('valid', False) else SecuritySeverity.WARNING
-        threat_level = ThreatLevel.LOW if verification_result.get('valid', False) else ThreatLevel.MEDIUM
+        severity = (
+            SecuritySeverity.INFO
+            if verification_result.get("valid", False)
+            else SecuritySeverity.WARNING
+        )
+        threat_level = (
+            ThreatLevel.LOW
+            if verification_result.get("valid", False)
+            else ThreatLevel.MEDIUM
+        )
 
         log_security_event(
             SecurityEventType.DATA_ACCESS,
@@ -550,12 +620,12 @@ async def verify_shard(
             f"shard:{backup_id}:{shard_index}",
             {
                 "operation": "verify",
-                "valid": verification_result.get('valid', False),
-                "checksum_match": verification_result.get('checksum_match', False),
-                "peer_count": verification_result.get('peer_count', 0)
+                "valid": verification_result.get("valid", False),
+                "checksum_match": verification_result.get("checksum_match", False),
+                "peer_count": verification_result.get("peer_count", 0),
             },
             severity,
-            threat_level
+            threat_level,
         )
 
         return verification_result
@@ -564,18 +634,20 @@ async def verify_shard(
         raise
     except Exception as e:
         error_msg = str(e)
-        logger.error(f"Shard verification failed: {redact_pii(error_msg)}",
-                    extra={"user_id": current_user.get('id')})
+        logger.error(
+            f"Shard verification failed: {redact_pii(error_msg)}",
+            extra={"user_id": current_user.get("id")},
+        )
 
         log_security_event(
             SecurityEventType.SECURITY_ALERT,
             f"Shard verification error: {redact_pii(error_msg)}",
             req,
-            current_user.get('id'),
+            current_user.get("id"),
             f"shard:{backup_id}:{shard_index}",
             {"error": redact_pii(error_msg)},
             SecuritySeverity.ERROR,
-            ThreatLevel.LOW
+            ThreatLevel.LOW,
         )
 
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -583,9 +655,7 @@ async def verify_shard(
 
 @router.get("/list/{backup_id}")
 async def list_shard_status(
-    backup_id: str,
-    current_user: dict = Depends(get_current_user),
-    req: Request = None
+    backup_id: str, current_user: dict = Depends(get_current_user), req: Request = None
 ):
     """
     List all shards for a backup with their status.
@@ -596,17 +666,19 @@ async def list_shard_status(
     """
     try:
         client_ip = get_client_ip(req)
-        user_id = current_user.get('id')
+        user_id = current_user.get("id")
 
         # Validate parameters
-        if not re.match(r'^backup_\d+_[a-f0-9]+$', backup_id):
+        if not re.match(r"^backup_\d+_[a-f0-9]+$", backup_id):
             raise HTTPException(status_code=400, detail="Invalid backup ID format")
 
-        logger.info(f"Shard list request by user {redact_pii(current_user.get('username', 'unknown'))}",
-                   extra={"user_id": user_id, "backup_id": backup_id, "client_ip": client_ip})
+        logger.info(
+            f"Shard list request by user {redact_pii(current_user.get('username', 'unknown'))}",
+            extra={"user_id": user_id, "backup_id": backup_id, "client_ip": client_ip},
+        )
 
         # Check authorization
-        if not check_shard_authorization(user_id, backup_id, 'list'):
+        if not check_shard_authorization(user_id, backup_id, "list"):
             log_security_event(
                 SecurityEventType.AUTHORIZATION_FAILURE,
                 f"Unauthorized shard list attempt for backup {backup_id}",
@@ -615,7 +687,7 @@ async def list_shard_status(
                 f"backup:{backup_id}",
                 {"operation": "list"},
                 SecuritySeverity.WARNING,
-                ThreatLevel.LOW
+                ThreatLevel.LOW,
             )
             raise HTTPException(status_code=403, detail="Access denied")
 
@@ -632,8 +704,10 @@ async def list_shard_status(
             {
                 "operation": "list",
                 "total_shards": len(shard_status_list),
-                "available_shards": sum(1 for s in shard_status_list if s.get('status') == 'available')
-            }
+                "available_shards": sum(
+                    1 for s in shard_status_list if s.get("status") == "available"
+                ),
+            },
         )
 
         return {"backup_id": backup_id, "shards": shard_status_list}
@@ -642,24 +716,27 @@ async def list_shard_status(
         raise
     except Exception as e:
         error_msg = str(e)
-        logger.error(f"Shard list failed: {redact_pii(error_msg)}",
-                    extra={"user_id": current_user.get('id')})
+        logger.error(
+            f"Shard list failed: {redact_pii(error_msg)}",
+            extra={"user_id": current_user.get("id")},
+        )
 
         log_security_event(
             SecurityEventType.SECURITY_ALERT,
             f"Shard list error: {redact_pii(error_msg)}",
             req,
-            current_user.get('id'),
+            current_user.get("id"),
             f"backup:{backup_id}",
             {"error": redact_pii(error_msg)},
             SecuritySeverity.ERROR,
-            ThreatLevel.LOW
+            ThreatLevel.LOW,
         )
 
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # Helper functions for shard operations
+
 
 async def _get_shard_peer_count(backup_id: str, shard_index: int) -> int:
     """Get the number of peers that have this shard."""
@@ -679,27 +756,29 @@ async def get_shard_info(backup_id: str, shard_index: int) -> dict[str, Any] | N
         if not backup_metadata:
             return None
 
-        shard_count = backup_metadata.get('shard_count', 1)
+        shard_count = backup_metadata.get("shard_count", 1)
         if shard_index >= shard_count:
             return None
 
         # Calculate shard size
-        original_size = backup_metadata.get('original_size', 0)
+        original_size = backup_metadata.get("original_size", 0)
         shard_size = original_size // shard_count if shard_count > 0 else 0
 
         # For checksum, use backup's overall checksum as base
         # In production, individual shard checksums would be stored
-        base_checksum = backup_metadata.get('checksum', '')
-        shard_checksum = hashlib.sha256(f"{base_checksum}_{shard_index}".encode()).hexdigest()
+        base_checksum = backup_metadata.get("checksum", "")
+        shard_checksum = hashlib.sha256(
+            f"{base_checksum}_{shard_index}".encode()
+        ).hexdigest()
 
         return {
-            'shard_id': f"{backup_id}_shard_{shard_index:04d}",
-            'backup_id': backup_id,
-            'shard_index': shard_index,
-            'size_bytes': shard_size,
-            'checksum': shard_checksum,
-            'peer_count': await _get_shard_peer_count(backup_id, shard_index),
-            'status': 'available'
+            "shard_id": f"{backup_id}_shard_{shard_index:04d}",
+            "backup_id": backup_id,
+            "shard_index": shard_index,
+            "size_bytes": shard_size,
+            "checksum": shard_checksum,
+            "peer_count": await _get_shard_peer_count(backup_id, shard_index),
+            "status": "available",
         }
 
     except Exception as e:
@@ -707,7 +786,9 @@ async def get_shard_info(backup_id: str, shard_index: int) -> dict[str, Any] | N
         return None
 
 
-async def store_shard_data(backup_id: str, shard_index: int, data: bytes, checksum: str, user_id: str) -> dict[str, Any]:
+async def store_shard_data(
+    backup_id: str, shard_index: int, data: bytes, checksum: str, user_id: str
+) -> dict[str, Any]:
     """Store shard data in the distributed storage system."""
     try:
         # Create shard metadata
@@ -719,13 +800,13 @@ async def store_shard_data(backup_id: str, shard_index: int, data: bytes, checks
             "data": data,
             "size": len(data),
             "checksum": checksum,
-            "created_at": datetime.now(UTC)
+            "created_at": datetime.now(UTC),
         }
 
         # Get backup metadata to determine total shards
         backup_metadata = await backup_engine.get_backup_details(backup_id)
         if backup_metadata:
-            shard["total_shards"] = backup_metadata.get('shard_count', 1)
+            shard["total_shards"] = backup_metadata.get("shard_count", 1)
 
         # Store shard using storage manager
         storage_results = await storage_manager.store_shards_async([shard], backup_id)
@@ -733,21 +814,23 @@ async def store_shard_data(backup_id: str, shard_index: int, data: bytes, checks
         if storage_results and len(storage_results) > 0:
             result = storage_results[0]
             return {
-                'success': result.success,
-                'shard_id': shard_id,
-                'location': result.location,
-                'size_bytes': result.size_bytes,
-                'checksum': result.checksum
+                "success": result.success,
+                "shard_id": shard_id,
+                "location": result.location,
+                "size_bytes": result.size_bytes,
+                "checksum": result.checksum,
             }
         else:
-            return {'success': False, 'error': 'No storage result returned'}
+            return {"success": False, "error": "No storage result returned"}
 
     except Exception as e:
         logger.error(f"Failed to store shard data: {redact_pii(str(e))}")
-        return {'success': False, 'error': str(e)}
+        return {"success": False, "error": str(e)}
 
 
-async def retrieve_shard_data(backup_id: str, shard_index: int, user_id: str) -> dict[str, Any] | None:
+async def retrieve_shard_data(
+    backup_id: str, shard_index: int, user_id: str
+) -> dict[str, Any] | None:
     """Retrieve shard data from the distributed storage system."""
     try:
         shard_id = f"{backup_id}_shard_{shard_index:04d}"
@@ -755,7 +838,7 @@ async def retrieve_shard_data(backup_id: str, shard_index: int, user_id: str) ->
         # Try to retrieve from local storage first
         local_path = storage_manager.shard_storage / backup_id / f"{shard_id}.shard"
         if local_path.exists():
-            with open(local_path, 'rb') as f:
+            with open(local_path, "rb") as f:
                 shard_data = f.read()
 
             # Verify checksum if available
@@ -764,11 +847,11 @@ async def retrieve_shard_data(backup_id: str, shard_index: int, user_id: str) ->
             # For now, calculate and return
 
             return {
-                'shard_id': shard_id,
-                'data': shard_data,
-                'checksum': hashlib.sha256(shard_data).hexdigest(),
-                'size_bytes': len(shard_data),
-                'source': 'local_storage'
+                "shard_id": shard_id,
+                "data": shard_data,
+                "checksum": hashlib.sha256(shard_data).hexdigest(),
+                "size_bytes": len(shard_data),
+                "source": "local_storage",
             }
 
         # If not found locally, try cloud storage
@@ -780,38 +863,42 @@ async def retrieve_shard_data(backup_id: str, shard_index: int, user_id: str) ->
         return None
 
 
-async def verify_shard_integrity(backup_id: str, shard_index: int, user_id: str) -> dict[str, Any]:
+async def verify_shard_integrity(
+    backup_id: str, shard_index: int, user_id: str
+) -> dict[str, Any]:
     """Verify the integrity of a shard across distributed peers."""
     try:
         shard_id = f"{backup_id}_shard_{shard_index:04d}"
 
         # Use storage manager's verification
-        verification_result = await storage_manager.verify_backup_shards_async(backup_id)
+        verification_result = await storage_manager.verify_backup_shards_async(
+            backup_id
+        )
 
         # Check if this specific shard is valid
         shard_valid = False
-        for detail in verification_result.get('shard_details', []):
-            if detail.get('shard_file', '').startswith(f"{shard_id}"):
-                shard_valid = detail.get('valid', False)
+        for detail in verification_result.get("shard_details", []):
+            if detail.get("shard_file", "").startswith(f"{shard_id}"):
+                shard_valid = detail.get("valid", False)
                 break
 
         return {
-            'shard_id': shard_id,
-            'backup_id': backup_id,
-            'shard_index': shard_index,
-            'valid': shard_valid,
-            'checksum_match': shard_valid,
-            'peer_count': verification_result.get('total_shards', 0),
-            'verified_at': datetime.now(UTC).isoformat(),
-            'verification_method': 'storage_manager_verification'
+            "shard_id": shard_id,
+            "backup_id": backup_id,
+            "shard_index": shard_index,
+            "valid": shard_valid,
+            "checksum_match": shard_valid,
+            "peer_count": verification_result.get("total_shards", 0),
+            "verified_at": datetime.now(UTC).isoformat(),
+            "verification_method": "storage_manager_verification",
         }
 
     except Exception as e:
         logger.error(f"Failed to verify shard integrity: {redact_pii(str(e))}")
         return {
-            'shard_id': f"{backup_id}_shard_{shard_index:04d}",
-            'valid': False,
-            'error': 'Verification failed'
+            "shard_id": f"{backup_id}_shard_{shard_index:04d}",
+            "valid": False,
+            "error": "Verification failed",
         }
 
 
@@ -823,33 +910,38 @@ async def get_shard_status_list(backup_id: str, user_id: str) -> list[dict[str, 
         if not backup_metadata:
             return []
 
-        shard_count = backup_metadata.get('shard_count', 5)
+        shard_count = backup_metadata.get("shard_count", 5)
         shard_status_list = []
 
         # Get verification results from storage manager
-        verification_result = await storage_manager.verify_backup_shards_async(backup_id)
+        verification_result = await storage_manager.verify_backup_shards_async(
+            backup_id
+        )
 
         for i in range(shard_count):
             # Determine status based on verification results
-            status = 'available'
+            status = "available"
             checksum_valid = True
 
             # Check if this shard exists and is valid
-            for detail in verification_result.get('shard_details', []):
-                if f"shard_{i:04d}" in detail.get('shard_file', ''):
-                    checksum_valid = detail.get('valid', True)
-                    status = 'available' if checksum_valid else 'corrupted'
+            for detail in verification_result.get("shard_details", []):
+                if f"shard_{i:04d}" in detail.get("shard_file", ""):
+                    checksum_valid = detail.get("valid", True)
+                    status = "available" if checksum_valid else "corrupted"
                     break
 
-            shard_status_list.append({
-                'shard_id': f"{backup_id}_shard_{i:04d}",
-                'shard_index': i,
-                'status': status,
-                'size_bytes': backup_metadata.get('original_size', 0) // max(shard_count, 1),
-                'peer_count': await _get_shard_peer_count(backup_id, i),
-                'last_verified': datetime.now(UTC).isoformat(),
-                'checksum_valid': checksum_valid
-            })
+            shard_status_list.append(
+                {
+                    "shard_id": f"{backup_id}_shard_{i:04d}",
+                    "shard_index": i,
+                    "status": status,
+                    "size_bytes": backup_metadata.get("original_size", 0)
+                    // max(shard_count, 1),
+                    "peer_count": await _get_shard_peer_count(backup_id, i),
+                    "last_verified": datetime.now(UTC).isoformat(),
+                    "checksum_valid": checksum_valid,
+                }
+            )
 
         return shard_status_list
 

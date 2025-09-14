@@ -19,19 +19,23 @@ from typing import Any
 # Database Service
 # =============================================================================
 
+
 class DatabaseConnectionError(Exception):
     """Raised when database connection fails."""
+
     pass
 
 
 class DatabaseQueryError(Exception):
     """Raised when database query fails."""
+
     pass
 
 
 @dataclass
 class DatabaseConfig:
     """Database configuration."""
+
     host: str = "localhost"
     port: int = 5432
     database: str = "plexichat"
@@ -107,13 +111,16 @@ class DatabaseService:
 # Service Loader
 # =============================================================================
 
+
 class ServiceLoadError(Exception):
     """Raised when service loading fails."""
+
     pass
 
 
 class ServiceStatus(Enum):
     """Service status enumeration."""
+
     STOPPED = "stopped"
     STARTING = "starting"
     RUNNING = "running"
@@ -124,6 +131,7 @@ class ServiceStatus(Enum):
 @dataclass
 class ServiceInfo:
     """Service information."""
+
     name: str
     status: ServiceStatus
     instance: Any | None = None
@@ -141,14 +149,13 @@ class ServiceLoader:
         self.service_registry: dict[str, type] = {}
         self.logger = logging.getLogger(__name__)
 
-    def register_service(self, name: str, service_class: type,
-                        dependencies: list[str] | None = None) -> None:
+    def register_service(
+        self, name: str, service_class: type, dependencies: list[str] | None = None
+    ) -> None:
         """Register a service class."""
         self.service_registry[name] = service_class
         self.services[name] = ServiceInfo(
-            name=name,
-            status=ServiceStatus.STOPPED,
-            dependencies=dependencies or []
+            name=name, status=ServiceStatus.STOPPED, dependencies=dependencies or []
         )
         self.logger.info(f"Registered service: {name}")
 
@@ -165,7 +172,10 @@ class ServiceLoader:
         try:
             # Load dependencies first
             for dep in service_info.dependencies:
-                if dep not in self.services or self.services[dep].status != ServiceStatus.RUNNING:
+                if (
+                    dep not in self.services
+                    or self.services[dep].status != ServiceStatus.RUNNING
+                ):
                     await self.load_service(dep)
 
             service_info.status = ServiceStatus.STARTING
@@ -178,7 +188,7 @@ class ServiceLoader:
                 service_info.instance = service_class()
 
             # Initialize service if it has an async init method
-            if hasattr(service_info.instance, 'initialize'):
+            if hasattr(service_info.instance, "initialize"):
                 await service_info.instance.initialize()
 
             service_info.status = ServiceStatus.RUNNING
@@ -208,7 +218,7 @@ class ServiceLoader:
             service_info.status = ServiceStatus.STOPPING
 
             # Call cleanup method if available
-            if hasattr(service_info.instance, 'cleanup'):
+            if hasattr(service_info.instance, "cleanup"):
                 await service_info.instance.cleanup()
 
             service_info.instance = None
@@ -224,7 +234,10 @@ class ServiceLoader:
 
     def get_service(self, name: str) -> Any | None:
         """Get a running service instance."""
-        if name in self.services and self.services[name].status == ServiceStatus.RUNNING:
+        if (
+            name in self.services
+            and self.services[name].status == ServiceStatus.RUNNING
+        ):
             return self.services[name].instance
         return None
 
@@ -243,6 +256,7 @@ class ServiceLoader:
 # Security Services
 # =============================================================================
 
+
 class SecurityService:
     """Security service for authentication and authorization."""
 
@@ -258,7 +272,9 @@ class SecurityService:
     async def authorize_action(self, user_id: str, action: str, resource: str) -> bool:
         """Authorize a user action."""
         # Stub implementation
-        self.logger.debug(f"Authorizing action: {action} on {resource} for user {user_id}")
+        self.logger.debug(
+            f"Authorizing action: {action} on {resource} for user {user_id}"
+        )
         return True
 
     def generate_token(self, user_data: dict) -> str:
@@ -302,6 +318,7 @@ class EncryptionService:
 # =============================================================================
 # Cache Service
 # =============================================================================
+
 
 class CacheService:
     """Cache service for data caching."""
@@ -348,15 +365,20 @@ class CacheService:
 # Message Service
 # =============================================================================
 
+
 class MessageService:
     """Message service for handling chat messages."""
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
 
-    async def send_message(self, sender_id: str, recipient_id: str, content: str) -> str:
+    async def send_message(
+        self, sender_id: str, recipient_id: str, content: str
+    ) -> str:
         """Send a message."""
-        message_id = hashlib.sha256(f"{sender_id}{recipient_id}{content}{time.time()}".encode()).hexdigest()
+        message_id = hashlib.sha256(
+            f"{sender_id}{recipient_id}{content}{time.time()}".encode()
+        ).hexdigest()
         self.logger.info(f"Message sent: {message_id}")
         return message_id
 
@@ -375,6 +397,7 @@ class MessageService:
 # Notification Service
 # =============================================================================
 
+
 class NotificationService:
     """Notification service for sending notifications."""
 
@@ -391,7 +414,9 @@ class NotificationService:
         self.logger.info(f"Email sent to {to_email}: {subject}")
         return True
 
-    async def send_push_notification(self, device_token: str, title: str, body: str) -> bool:
+    async def send_push_notification(
+        self, device_token: str, title: str, body: str
+    ) -> bool:
         """Send a push notification."""
         self.logger.info(f"Push notification sent: {title}")
         return True
@@ -401,6 +426,7 @@ class NotificationService:
 # File Service
 # =============================================================================
 
+
 class FileService:
     """File service for file operations."""
 
@@ -409,7 +435,9 @@ class FileService:
 
     async def upload_file(self, file_data: bytes, filename: str, user_id: str) -> str:
         """Upload a file."""
-        file_id = hashlib.sha256(f"{filename}{user_id}{time.time()}".encode()).hexdigest()
+        file_id = hashlib.sha256(
+            f"{filename}{user_id}{time.time()}".encode()
+        ).hexdigest()
         self.logger.info(f"File uploaded: {file_id}")
         return file_id
 
@@ -429,6 +457,7 @@ class FileService:
 # Analytics Service
 # =============================================================================
 
+
 class AnalyticsService:
     """Analytics service for tracking events and metrics."""
 
@@ -436,18 +465,22 @@ class AnalyticsService:
         self.events: list[dict] = []
         self.logger = logging.getLogger(__name__)
 
-    async def track_event(self, event_name: str, user_id: str, properties: dict | None = None) -> None:
+    async def track_event(
+        self, event_name: str, user_id: str, properties: dict | None = None
+    ) -> None:
         """Track an analytics event."""
         event = {
             "event_name": event_name,
             "user_id": user_id,
             "properties": properties or {},
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
         self.events.append(event)
         self.logger.debug(f"Event tracked: {event_name}")
 
-    async def get_metrics(self, metric_name: str, start_date: datetime, end_date: datetime) -> dict:
+    async def get_metrics(
+        self, metric_name: str, start_date: datetime, end_date: datetime
+    ) -> dict:
         """Get analytics metrics."""
         # Stub implementation
         return {"metric_name": metric_name, "value": 0, "count": 0}
@@ -456,6 +489,7 @@ class AnalyticsService:
 # =============================================================================
 # Configuration Service
 # =============================================================================
+
 
 class ConfigurationService:
     """Configuration service for managing application settings."""
@@ -487,6 +521,7 @@ class ConfigurationService:
 # =============================================================================
 # Health Check Service
 # =============================================================================
+
 
 class HealthCheckService:
     """Health check service for monitoring system health."""
@@ -522,7 +557,7 @@ class HealthCheckService:
         return {
             "status": "healthy" if all_healthy else "unhealthy",
             "checks": check_results,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
 
@@ -636,6 +671,7 @@ def get_health_check_service() -> HealthCheckService:
 # Initialization Function
 # =============================================================================
 
+
 async def initialize_services() -> None:
     """Initialize all services."""
     logger = logging.getLogger(__name__)
@@ -673,6 +709,7 @@ async def initialize_services() -> None:
 # Cleanup Function
 # =============================================================================
 
+
 async def cleanup_services() -> None:
     """Cleanup all services."""
     logger = logging.getLogger(__name__)
@@ -698,42 +735,38 @@ async def cleanup_services() -> None:
 
 __all__ = [
     # Services
-    'DatabaseService',
-    'ServiceLoader',
-    'SecurityService',
-    'EncryptionService',
-    'CacheService',
-    'MessageService',
-    'NotificationService',
-    'FileService',
-    'AnalyticsService',
-    'ConfigurationService',
-    'HealthCheckService',
-
+    "DatabaseService",
+    "ServiceLoader",
+    "SecurityService",
+    "EncryptionService",
+    "CacheService",
+    "MessageService",
+    "NotificationService",
+    "FileService",
+    "AnalyticsService",
+    "ConfigurationService",
+    "HealthCheckService",
     # Service getters
-    'get_database_service',
-    'get_service_loader',
-    'get_security_service',
-    'get_encryption_service',
-    'get_cache_service',
-    'get_message_service',
-    'get_notification_service',
-    'get_file_service',
-    'get_analytics_service',
-    'get_configuration_service',
-    'get_health_check_service',
-
+    "get_database_service",
+    "get_service_loader",
+    "get_security_service",
+    "get_encryption_service",
+    "get_cache_service",
+    "get_message_service",
+    "get_notification_service",
+    "get_file_service",
+    "get_analytics_service",
+    "get_configuration_service",
+    "get_health_check_service",
     # Utility functions
-    'initialize_services',
-    'cleanup_services',
-
+    "initialize_services",
+    "cleanup_services",
     # Exceptions
-    'DatabaseConnectionError',
-    'DatabaseQueryError',
-    'ServiceLoadError',
-
+    "DatabaseConnectionError",
+    "DatabaseQueryError",
+    "ServiceLoadError",
     # Enums and data classes
-    'ServiceStatus',
-    'ServiceInfo',
-    'DatabaseConfig',
+    "ServiceStatus",
+    "ServiceInfo",
+    "DatabaseConfig",
 ]

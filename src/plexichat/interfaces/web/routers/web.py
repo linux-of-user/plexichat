@@ -49,7 +49,10 @@ router = APIRouter(prefix="/web", tags=["web"])
 
 # Initialize EXISTING performance systems
 performance_logger = get_performance_logger() if get_performance_logger else None
-optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
+optimization_engine = (
+    PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
+)
+
 
 class WebService:
     """Service class for web operations using EXISTING database abstraction layer."""
@@ -59,7 +62,11 @@ class WebService:
         self.db_manager = database_manager
         self.performance_logger = performance_logger
 
-    @async_track_performance("web_dashboard") if async_track_performance else lambda f: f
+    @(
+        async_track_performance("web_dashboard")
+        if async_track_performance
+        else lambda f: f
+    )
     async def get_dashboard_data(self, user_id: int) -> dict[str, Any]:
         """Get dashboard data using EXISTING database abstraction layer."""
         try:
@@ -68,7 +75,7 @@ class WebService:
                 "total_messages": 0,
                 "total_files": 0,
                 "recent_activity": [],
-                "system_status": "healthy"
+                "system_status": "healthy",
             }
 
             if self.db_manager:
@@ -79,13 +86,15 @@ class WebService:
                         with timer("user_message_count"):
                             result = await self.db_manager.execute_query(
                                 "SELECT COUNT(*) FROM messages WHERE sender_id = ?",
-                                {"sender_id": user_id}
+                                {"sender_id": user_id},
                             )
-                            dashboard_data["total_messages"] = result[0][0] if result else 0
+                            dashboard_data["total_messages"] = (
+                                result[0][0] if result else 0
+                            )
                     else:
                         result = await self.db_manager.execute_query(
                             "SELECT COUNT(*) FROM messages WHERE sender_id = ?",
-                            {"sender_id": user_id}
+                            {"sender_id": user_id},
                         )
                         dashboard_data["total_messages"] = result[0][0] if result else 0
 
@@ -94,13 +103,15 @@ class WebService:
                         with timer("user_file_count"):
                             result = await self.db_manager.execute_query(
                                 "SELECT COUNT(*) FROM files WHERE user_id = ?",
-                                {"user_id": user_id}
+                                {"user_id": user_id},
                             )
-                            dashboard_data["total_files"] = result[0][0] if result else 0
+                            dashboard_data["total_files"] = (
+                                result[0][0] if result else 0
+                            )
                     else:
                         result = await self.db_manager.execute_query(
                             "SELECT COUNT(*) FROM files WHERE user_id = ?",
-                            {"user_id": user_id}
+                            {"user_id": user_id},
                         )
                         dashboard_data["total_files"] = result[0][0] if result else 0
 
@@ -114,12 +125,18 @@ class WebService:
                                 ORDER BY timestamp DESC
                                 LIMIT 5
                                 """,
-                                {"sender_id": user_id}
+                                {"sender_id": user_id},
                             )
                             if result:
                                 dashboard_data["recent_activity"] = [
-                                    {"content": row[0][:50] + "..." if len(row[0]) > 50 else row[0],
-                                    "timestamp": row[1]}
+                                    {
+                                        "content": (
+                                            row[0][:50] + "..."
+                                            if len(row[0]) > 50
+                                            else row[0]
+                                        ),
+                                        "timestamp": row[1],
+                                    }
                                     for row in result
                                 ]
                     else:
@@ -130,12 +147,18 @@ class WebService:
                             ORDER BY timestamp DESC
                             LIMIT 5
                             """,
-                            {"sender_id": user_id}
+                            {"sender_id": user_id},
                         )
                         if result:
                             dashboard_data["recent_activity"] = [
-                                {"content": row[0][:50] + "..." if len(row[0]) > 50 else row[0],
-                                "timestamp": row[1]}
+                                {
+                                    "content": (
+                                        row[0][:50] + "..."
+                                        if len(row[0]) > 50
+                                        else row[0]
+                                    ),
+                                    "timestamp": row[1],
+                                }
                                 for row in result
                             ]
 
@@ -151,22 +174,28 @@ class WebService:
                 "total_messages": 0,
                 "total_files": 0,
                 "recent_activity": [],
-                "system_status": "error"
+                "system_status": "error",
             }
+
 
 # Initialize service
 web_service = WebService()
+
 
 @router.get("/")
 async def main_page(request: Request):
     """Main web interface with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(Fore.CYAN + f"[WEB] Main page accessed from {client_ip}" + Style.RESET_ALL)
+    logger.info(
+        Fore.CYAN + f"[WEB] Main page accessed from {client_ip}" + Style.RESET_ALL
+    )
 
     # Performance tracking
     if performance_logger:
         performance_logger.increment_counter("web_main_page_requests", 1)
-        logger.debug(Fore.GREEN + "[WEB] Main page performance metric recorded" + Style.RESET_ALL)
+        logger.debug(
+            Fore.GREEN + "[WEB] Main page performance metric recorded" + Style.RESET_ALL
+        )
 
     # Simple HTML response for now
     html_content = """
@@ -213,16 +242,25 @@ async def main_page(request: Request):
     """
     return HTMLResponse(content=html_content)
 
+
 @router.get("/dashboard")
-async def dashboard(request: Request, current_user: dict[str, Any] = Depends(get_current_user)):
+async def dashboard(
+    request: Request, current_user: dict[str, Any] = Depends(get_current_user)
+):
     """User dashboard with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(Fore.CYAN + f"[WEB] Dashboard accessed by user {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
+    logger.info(
+        Fore.CYAN
+        + f"[WEB] Dashboard accessed by user {current_user.get('username')} from {client_ip}"
+        + Style.RESET_ALL
+    )
 
     # Performance tracking
     if performance_logger:
         performance_logger.increment_counter("web_dashboard_requests", 1)
-        logger.debug(Fore.GREEN + "[WEB] Dashboard performance metric recorded" + Style.RESET_ALL)
+        logger.debug(
+            Fore.GREEN + "[WEB] Dashboard performance metric recorded" + Style.RESET_ALL
+        )
 
     # Get dashboard data
     dashboard_data = await web_service.get_dashboard_data(current_user.get("id", 0))
@@ -282,16 +320,27 @@ async def dashboard(request: Request, current_user: dict[str, Any] = Depends(get
     """
     return HTMLResponse(content=html_content)
 
+
 @router.get("/admin")
-async def admin_panel(request: Request, current_user: dict[str, Any] = Depends(require_admin)):
+async def admin_panel(
+    request: Request, current_user: dict[str, Any] = Depends(require_admin)
+):
     """Admin panel with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(Fore.CYAN + f"[WEB] Admin panel accessed by admin {current_user.get('username')} from {client_ip}" + Style.RESET_ALL)
+    logger.info(
+        Fore.CYAN
+        + f"[WEB] Admin panel accessed by admin {current_user.get('username')} from {client_ip}"
+        + Style.RESET_ALL
+    )
 
     # Performance tracking
     if performance_logger:
         performance_logger.increment_counter("web_admin_panel_requests", 1)
-        logger.debug(Fore.GREEN + "[WEB] Admin panel performance metric recorded" + Style.RESET_ALL)
+        logger.debug(
+            Fore.GREEN
+            + "[WEB] Admin panel performance metric recorded"
+            + Style.RESET_ALL
+        )
 
     # Simple admin panel HTML
     html_content = f"""

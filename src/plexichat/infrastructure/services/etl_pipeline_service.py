@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class PipelineType(Enum):
     """Types of data pipelines."""
+
     BATCH = "batch"
     STREAMING = "streaming"
     MICRO_BATCH = "micro_batch"
@@ -32,6 +33,7 @@ class PipelineType(Enum):
 
 class PipelineStatus(Enum):
     """Pipeline execution status."""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -42,6 +44,7 @@ class PipelineStatus(Enum):
 
 class TransformationType(Enum):
     """Types of data transformations."""
+
     FILTER = "filter"
     MAP = "map"
     AGGREGATE = "aggregate"
@@ -56,6 +59,7 @@ class TransformationType(Enum):
 @dataclass
 class PipelineConfig:
     """Pipeline configuration."""
+
     name: str
     pipeline_type: PipelineType
     description: str = ""
@@ -98,6 +102,7 @@ class PipelineConfig:
 @dataclass
 class PipelineRun:
     """Pipeline execution run."""
+
     run_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     pipeline_name: str = ""
     status: PipelineStatus = PipelineStatus.PENDING
@@ -126,6 +131,7 @@ class PipelineRun:
 
 class DataTransformer:
     """Data transformation engine."""
+
     def __init__(self):
         self.transformations: dict[TransformationType, Callable] = {
             TransformationType.FILTER: self._filter_transform,
@@ -384,9 +390,21 @@ class DataTransformer:
 
                 value = record[field]
 
-                if (rule == "not_null" and value is None) or (rule == "min_length" and len(str(value)) < validation.get("value", 0)) or (rule == "max_length" and len(str(value)) > validation.get("value", 0)) or (rule == "regex" and not re.match(
-                    validation.get("pattern", ""), str(value)
-                )):
+                if (
+                    (rule == "not_null" and value is None)
+                    or (
+                        rule == "min_length"
+                        and len(str(value)) < validation.get("value", 0)
+                    )
+                    or (
+                        rule == "max_length"
+                        and len(str(value)) > validation.get("value", 0)
+                    )
+                    or (
+                        rule == "regex"
+                        and not re.match(validation.get("pattern", ""), str(value))
+                    )
+                ):
                     is_valid = False
                     break
 
@@ -422,6 +440,7 @@ class DataTransformer:
 
 class ETLPipelineService:
     """Main ETL/ELT pipeline service."""
+
     def __init__(self):
         self.pipelines: dict[str, PipelineConfig] = {}
         self.active_runs: dict[str, PipelineRun] = {}
@@ -553,7 +572,9 @@ class ETLPipelineService:
                 db_name = source_config.get("database", "default")
                 query = source_config.get("query", "SELECT * FROM messages LIMIT 1000")
 
-                result = await enhanced_db_manager.execute_query(query, database=db_name)
+                result = await enhanced_db_manager.execute_query(
+                    query, database=db_name
+                )
                 return result.data
 
         elif source_type == "api":

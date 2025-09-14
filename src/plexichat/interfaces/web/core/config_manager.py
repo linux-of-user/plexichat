@@ -19,22 +19,26 @@ import yaml
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class WebUIPortConfig:
     """WebUI port configuration."""
+
     primary_port: int = 8000
     admin_port: int | None = None  # If None, uses primary_port
-    api_port: int | None = None    # If None, uses primary_port
-    docs_port: int | None = None   # If None, uses primary_port
+    api_port: int | None = None  # If None, uses primary_port
+    docs_port: int | None = None  # If None, uses primary_port
     websocket_port: int | None = None  # If None, uses primary_port
     ssl_enabled: bool = False
     ssl_cert_path: str | None = None
     ssl_key_path: str | None = None
     auto_redirect_http: bool = True
 
+
 @dataclass
 class MFAConfig:
     """Multi-Factor Authentication configuration."""
+
     enabled: bool = True
     methods: list[str] | None = None  # ['totp', 'sms', 'email', 'backup_codes']
     totp_issuer: str = "PlexiChat"
@@ -47,13 +51,13 @@ class MFAConfig:
 
     def __post_init__(self):
         if self.methods is None:
-            self.methods = ['totp', 'backup_codes']
-
+            self.methods = ["totp", "backup_codes"]
 
 
 @dataclass
 class SelfTestConfig:
     """Self-test configuration for WebUI."""
+
     enabled: bool = True
     auto_run_on_startup: bool = False
     scheduled_runs: list[str] | None = None  # Cron-like schedule
@@ -64,16 +68,25 @@ class SelfTestConfig:
 
     def __post_init__(self):
         if self.scheduled_runs is None:
-            self.scheduled_runs = ['0 2 * * *']  # Daily at 2 AM
+            self.scheduled_runs = ["0 2 * * *"]  # Daily at 2 AM
         if self.test_categories is None:
             self.test_categories = [
-                'security', 'performance', 'connectivity', 'database', 'api',
-                'ai', 'monitoring', 'backup', 'plugins'
+                "security",
+                "performance",
+                "connectivity",
+                "database",
+                "api",
+                "ai",
+                "monitoring",
+                "backup",
+                "plugins",
             ]
+
 
 @dataclass
 class FeatureToggleConfig:
     """Feature toggle configuration."""
+
     enabled_features: list[str] | None = None
     disabled_features: list[str] | None = None
     beta_features: list[str] | None = None
@@ -82,18 +95,29 @@ class FeatureToggleConfig:
 
     def __post_init__(self):
         if self.enabled_features is None:
-            self.enabled_features = ['dashboard', 'user_management', 'system_monitoring', 'api_access']
+            self.enabled_features = [
+                "dashboard",
+                "user_management",
+                "system_monitoring",
+                "api_access",
+            ]
         if self.disabled_features is None:
             self.disabled_features = []
         if self.beta_features is None:
-            self.beta_features = ['ai_features', 'advanced_collaboration']
+            self.beta_features = ["ai_features", "advanced_collaboration"]
         if self.admin_only_features is None:
-            self.admin_only_features = ['system_configuration', 'user_permissions', 'security_settings']
+            self.admin_only_features = [
+                "system_configuration",
+                "user_permissions",
+                "security_settings",
+            ]
         if self.feature_permissions is None:
             self.feature_permissions = {}
 
+
 class WebUIConfigManager:
     """Enhanced WebUI configuration manager integrated with unified config system."""
+
     def __init__(self, config_dir: str = "config"):
         self.config_dir = Path(config_dir)
         self.config_dir.mkdir(exist_ok=True)
@@ -110,6 +134,7 @@ class WebUIConfigManager:
         # Get unified config system
         try:
             from plexichat.core.config_manager import get_config
+
             self.unified_config = get_config()
             self.use_unified_config = True
             logger.info("WebUI config manager using unified configuration system")
@@ -136,7 +161,7 @@ class WebUIConfigManager:
 
         if key_file.exists():
             try:
-                with open(key_file, 'rb') as f:
+                with open(key_file, "rb") as f:
                     return f.read()
             except Exception as e:
                 logger.warning(f"Failed to read encryption key: {e}")
@@ -144,7 +169,7 @@ class WebUIConfigManager:
         # Generate new key
         key = Fernet.generate_key()
         try:
-            with open(key_file, 'wb') as f:
+            with open(key_file, "wb") as f:
                 f.write(key)
             # Set restrictive permissions
             os.chmod(key_file, 0o600)
@@ -168,13 +193,25 @@ class WebUIConfigManager:
                 self.port_config.ssl_key_path = network_config.ssl_key_path
 
                 # Update feature toggles from unified config
-                self.feature_toggle_config.enabled_features = ['dashboard', 'user_management', 'system_monitoring', 'api_access']
+                self.feature_toggle_config.enabled_features = [
+                    "dashboard",
+                    "user_management",
+                    "system_monitoring",
+                    "api_access",
+                ]
                 if webui_config.config_editing_enabled:
-                    self.feature_toggle_config.enabled_features.append('config_management')
+                    self.feature_toggle_config.enabled_features.append(
+                        "config_management"
+                    )
                 if webui_config.advanced_features:
-                    self.feature_toggle_config.enabled_features.append('advanced_features')
+                    self.feature_toggle_config.enabled_features.append(
+                        "advanced_features"
+                    )
                 if webui_config.beta_features:
-                    self.feature_toggle_config.beta_features = ['ai_features', 'advanced_collaboration']
+                    self.feature_toggle_config.beta_features = [
+                        "ai_features",
+                        "advanced_collaboration",
+                    ]
 
                 logger.info("WebUI configuration loaded from unified config system")
             else:
@@ -207,26 +244,28 @@ class WebUIConfigManager:
 
     def _update_config_objects(self, config_data: dict[str, Any]):
         """Update configuration objects from loaded data."""
-        if 'ports' in config_data:
-            self.port_config = WebUIPortConfig(**config_data['ports'])
+        if "ports" in config_data:
+            self.port_config = WebUIPortConfig(**config_data["ports"])
 
-        if 'mfa' in config_data:
-            self.mfa_config = MFAConfig(**config_data['mfa'])
+        if "mfa" in config_data:
+            self.mfa_config = MFAConfig(**config_data["mfa"])
 
+        if "self_tests" in config_data:
+            self.self_test_config = SelfTestConfig(**config_data["self_tests"])
 
-
-        if 'self_tests' in config_data:
-            self.self_test_config = SelfTestConfig(**config_data['self_tests'])
-
-        if 'feature_toggles' in config_data:
-            self.feature_toggle_config = FeatureToggleConfig(**config_data['feature_toggles'])
+        if "feature_toggles" in config_data:
+            self.feature_toggle_config = FeatureToggleConfig(
+                **config_data["feature_toggles"]
+            )
 
     def _update_auth_config(self, auth_data: dict[str, Any]):
         """Update authentication configuration from loaded data."""
         # Handle encrypted authentication data
-        if 'encrypted_data' in auth_data:
+        if "encrypted_data" in auth_data:
             try:
-                decrypted_data = self.cipher.decrypt(auth_data['encrypted_data'].encode())
+                decrypted_data = self.cipher.decrypt(
+                    auth_data["encrypted_data"].encode()
+                )
                 json.loads(decrypted_data.decode())
                 # Process decrypted authentication configuration
                 logger.info("Encrypted authentication configuration loaded")
@@ -238,34 +277,35 @@ class WebUIConfigManager:
         try:
             # Prepare main configuration data
             config_data = {
-                'version': '1.0.0',
-                'last_updated': datetime.now(datetime.timezone.utc).isoformat(),
-                'ports': asdict(self.port_config),
-                'mfa': asdict(self.mfa_config),
-
-                'self_tests': asdict(self.self_test_config),
-                'feature_toggles': asdict(self.feature_toggle_config)
+                "version": "1.0.0",
+                "last_updated": datetime.now(datetime.timezone.utc).isoformat(),
+                "ports": asdict(self.port_config),
+                "mfa": asdict(self.mfa_config),
+                "self_tests": asdict(self.self_test_config),
+                "feature_toggles": asdict(self.feature_toggle_config),
             }
 
             # Save main configuration
-            with open(self.config_file, 'w') as f:
+            with open(self.config_file, "w") as f:
                 yaml.dump(config_data, f, default_flow_style=False, indent=2)
 
             # Save authentication configuration (encrypted)
             auth_data = {
-                'version': '1.0.0',
-                'last_updated': datetime.now(datetime.timezone.utc).isoformat(),
-
+                "version": "1.0.0",
+                "last_updated": datetime.now(datetime.timezone.utc).isoformat(),
             }
 
             # Encrypt sensitive authentication data
             encrypted_data = self.cipher.encrypt(json.dumps(auth_data).encode())
 
-            with open(self.auth_config_file, 'w') as f:
-                yaml.dump({
-                    'encrypted_data': encrypted_data.decode(),
-                    'encryption_version': '1.0.0'
-                }, f)
+            with open(self.auth_config_file, "w") as f:
+                yaml.dump(
+                    {
+                        "encrypted_data": encrypted_data.decode(),
+                        "encryption_version": "1.0.0",
+                    },
+                    f,
+                )
 
             logger.info("WebUI configuration saved successfully")
 
@@ -282,10 +322,10 @@ class WebUIConfigManager:
     def get_port_for_service(self, service: str) -> int:
         """Get port for a specific service."""
         service_port_map = {
-            'admin': self.port_config.admin_port,
-            'api': self.port_config.api_port,
-            'docs': self.port_config.docs_port,
-            'websocket': self.port_config.websocket_port
+            "admin": self.port_config.admin_port,
+            "api": self.port_config.api_port,
+            "docs": self.port_config.docs_port,
+            "websocket": self.port_config.websocket_port,
         }
 
         return service_port_map.get(service) or self.port_config.primary_port
@@ -293,23 +333,39 @@ class WebUIConfigManager:
     def is_feature_enabled(self, feature: str, user_role: str = "user") -> bool:
         """Check if a feature is enabled for a user role."""
         # Check if feature is explicitly disabled
-        if self.feature_toggle_config.disabled_features and feature in self.feature_toggle_config.disabled_features:
+        if (
+            self.feature_toggle_config.disabled_features
+            and feature in self.feature_toggle_config.disabled_features
+        ):
             return False
 
         # Check if feature requires admin role
-        if self.feature_toggle_config.admin_only_features and feature in self.feature_toggle_config.admin_only_features and user_role != "admin":
+        if (
+            self.feature_toggle_config.admin_only_features
+            and feature in self.feature_toggle_config.admin_only_features
+            and user_role != "admin"
+        ):
             return False
 
         # Check if feature is enabled
-        if self.feature_toggle_config.enabled_features and feature in self.feature_toggle_config.enabled_features:
+        if (
+            self.feature_toggle_config.enabled_features
+            and feature in self.feature_toggle_config.enabled_features
+        ):
             return True
 
         # Check beta features
-        if self.feature_toggle_config.beta_features and feature in self.feature_toggle_config.beta_features:
+        if (
+            self.feature_toggle_config.beta_features
+            and feature in self.feature_toggle_config.beta_features
+        ):
             return user_role in ["admin", "beta_tester"]
 
         # Check feature permissions
-        if self.feature_toggle_config.feature_permissions and feature in self.feature_toggle_config.feature_permissions:
+        if (
+            self.feature_toggle_config.feature_permissions
+            and feature in self.feature_toggle_config.feature_permissions
+        ):
             return user_role in self.feature_toggle_config.feature_permissions[feature]
 
         return False
@@ -323,8 +379,8 @@ class WebUIConfigManager:
 
         # Admin users might have additional methods
         if user_role == "admin" and self.mfa_config.require_mfa_for_admin:
-            if 'totp' not in methods:
-                methods.append('totp')
+            if "totp" not in methods:
+                methods.append("totp")
 
         return methods
 
@@ -352,14 +408,26 @@ class WebUIConfigManager:
     def toggle_feature(self, feature: str, enabled: bool):
         """Toggle a feature on or off."""
         if enabled:
-            if self.feature_toggle_config.disabled_features is not None and feature in self.feature_toggle_config.disabled_features:
+            if (
+                self.feature_toggle_config.disabled_features is not None
+                and feature in self.feature_toggle_config.disabled_features
+            ):
                 self.feature_toggle_config.disabled_features.remove(feature)
-            if self.feature_toggle_config.enabled_features is not None and feature not in self.feature_toggle_config.enabled_features:
+            if (
+                self.feature_toggle_config.enabled_features is not None
+                and feature not in self.feature_toggle_config.enabled_features
+            ):
                 self.feature_toggle_config.enabled_features.append(feature)
         else:
-            if self.feature_toggle_config.enabled_features is not None and feature in self.feature_toggle_config.enabled_features:
+            if (
+                self.feature_toggle_config.enabled_features is not None
+                and feature in self.feature_toggle_config.enabled_features
+            ):
                 self.feature_toggle_config.enabled_features.remove(feature)
-            if self.feature_toggle_config.disabled_features is not None and feature not in self.feature_toggle_config.disabled_features:
+            if (
+                self.feature_toggle_config.disabled_features is not None
+                and feature not in self.feature_toggle_config.disabled_features
+            ):
                 self.feature_toggle_config.disabled_features.append(feature)
 
         self.save_configuration()
@@ -372,38 +440,40 @@ class WebUIConfigManager:
         """Check if self-tests are enabled."""
         return self.self_test_config.enabled
 
-
-
     def validate_configuration(self) -> dict[str, Any]:
         """Validate current configuration and return status."""
         validation_results = {
-            'valid': True,
-            'warnings': [],
-            'errors': [],
-            'recommendations': []
+            "valid": True,
+            "warnings": [],
+            "errors": [],
+            "recommendations": [],
         }
 
         # Validate port configuration
         if self.port_config.primary_port < 1024 and os.getuid() != 0:
-            validation_results['warnings'].append("Primary port < 1024 requires root privileges")
+            validation_results["warnings"].append(
+                "Primary port < 1024 requires root privileges"
+            )
 
         # Validate SSL configuration
         if self.port_config.ssl_enabled:
             if not self.port_config.ssl_cert_path or not self.port_config.ssl_key_path:
-                validation_results['errors'].append("SSL enabled but certificate/key paths not specified")
-                validation_results['valid'] = False
+                validation_results["errors"].append(
+                    "SSL enabled but certificate/key paths not specified"
+                )
+                validation_results["valid"] = False
 
         # Validate MFA configuration
         if self.mfa_config.enabled and not self.mfa_config.methods:
-            validation_results['errors'].append("MFA enabled but no methods configured")
-            validation_results['valid'] = False
-
-
+            validation_results["errors"].append("MFA enabled but no methods configured")
+            validation_results["valid"] = False
 
         return validation_results
 
+
 # Global configuration manager instance
 webui_config_manager = WebUIConfigManager()
+
 
 def get_webui_config() -> WebUIConfigManager:
     """Get the global WebUI configuration manager."""

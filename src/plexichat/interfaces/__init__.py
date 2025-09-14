@@ -12,6 +12,7 @@ from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)
 
+
 class InterfaceManager:
     def __init__(self):
         self.interfaces: dict[str, bool] = {}
@@ -23,13 +24,16 @@ class InterfaceManager:
     def is_available(self, name: str) -> bool:
         return self.interfaces.get(name, False)
 
+
 interface_manager = InterfaceManager()
+
 
 def register_interfaces():
     try:
         # Web interface
         try:
             from plexichat.interfaces.web import app
+
             interface_manager.register_interface("web", app is not None)
         except ImportError:
             interface_manager.register_interface("web", False)
@@ -49,19 +53,25 @@ def register_interfaces():
     except Exception as e:
         logger.error(f"Error registering interfaces: {e}")
 
+
 register_interfaces()
+
 
 def web_available() -> bool:
     return interface_manager.is_available("web")
 
+
 def cli_available() -> bool:
     return interface_manager.is_available("cli")
+
 
 def gui_available() -> bool:
     return interface_manager.is_available("gui")
 
+
 def webui_available() -> bool:
     return interface_manager.is_available("webui")
+
 
 __all__ = [
     "cli_available",

@@ -10,10 +10,12 @@ from pydantic import BaseModel, EmailStr, Field
 def get_current_user():
     return {"id": "mock_user_id", "username": "mock_user"}
 
+
 router = APIRouter(prefix="/users", tags=["Users"])
 
 # In-memory storage for demonstration
 users_db: dict[str, dict] = {}
+
 
 class UserProfile(BaseModel):
     id: str
@@ -28,6 +30,7 @@ class UserProfile(BaseModel):
     theme: str | None = None
     created_at: datetime
 
+
 class UserUpdate(BaseModel):
     display_name: str | None = None
     email: EmailStr | None = None
@@ -37,6 +40,7 @@ class UserUpdate(BaseModel):
     timezone: str | None = None
     language: str | None = None
     theme: str | None = None
+
 
 @router.get("/me", response_model=UserProfile)
 async def get_my_profile(current_user: dict = Depends(get_current_user)):
@@ -56,13 +60,16 @@ async def get_my_profile(current_user: dict = Depends(get_current_user)):
         "timezone": "UTC",
         "language": "en",
         "theme": "dark",
-        "created_at": datetime.now()
+        "created_at": datetime.now(),
     }
     users_db[user_id] = mock_user
     return UserProfile(**mock_user)
 
+
 @router.put("/me", response_model=UserProfile)
-async def update_my_profile(update_data: UserUpdate, current_user: dict = Depends(get_current_user)):
+async def update_my_profile(
+    update_data: UserUpdate, current_user: dict = Depends(get_current_user)
+):
     """Update the current authenticated user's profile."""
     user_id = current_user["id"]
     if user_id not in users_db:
@@ -75,6 +82,7 @@ async def update_my_profile(update_data: UserUpdate, current_user: dict = Depend
 
     return UserProfile(**user_data)
 
+
 @router.get("/{user_id}", response_model=UserProfile)
 async def get_user_profile(user_id: str):
     """Get a user's public profile."""
@@ -82,16 +90,19 @@ async def get_user_profile(user_id: str):
         raise HTTPException(status_code=404, detail="User not found")
     return UserProfile(**users_db[user_id])
 
+
 @router.get("/", response_model=list[UserProfile])
-async def list_users(limit: int = Query(20, ge=1, le=100), offset: int = Query(0, ge=0)):
+async def list_users(
+    limit: int = Query(20, ge=1, le=100), offset: int = Query(0, ge=0)
+):
     """List all users (paginated)."""
     all_users = [UserProfile(**u) for u in users_db.values()]
     return all_users[offset : offset + limit]
 
+
 @router.post("/avatar")
 async def upload_avatar(
-    file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user)
+    file: UploadFile = File(...), current_user: dict = Depends(get_current_user)
 ):
     """Upload avatar for the current user."""
     user_id = current_user["id"]
@@ -99,14 +110,19 @@ async def upload_avatar(
     # Validate file type
     allowed_types = ["image/jpeg", "image/png", "image/gif", "image/webp"]
     if file.content_type not in allowed_types:
-        raise HTTPException(status_code=400, detail="Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.")
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.",
+        )
 
     # Validate file size (max 5MB)
     file_size = 0
     content = await file.read()
     file_size = len(content)
     if file_size > 5 * 1024 * 1024:  # 5MB
-        raise HTTPException(status_code=400, detail="File too large. Maximum size is 5MB.")
+        raise HTTPException(
+            status_code=400, detail="File too large. Maximum size is 5MB."
+        )
 
     # Generate unique filename
     file_extension = os.path.splitext(file.filename)[1]
@@ -137,13 +153,17 @@ async def upload_avatar(
             "timezone": "UTC",
             "language": "en",
             "theme": "dark",
-            "created_at": datetime.now()
+            "created_at": datetime.now(),
         }
         users_db[user_id] = mock_user
 
-    return {"avatar_url": f"/uploads/avatars/{unique_filename}", "message": "Avatar uploaded successfully"}
+    return {
+        "avatar_url": f"/uploads/avatars/{unique_filename}",
+        "message": "Avatar uploaded successfully",
+    }
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # Example of how to run this API with uvicorn
     from fastapi import FastAPI
 

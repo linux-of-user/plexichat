@@ -169,7 +169,9 @@ class IPBlacklistMiddleware(BaseHTTPMiddleware):
         if self.config:
             self.config.save_config()
 
-    async def dispatch(self, request: Request, call_next: Callable[..., Awaitable[Response]]) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: Callable[..., Awaitable[Response]]
+    ) -> Response:
         """Main middleware dispatch method."""
         if not self.enabled:
             return await call_next(request)

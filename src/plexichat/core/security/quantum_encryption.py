@@ -271,7 +271,9 @@ class HybridEncryption:
         # Recover symmetric key
         symmetric_key = bytes(
             a ^ b
-            for a, b in zip(encrypted_data["protected_key"], kyber_shared_secret[:32], strict=False)
+            for a, b in zip(
+                encrypted_data["protected_key"], kyber_shared_secret[:32], strict=False
+            )
         )
 
         # Decrypt data with AES-256-GCM
@@ -598,7 +600,10 @@ class QuantumEncryptionManager:
         if rotation_interval is None:
             rotation_interval = timedelta(hours=24)
 
-        if algorithm == EncryptionAlgorithm.AES_256_GCM or algorithm == EncryptionAlgorithm.CHACHA20_POLY1305:
+        if (
+            algorithm == EncryptionAlgorithm.AES_256_GCM
+            or algorithm == EncryptionAlgorithm.CHACHA20_POLY1305
+        ):
             key_data = secrets.token_bytes(32)
             key_type = KeyType.SYMMETRIC
             public_key = None

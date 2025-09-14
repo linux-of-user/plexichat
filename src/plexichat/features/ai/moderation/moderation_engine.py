@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class ModerationAction(str, Enum):
     """Moderation actions."""
+
     ALLOW = "allow"
     FLAG = "flag"
     BLOCK = "block"
@@ -35,6 +36,7 @@ class ModerationAction(str, Enum):
 
 class ModerationSeverity(str, Enum):
     """Moderation severity levels."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -43,6 +45,7 @@ class ModerationSeverity(str, Enum):
 
 class ModerationCategory(str, Enum):
     """Content moderation categories."""
+
     SPAM = "spam"
     HARASSMENT = "harassment"
     HATE_SPEECH = "hate_speech"
@@ -61,6 +64,7 @@ class ModerationCategory(str, Enum):
 @dataclass
 class ModerationResult:
     """Result of content moderation."""
+
     content_id: str
     confidence_score: float  # 0.0 to 1.0
     recommended_action: ModerationAction
@@ -86,13 +90,14 @@ class ModerationResult:
             "processing_time_ms": self.processing_time_ms,
             "model_used": self.model_used,
             "requires_human_review": self.requires_human_review,
-            "timestamp": self.timestamp.isoformat()
+            "timestamp": self.timestamp.isoformat(),
         }
 
 
 @dataclass
 class ModerationConfig:
     """Moderation configuration."""
+
     provider: str
     model_name: str
     api_key: str
@@ -144,7 +149,7 @@ class ModerationEngine:
             provider="openai",
             model_name="text-moderation-latest",
             api_key="",
-            endpoint_url="https://api.openai.com/v1/moderations"
+            endpoint_url="https://api.openai.com/v1/moderations",
         )
         self.configs["default"] = default_config
 
@@ -154,6 +159,7 @@ class ModerationEngine:
             from plexichat.features.ai.moderation.moderation_data_service import (
                 ModerationDataService,
             )
+
             self.data_service = ModerationDataService()
         except ImportError:
             logger.warning("ModerationDataService not available")
@@ -164,7 +170,7 @@ class ModerationEngine:
         content: str,
         content_id: str,
         provider: str = "default",
-        user_id: str | None = None
+        user_id: str | None = None,
     ) -> ModerationResult:
         """Moderate content using specified provider."""
         start_time = time.time()
@@ -206,14 +212,11 @@ class ModerationEngine:
                 categories=[ModerationCategory.CLEAN],
                 reasoning=f"Moderation failed: {e!s}",
                 processing_time_ms=(time.time() - start_time) * 1000,
-                requires_human_review=True
+                requires_human_review=True,
             )
 
     async def _moderate_with_provider(
-        self,
-        content: str,
-        content_id: str,
-        config: ModerationConfig
+        self, content: str, content_id: str, config: ModerationConfig
     ) -> ModerationResult:
         """Moderate content with specific provider."""
         if config.provider == "openai":
@@ -224,10 +227,7 @@ class ModerationEngine:
             raise ValueError(f"Unsupported provider: {config.provider}")
 
     async def _moderate_with_openai(
-        self,
-        content: str,
-        content_id: str,
-        config: ModerationConfig
+        self, content: str, content_id: str, config: ModerationConfig
     ) -> ModerationResult:
         """Moderate content using OpenAI API."""
         if not aiohttp:
@@ -235,12 +235,10 @@ class ModerationEngine:
 
         headers = {
             "Authorization": f"Bearer {config.api_key}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
-        payload = {
-            "input": content
-        }
+        payload = {"input": content}
 
         if not self.session:
             self.session = aiohttp.ClientSession()
@@ -248,10 +246,7 @@ class ModerationEngine:
         try:
             timeout = aiohttp.ClientTimeout(total=config.timeout_seconds)
             async with self.session.post(
-                config.endpoint_url,
-                headers=headers,
-                json=payload,
-                timeout=timeout
+                config.endpoint_url, headers=headers, json=payload, timeout=timeout
             ) as response:
                 response.raise_for_status()
                 data = await response.json()
@@ -263,10 +258,7 @@ class ModerationEngine:
             raise
 
     async def _moderate_with_custom(
-        self,
-        content: str,
-        content_id: str,
-        config: ModerationConfig
+        self, content: str, content_id: str, config: ModerationConfig
     ) -> ModerationResult:
         """Moderate content using custom provider."""
         # Implement custom moderation logic here
@@ -278,14 +270,11 @@ class ModerationEngine:
             severity=ModerationSeverity.LOW,
             categories=[ModerationCategory.CLEAN],
             reasoning="Custom moderation not implemented",
-            model_used=config.model_name
+            model_used=config.model_name,
         )
 
     def _parse_openai_response(
-        self,
-        data: dict[str, Any],
-        content_id: str,
-        model_name: str
+        self, data: dict[str, Any], content_id: str, model_name: str
     ) -> ModerationResult:
         """Parse OpenAI moderation response."""
         try:
@@ -335,7 +324,7 @@ class ModerationEngine:
                 categories=detected_categories,
                 reasoning=f"OpenAI moderation: flagged={flagged}, max_score={max_score:.3f}",
                 model_used=model_name,
-                requires_human_review=flagged and max_score < 0.9
+                requires_human_review=flagged and max_score < 0.9,
             )
 
         except Exception as e:

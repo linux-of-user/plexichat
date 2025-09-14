@@ -20,12 +20,14 @@ from pydantic import BaseModel
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/system", tags=["System"])
 
+
 # Models
 class HealthStatus(BaseModel):
     status: str
     timestamp: datetime
     uptime: str
     version: str
+
 
 class SystemInfo(BaseModel):
     platform: str
@@ -34,12 +36,14 @@ class SystemInfo(BaseModel):
     memory_total: int
     disk_total: int
 
+
 class PerformanceMetrics(BaseModel):
     cpu_percent: float
     memory_percent: float
     disk_percent: float
     network_sent: int
     network_recv: int
+
 
 # from plexichat.core.versioning.changelog_manager import get_version, get_version_info  # Disabled due to missing functions
 
@@ -63,6 +67,7 @@ except ImportError:
 # System startup time
 STARTUP_TIME = datetime.now()
 
+
 # Endpoints
 @router.get("/health", response_model=HealthStatus)
 async def health_check():
@@ -71,6 +76,7 @@ async def health_check():
         # Try to get version from versioning module
         try:
             from plexichat.core.versioning.changelog_manager import get_version
+
             version = get_version()
         except (ImportError, AttributeError):
             version = "1.0.0"
@@ -79,18 +85,19 @@ async def health_check():
 
     try:
         uptime = datetime.now() - STARTUP_TIME
-        uptime_str = str(uptime).split('.')[0]  # Remove microseconds
+        uptime_str = str(uptime).split(".")[0]  # Remove microseconds
 
         return HealthStatus(
             status="healthy",
             timestamp=datetime.now(),
             uptime=uptime_str,
-            version=version
+            version=version,
         )
 
     except Exception as e:
         logger.error(f"Health check error: {e}")
         raise HTTPException(status_code=500, detail="Health check failed")
+
 
 @router.get("/info", response_model=SystemInfo)
 async def system_info():
@@ -98,19 +105,20 @@ async def system_info():
     try:
         # Get system info
         memory = psutil.virtual_memory()
-        disk = psutil.disk_usage('/')
+        disk = psutil.disk_usage("/")
 
         return SystemInfo(
             platform=f"{platform.system()} {platform.release()}",
             python_version=platform.python_version(),
             cpu_count=psutil.cpu_count(),
             memory_total=memory.total,
-            disk_total=disk.total
+            disk_total=disk.total,
         )
 
     except Exception as e:
         logger.error(f"System info error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get system info")
+
 
 @router.get("/metrics", response_model=PerformanceMetrics)
 async def performance_metrics():
@@ -119,7 +127,7 @@ async def performance_metrics():
         # Get performance metrics
         cpu_percent = psutil.cpu_percent(interval=1)
         memory = psutil.virtual_memory()
-        disk = psutil.disk_usage('/')
+        disk = psutil.disk_usage("/")
         network = psutil.net_io_counters()
 
         return PerformanceMetrics(
@@ -127,12 +135,13 @@ async def performance_metrics():
             memory_percent=memory.percent,
             disk_percent=(disk.used / disk.total) * 100,
             network_sent=network.bytes_sent,
-            network_recv=network.bytes_recv
+            network_recv=network.bytes_recv,
         )
 
     except Exception as e:
         logger.error(f"Performance metrics error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get performance metrics")
+
 
 @router.get("/status")
 async def detailed_status():
@@ -140,15 +149,15 @@ async def detailed_status():
     try:
         # Calculate uptime
         uptime = datetime.now() - STARTUP_TIME
-        uptime_str = str(uptime).split('.')[0]
+        uptime_str = str(uptime).split(".")[0]
 
         # Get system metrics
         cpu_percent = psutil.cpu_percent(interval=0.1)
         memory = psutil.virtual_memory()
-        disk = psutil.disk_usage('/')
+        disk = psutil.disk_usage("/")
 
         # Calculate application stats
-        active_messages = len([m for m in messages_db.values() if not m.get('deleted')])
+        active_messages = len([m for m in messages_db.values() if not m.get("deleted")])
 
         return {
             "status": "online",
@@ -165,25 +174,26 @@ async def detailed_status():
                 "memory_percent": memory.percent,
                 "disk_total": disk.total,
                 "disk_used": disk.used,
-                "disk_percent": (disk.used / disk.total) * 100
+                "disk_percent": (disk.used / disk.total) * 100,
             },
             "application": {
                 "total_users": len(users_db),
                 "active_sessions": len(sessions_db),
                 "total_messages": active_messages,
-                "total_files": len(files_db)
+                "total_files": len(files_db),
             },
             "services": {
                 "authentication": "online",
                 "messaging": "online",
                 "file_storage": "online",
-                "admin": "online"
-            }
+                "admin": "online",
+            },
         }
 
     except Exception as e:
         logger.error(f"Detailed status error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get detailed status")
+
 
 @router.get("/version")
 async def version_info():
@@ -192,25 +202,28 @@ async def version_info():
         # Try to get version info from versioning module
         try:
             from plexichat.core.versioning.changelog_manager import get_version_info
+
             version_data = get_version_info()
         except (ImportError, AttributeError):
             version_data = {
                 "version": "1.0.0",
                 "api_version": "v1",
-                "build_date": "2025-09-01"
+                "build_date": "2025-09-01",
             }
 
         # Add additional system info
-        version_data.update({
-            "environment": "development",
-            "features": [
-                "authentication",
-                "messaging",
-                "file_storage",
-                "admin_panel",
-                "system_monitoring"
-            ]
-        })
+        version_data.update(
+            {
+                "environment": "development",
+                "features": [
+                    "authentication",
+                    "messaging",
+                    "file_storage",
+                    "admin_panel",
+                    "system_monitoring",
+                ],
+            }
+        )
         return version_data
     except Exception:
         return {
@@ -223,18 +236,16 @@ async def version_info():
                 "messaging",
                 "file_storage",
                 "admin_panel",
-                "system_monitoring"
-            ]
+                "system_monitoring",
+            ],
         }
+
 
 @router.get("/ping")
 async def ping():
     """Simple ping endpoint."""
-    return {
-        "message": "pong",
-        "timestamp": datetime.now(),
-        "status": "ok"
-    }
+    return {"message": "pong", "timestamp": datetime.now(), "status": "ok"}
+
 
 @router.get("/time")
 async def server_time():
@@ -242,8 +253,9 @@ async def server_time():
     return {
         "server_time": datetime.now(),
         "timezone": "UTC",
-        "timestamp": datetime.now().timestamp()
+        "timestamp": datetime.now().timestamp(),
     }
+
 
 @router.get("/capabilities")
 async def api_capabilities():
@@ -255,7 +267,7 @@ async def api_capabilities():
                 "registration": True,
                 "login": True,
                 "logout": True,
-                "token_based": True
+                "token_based": True,
             },
             "messaging": {
                 "direct_messages": True,
@@ -263,7 +275,7 @@ async def api_capabilities():
                 "file_attachments": False,  # Not implemented in this simple version
                 "group_chat": False,  # Not implemented in this simple version
                 "message_history": True,
-                "message_deletion": True
+                "message_deletion": True,
             },
             "file_management": {
                 "upload": True,
@@ -271,41 +283,42 @@ async def api_capabilities():
                 "sharing": True,
                 "metadata": True,
                 "deletion": True,
-                "max_file_size": 10485760  # 10MB
+                "max_file_size": 10485760,  # 10MB
             },
             "administration": {
                 "user_management": True,
                 "message_moderation": True,
                 "system_stats": True,
-                "health_monitoring": True
+                "health_monitoring": True,
             },
             "system": {
                 "health_checks": True,
                 "performance_metrics": True,
                 "system_info": True,
-                "version_info": True
-            }
+                "version_info": True,
+            },
         },
         "limits": {
             "max_file_size": 10485760,  # 10MB
             "max_message_length": 10000,
-            "rate_limiting": False  # Not implemented in this simple version
+            "rate_limiting": False,  # Not implemented in this simple version
         },
         "security": {
             "https_required": False,  # Development mode
             "token_expiry": 86400,  # 24 hours
             "password_hashing": True,
-            "encryption": "basic"  # Simple encryption for demo
-        }
+            "encryption": "basic",  # Simple encryption for demo
+        },
     }
+
 
 @router.get("/stats/summary")
 async def stats_summary():
     """Get quick stats summary."""
     try:
         # Calculate basic stats
-        active_messages = len([m for m in messages_db.values() if not m.get('deleted')])
-        total_file_size = sum(f.get('size', 0) for f in files_db.values())
+        active_messages = len([m for m in messages_db.values() if not m.get("deleted")])
+        total_file_size = sum(f.get("size", 0) for f in files_db.values())
 
         return {
             "users": len(users_db),
@@ -313,8 +326,8 @@ async def stats_summary():
             "messages": active_messages,
             "files": len(files_db),
             "total_file_size": total_file_size,
-            "uptime": str(datetime.now() - STARTUP_TIME).split('.')[0],
-            "timestamp": datetime.now()
+            "uptime": str(datetime.now() - STARTUP_TIME).split(".")[0],
+            "timestamp": datetime.now(),
         }
 
     except Exception as e:

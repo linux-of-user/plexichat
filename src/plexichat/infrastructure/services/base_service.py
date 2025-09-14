@@ -17,9 +17,17 @@ from typing import Any
 
 
 # Placeholder imports for dependencies
-def get_config(): return {}
-def get_logger(name): return logging.getLogger(name)
-def get_system_resilience(): return None
+def get_config():
+    return {}
+
+
+def get_logger(name):
+    return logging.getLogger(name)
+
+
+def get_system_resilience():
+    return None
+
 
 # from ..core.config import get_config
 # from ..core.logging import get_logger
@@ -41,8 +49,10 @@ Features:
 - Error handling and recovery
 """
 
+
 class ServiceState(Enum):
     """Service state enumeration."""
+
     STOPPED = "stopped"
     STARTING = "starting"
     RUNNING = "running"
@@ -52,6 +62,7 @@ class ServiceState(Enum):
 
 class ServiceHealth(Enum):
     """Service health status."""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -60,6 +71,7 @@ class ServiceHealth(Enum):
 
 class BaseService(ABC):
     """Base class for all PlexiChat services."""
+
     def __init__(self, service_name: str):
         self.service_name = service_name
         self.logger = get_logger(f"service.{service_name}")
@@ -112,7 +124,9 @@ class BaseService(ABC):
 
     def _signal_handler(self, signum, frame):
         """Handle shutdown signals."""
-        self.logger.info(f"Received signal {signum}, initiating graceful shutdown (frame: {frame})")
+        self.logger.info(
+            f"Received signal {signum}, initiating graceful shutdown (frame: {frame})"
+        )
         if self and hasattr(self, "stop"):
             asyncio.create_task(self.stop())
 
@@ -215,9 +229,9 @@ class BaseService(ABC):
             if self.resilience_manager:
                 try:
                     resilience_report = await self.resilience_manager.run_system_check()
-                    health_data['resilience'] = resilience_report
+                    health_data["resilience"] = resilience_report
                 except Exception as e:
-                    health_data['resilience'] = {'error': str(e)}
+                    health_data["resilience"] = {"error": str(e)}
 
             # Update health status
             self.health = health_data.get("status", ServiceHealth.UNKNOWN)
@@ -321,6 +335,7 @@ class BaseService(ABC):
 
 class ServiceRegistry:
     """Registry for managing multiple services."""
+
     def __init__(self):
         self.services: dict[str, BaseService] = {}
         self.logger = get_logger("service.registry")

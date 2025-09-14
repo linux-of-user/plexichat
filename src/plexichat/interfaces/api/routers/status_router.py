@@ -29,23 +29,34 @@ if APIRouter:
 else:
     router = None
 
+
 # Pydantic models for request/response
 class StatusUpdateRequest(BaseModel):
     """Request model for status updates."""
-    status: str = Field(..., description="User status", examples=["online", "away", "busy", "offline"])
-    custom_status: str | None = Field(None, description="Custom status message", max_length=100)
+
+    status: str = Field(
+        ..., description="User status", examples=["online", "away", "busy", "offline"]
+    )
+    custom_status: str | None = Field(
+        None, description="Custom status message", max_length=100
+    )
+
 
 class StatusResponse(BaseModel):
     """Response model for status information."""
+
     user_id: str
     status: str
     custom_status: str | None
     status_updated_at: str | None
 
+
 class OnlineUsersResponse(BaseModel):
     """Response model for online users list."""
+
     users: list[dict[str, Any]]
     count: int
+
 
 # API Endpoints
 if router:
@@ -63,14 +74,18 @@ if router:
                     user_id=user_id,
                     status="offline",
                     custom_status=None,
-                    status_updated_at=None
+                    status_updated_at=None,
                 )
 
             return StatusResponse(
                 user_id=status.user_id,
                 status=status.status,
                 custom_status=status.custom_status,
-                status_updated_at=status.status_updated_at.isoformat() if status.status_updated_at else None
+                status_updated_at=(
+                    status.status_updated_at.isoformat()
+                    if status.status_updated_at
+                    else None
+                ),
             )
 
         except Exception as e:
@@ -80,7 +95,7 @@ if router:
     @router.put("/me", response_model=StatusResponse)
     async def update_my_status(
         request: StatusUpdateRequest,
-        current_user: dict[str, Any] = Depends(get_current_user)
+        current_user: dict[str, Any] = Depends(get_current_user),
     ):
         """Update current user's status."""
         try:
@@ -91,14 +106,14 @@ if router:
                 valid_statuses = user_status_service.get_valid_statuses()
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Invalid status. Valid statuses: {', '.join(valid_statuses)}"
+                    detail=f"Invalid status. Valid statuses: {', '.join(valid_statuses)}",
                 )
 
             # Update status
             success = await user_status_service.update_user_status(
                 user_id=user_id,
                 status=request.status,
-                custom_status=request.custom_status
+                custom_status=request.custom_status,
             )
 
             if not success:
@@ -107,13 +122,19 @@ if router:
             # Return updated status
             status = await user_status_service.get_user_status(user_id)
             if not status:
-                raise HTTPException(status_code=500, detail="Failed to retrieve updated status")
+                raise HTTPException(
+                    status_code=500, detail="Failed to retrieve updated status"
+                )
 
             return StatusResponse(
                 user_id=status.user_id,
                 status=status.status,
                 custom_status=status.custom_status,
-                status_updated_at=status.status_updated_at.isoformat() if status.status_updated_at else None
+                status_updated_at=(
+                    status.status_updated_at.isoformat()
+                    if status.status_updated_at
+                    else None
+                ),
             )
 
         except HTTPException:
@@ -124,8 +145,10 @@ if router:
 
     @router.get("/online", response_model=OnlineUsersResponse)
     async def get_online_users(
-        limit: int = Query(50, ge=1, le=1000, description="Maximum number of users to return"),
-        current_user: dict[str, Any] = Depends(get_current_user)
+        limit: int = Query(
+            50, ge=1, le=1000, description="Maximum number of users to return"
+        ),
+        current_user: dict[str, Any] = Depends(get_current_user),
     ):
         """Get list of online users."""
         try:
@@ -134,10 +157,7 @@ if router:
             # Limit results
             users = users[:limit]
 
-            return OnlineUsersResponse(
-                users=users,
-                count=len(users)
-            )
+            return OnlineUsersResponse(users=users, count=len(users))
 
         except Exception as e:
             logger.error(f"Error getting online users: {e}")
@@ -145,8 +165,7 @@ if router:
 
     @router.get("/user/{user_id}", response_model=StatusResponse)
     async def get_user_status(
-        user_id: str,
-        current_user: dict[str, Any] = Depends(get_current_user)
+        user_id: str, current_user: dict[str, Any] = Depends(get_current_user)
     ):
         """Get status for a specific user."""
         try:
@@ -158,14 +177,18 @@ if router:
                     user_id=user_id,
                     status="offline",
                     custom_status=None,
-                    status_updated_at=None
+                    status_updated_at=None,
                 )
 
             return StatusResponse(
                 user_id=status.user_id,
                 status=status.status,
                 custom_status=status.custom_status,
-                status_updated_at=status.status_updated_at.isoformat() if status.status_updated_at else None
+                status_updated_at=(
+                    status.status_updated_at.isoformat()
+                    if status.status_updated_at
+                    else None
+                ),
             )
 
         except Exception as e:
@@ -180,7 +203,9 @@ if router:
             success = await user_status_service.set_user_online(user_id)
 
             if not success:
-                raise HTTPException(status_code=500, detail="Failed to set status to online")
+                raise HTTPException(
+                    status_code=500, detail="Failed to set status to online"
+                )
 
             return {"message": "Status set to online", "user_id": user_id}
 
@@ -188,7 +213,9 @@ if router:
             raise
         except Exception as e:
             logger.error(f"Error setting user online: {e}")
-            raise HTTPException(status_code=500, detail="Failed to set status to online")
+            raise HTTPException(
+                status_code=500, detail="Failed to set status to online"
+            )
 
     @router.post("/away")
     async def set_away(current_user: dict[str, Any] = Depends(get_current_user)):
@@ -198,7 +225,9 @@ if router:
             success = await user_status_service.set_user_away(user_id)
 
             if not success:
-                raise HTTPException(status_code=500, detail="Failed to set status to away")
+                raise HTTPException(
+                    status_code=500, detail="Failed to set status to away"
+                )
 
             return {"message": "Status set to away", "user_id": user_id}
 
@@ -216,7 +245,9 @@ if router:
             success = await user_status_service.set_user_busy(user_id)
 
             if not success:
-                raise HTTPException(status_code=500, detail="Failed to set status to busy")
+                raise HTTPException(
+                    status_code=500, detail="Failed to set status to busy"
+                )
 
             return {"message": "Status set to busy", "user_id": user_id}
 
@@ -234,7 +265,9 @@ if router:
             success = await user_status_service.set_user_offline(user_id)
 
             if not success:
-                raise HTTPException(status_code=500, detail="Failed to set status to offline")
+                raise HTTPException(
+                    status_code=500, detail="Failed to set status to offline"
+                )
 
             return {"message": "Status set to offline", "user_id": user_id}
 
@@ -242,7 +275,9 @@ if router:
             raise
         except Exception as e:
             logger.error(f"Error setting user offline: {e}")
-            raise HTTPException(status_code=500, detail="Failed to set status to offline")
+            raise HTTPException(
+                status_code=500, detail="Failed to set status to offline"
+            )
 
     @router.get("/valid-statuses")
     async def get_valid_statuses():
@@ -250,7 +285,7 @@ if router:
         try:
             return {
                 "statuses": user_status_service.get_valid_statuses(),
-                "description": "Valid user status values"
+                "description": "Valid user status values",
             }
 
         except Exception as e:

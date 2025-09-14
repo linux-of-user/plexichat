@@ -12,7 +12,9 @@ from plexichat.core.database.manager import DatabaseSession, database_manager
 __all__ = ["DatabaseSession", "get_session"]
 
 
-async def get_session(user_permissions: set[str] | None = None) -> AsyncGenerator[DatabaseSession, None]:
+async def get_session(
+    user_permissions: set[str] | None = None,
+) -> AsyncGenerator[DatabaseSession, None]:
     """Get a database session with optional user permissions."""
     async with database_manager.get_session(user_permissions) as session:
         yield session

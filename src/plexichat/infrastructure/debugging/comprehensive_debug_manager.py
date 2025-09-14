@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 
 class DebugLevel(Enum):
     """Debug levels for different types of debugging."""
+
     TRACE = "trace"
     DEBUG = "debug"
     INFO = "info"
@@ -48,6 +49,7 @@ class DebugLevel(Enum):
 
 class ProfilerType(Enum):
     """Types of profiling available."""
+
     CPU = "cpu"
     MEMORY = "memory"
     TIME = "time"
@@ -57,6 +59,7 @@ class ProfilerType(Enum):
 @dataclass
 class DebugSession:
     """Debug session information."""
+
     id: str
     name: str
     start_time: datetime
@@ -70,6 +73,7 @@ class DebugSession:
 @dataclass
 class PerformanceMetric:
     """Performance metric data."""
+
     name: str
     value: float
     unit: str
@@ -94,20 +98,24 @@ class DebugManager:
 
     def _setup_debug_logging(self):
         """Setup debug logging configuration."""
-        debug_logger = logging.getLogger('plexichat.debug')
+        debug_logger = logging.getLogger("plexichat.debug")
         debug_logger.setLevel(logging.DEBUG)
 
         # Create debug handler if it doesn't exist
         if not debug_logger.handlers:
             handler = logging.StreamHandler()
             formatter = logging.Formatter(
-                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
             )
             handler.setFormatter(formatter)
             debug_logger.addHandler(handler)
 
-    def start_debug_session(self, name: str, level: DebugLevel = DebugLevel.DEBUG,
-                          profiler_type: ProfilerType | None = None) -> str:
+    def start_debug_session(
+        self,
+        name: str,
+        level: DebugLevel = DebugLevel.DEBUG,
+        profiler_type: ProfilerType | None = None,
+    ) -> str:
         """Start a new debug session."""
         session_id = f"debug_{int(time.time())}_{len(self.sessions)}"
 
@@ -116,7 +124,7 @@ class DebugManager:
             name=name,
             start_time=datetime.now(),
             level=level,
-            profiler_type=profiler_type
+            profiler_type=profiler_type,
         )
 
         with self._lock:
@@ -144,22 +152,27 @@ class DebugManager:
             # Stop profiler if active
             if session_id in self.active_profilers:
                 profiler = self.active_profilers.pop(session_id)
-                if hasattr(profiler, 'disable'):
+                if hasattr(profiler, "disable"):
                     profiler.disable()
 
                     # Generate profiler stats
                     if pstats and io:
                         stats_stream = io.StringIO()
                         stats = pstats.Stats(profiler, stream=stats_stream)
-                        stats.sort_stats('cumulative')
+                        stats.sort_stats("cumulative")
                         stats.print_stats(20)  # Top 20 functions
-                        session.data['profiler_stats'] = stats_stream.getvalue()
+                        session.data["profiler_stats"] = stats_stream.getvalue()
 
         logger.info(f"Ended debug session: {session.name} ({session_id})")
         return session
 
-    def log_debug(self, session_id: str, message: str, level: DebugLevel = DebugLevel.DEBUG,
-                 context: dict[str, Any] | None = None):
+    def log_debug(
+        self,
+        session_id: str,
+        message: str,
+        level: DebugLevel = DebugLevel.DEBUG,
+        context: dict[str, Any] | None = None,
+    ):
         """Log a debug message to a session."""
         with self._lock:
             session = self.sessions.get(session_id)
@@ -178,15 +191,16 @@ class DebugManager:
             log_level = getattr(logging, level.value.upper(), logging.DEBUG)
             logger.log(log_level, f"[{session.name}] {message}")
 
-    def record_performance_metric(self, name: str, value: float, unit: str,
-                                context: dict[str, Any] | None = None):
+    def record_performance_metric(
+        self, name: str, value: float, unit: str, context: dict[str, Any] | None = None
+    ):
         """Record a performance metric."""
         metric = PerformanceMetric(
             name=name,
             value=value,
             unit=unit,
             timestamp=datetime.now(),
-            context=context or {}
+            context=context or {},
         )
 
         with self._lock:
@@ -194,18 +208,20 @@ class DebugManager:
 
             # Limit history size
             if len(self.performance_metrics) > self.max_history_size:
-                self.performance_metrics = self.performance_metrics[-self.max_history_size:]
+                self.performance_metrics = self.performance_metrics[
+                    -self.max_history_size :
+                ]
 
         logger.debug(f"Performance metric: {name} = {value} {unit}")
 
     def record_error(self, error: Exception, context: dict[str, Any] | None = None):
         """Record an error with full traceback."""
         error_data = {
-            'timestamp': datetime.now().isoformat(),
-            'type': type(error).__name__,
-            'message': str(error),
-            'traceback': traceback.format_exc(),
-            'context': context or {}
+            "timestamp": datetime.now().isoformat(),
+            "type": type(error).__name__,
+            "message": str(error),
+            "traceback": traceback.format_exc(),
+            "context": context or {},
         }
 
         with self._lock:
@@ -213,7 +229,7 @@ class DebugManager:
 
             # Limit history size
             if len(self.error_history) > self.max_history_size:
-                self.error_history = self.error_history[-self.max_history_size:]
+                self.error_history = self.error_history[-self.max_history_size :]
 
         logger.error(f"Error recorded: {type(error).__name__}: {error}")
 
@@ -224,13 +240,16 @@ class DebugManager:
         try:
             yield session_id
         except Exception as e:
-            self.record_error(e, {'session': name})
+            self.record_error(e, {"session": name})
             raise
         finally:
             self.end_debug_session(session_id)
 
-    def debug_decorator(self, name: str | None = None, level: DebugLevel = DebugLevel.DEBUG):
+    def debug_decorator(
+        self, name: str | None = None, level: DebugLevel = DebugLevel.DEBUG
+    ):
         """Decorator for debugging functions."""
+
         def decorator(func: Callable) -> Callable:
             debug_name = name or f"{func.__module__}.{func.__name__}"
 
@@ -244,15 +263,19 @@ class DebugManager:
                         result = func(*args, **kwargs)
                         execution_time = time.time() - start_time
                         self.record_performance_metric(
-                            f"{debug_name}_execution_time",
-                            execution_time,
-                            "seconds"
+                            f"{debug_name}_execution_time", execution_time, "seconds"
                         )
-                        self.log_debug(session_id, f"Completed {debug_name} in {execution_time:.4f}s")
+                        self.log_debug(
+                            session_id,
+                            f"Completed {debug_name} in {execution_time:.4f}s",
+                        )
                         return result
                     except Exception as e:
                         execution_time = time.time() - start_time
-                        self.log_debug(session_id, f"Error in {debug_name} after {execution_time:.4f}s: {e}")
+                        self.log_debug(
+                            session_id,
+                            f"Error in {debug_name} after {execution_time:.4f}s: {e}",
+                        )
                         raise
 
             @functools.wraps(func)
@@ -265,18 +288,23 @@ class DebugManager:
                         result = await func(*args, **kwargs)
                         execution_time = time.time() - start_time
                         self.record_performance_metric(
-                            f"{debug_name}_execution_time",
-                            execution_time,
-                            "seconds"
+                            f"{debug_name}_execution_time", execution_time, "seconds"
                         )
-                        self.log_debug(session_id, f"Completed async {debug_name} in {execution_time:.4f}s")
+                        self.log_debug(
+                            session_id,
+                            f"Completed async {debug_name} in {execution_time:.4f}s",
+                        )
                         return result
                     except Exception as e:
                         execution_time = time.time() - start_time
-                        self.log_debug(session_id, f"Error in async {debug_name} after {execution_time:.4f}s: {e}")
+                        self.log_debug(
+                            session_id,
+                            f"Error in async {debug_name} after {execution_time:.4f}s: {e}",
+                        )
                         raise
 
             return async_wrapper if asyncio.iscoroutinefunction(func) else wrapper
+
         return decorator
 
     def get_session_info(self, session_id: str) -> dict[str, Any] | None:
@@ -286,23 +314,27 @@ class DebugManager:
             return None
 
         return {
-            'id': session.id,
-            'name': session.name,
-            'start_time': session.start_time.isoformat(),
-            'end_time': session.end_time.isoformat() if session.end_time else None,
-            'level': session.level.value,
-            'profiler_type': session.profiler_type.value if session.profiler_type else None,
-            'log_count': len(session.logs),
-            'data': session.data
+            "id": session.id,
+            "name": session.name,
+            "start_time": session.start_time.isoformat(),
+            "end_time": session.end_time.isoformat() if session.end_time else None,
+            "level": session.level.value,
+            "profiler_type": (
+                session.profiler_type.value if session.profiler_type else None
+            ),
+            "log_count": len(session.logs),
+            "data": session.data,
         }
 
-    def get_performance_summary(self, metric_name: str | None = None,
-                              time_range: timedelta | None = None) -> dict[str, Any]:
+    def get_performance_summary(
+        self, metric_name: str | None = None, time_range: timedelta | None = None
+    ) -> dict[str, Any]:
         """Get performance metrics summary."""
         cutoff_time = datetime.now() - (time_range or timedelta(hours=1))
 
         filtered_metrics = [
-            m for m in self.performance_metrics
+            m
+            for m in self.performance_metrics
             if m.timestamp >= cutoff_time and (not metric_name or m.name == metric_name)
         ]
 
@@ -311,12 +343,12 @@ class DebugManager:
 
         values = [m.value for m in filtered_metrics]
         return {
-            'count': len(values),
-            'min': min(values),
-            'max': max(values),
-            'avg': sum(values) / len(values),
-            'latest': values[-1] if values else 0,
-            'unit': filtered_metrics[0].unit if filtered_metrics else ''
+            "count": len(values),
+            "min": min(values),
+            "max": max(values),
+            "avg": sum(values) / len(values),
+            "latest": values[-1] if values else 0,
+            "unit": filtered_metrics[0].unit if filtered_metrics else "",
         }
 
     def get_error_summary(self, time_range: timedelta | None = None) -> dict[str, Any]:
@@ -324,19 +356,20 @@ class DebugManager:
         cutoff_time = datetime.now() - (time_range or timedelta(hours=1))
 
         recent_errors = [
-            e for e in self.error_history
-            if datetime.fromisoformat(e['timestamp']) >= cutoff_time
+            e
+            for e in self.error_history
+            if datetime.fromisoformat(e["timestamp"]) >= cutoff_time
         ]
 
         error_types = {}
         for error in recent_errors:
-            error_type = error['type']
+            error_type = error["type"]
             error_types[error_type] = error_types.get(error_type, 0) + 1
 
         return {
-            'total_errors': len(recent_errors),
-            'error_types': error_types,
-            'latest_error': recent_errors[-1] if recent_errors else None
+            "total_errors": len(recent_errors),
+            "error_types": error_types,
+            "latest_error": recent_errors[-1] if recent_errors else None,
         }
 
     def export_debug_data(self, session_id: str | None = None) -> dict[str, Any]:
@@ -347,24 +380,26 @@ class DebugManager:
                 return {}
 
             return {
-                'session': self.get_session_info(session_id),
-                'logs': session.logs,
-                'data': session.data
+                "session": self.get_session_info(session_id),
+                "logs": session.logs,
+                "data": session.data,
             }
         else:
             return {
-                'sessions': [self.get_session_info(sid) for sid in self.sessions.keys()],
-                'performance_metrics': [
+                "sessions": [
+                    self.get_session_info(sid) for sid in self.sessions.keys()
+                ],
+                "performance_metrics": [
                     {
-                        'name': m.name,
-                        'value': m.value,
-                        'unit': m.unit,
-                        'timestamp': m.timestamp.isoformat(),
-                        'context': m.context
+                        "name": m.name,
+                        "value": m.value,
+                        "unit": m.unit,
+                        "timestamp": m.timestamp.isoformat(),
+                        "context": m.context,
                     }
                     for m in self.performance_metrics
                 ],
-                'error_history': self.error_history
+                "error_history": self.error_history,
             }
 
     def clear_history(self):

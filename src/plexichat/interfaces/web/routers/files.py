@@ -87,7 +87,9 @@ try:
 except ImportError:
     Image = None
 
-optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
+optimization_engine = (
+    PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
+)
 
 # Thread pool for background tasks
 executor = ThreadPoolExecutor(max_workers=4)
@@ -95,15 +97,15 @@ executor = ThreadPoolExecutor(max_workers=4)
 # Configuration
 MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB
 ALLOWED_EXTENSIONS = {
-    '.txt': 'text/plain',
-    '.pdf': 'application/pdf',
-    '.jpg': 'image/jpeg',
-    '.jpeg': 'image/jpeg',
-    '.png': 'image/png',
-    '.gif': 'image/gif',
-    '.doc': 'application/msword',
-    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    '.zip': 'application/zip'
+    ".txt": "text/plain",
+    ".pdf": "application/pdf",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".gif": "image/gif",
+    ".doc": "application/msword",
+    ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ".zip": "application/zip",
 }
 FILENAME_MAX_LENGTH = 120  # align with security policy
 
@@ -117,6 +119,7 @@ ERROR_CODES = {
     "INTERNAL_ERROR": "INTERNAL_ERROR",
 }
 
+
 # Simple TTL cache for file metadata to improve response times
 class SimpleTTLCache:
     def __init__(self, ttl_seconds: int = 300):
@@ -129,26 +132,25 @@ class SimpleTTLCache:
             entry = self._store.get(key)
             if not entry:
                 return None
-            if entry['expires_at'] < time.time():
+            if entry["expires_at"] < time.time():
                 # expired
                 del self._store[key]
                 return None
-            return entry['value']
+            return entry["value"]
 
     async def set(self, key: str, value: dict[str, Any]) -> None:
         async with self._lock:
-            self._store[key] = {
-                'value': value,
-                'expires_at': time.time() + self._ttl
-            }
+            self._store[key] = {"value": value, "expires_at": time.time() + self._ttl}
 
     async def invalidate(self, key: str) -> None:
         async with self._lock:
             if key in self._store:
                 del self._store[key]
 
+
 # Instantiate cache
 metadata_cache = SimpleTTLCache(ttl_seconds=300)
+
 
 # Utility functions
 def sanitize_filename(filename: str | None) -> str:
@@ -156,13 +158,15 @@ def sanitize_filename(filename: str | None) -> str:
     if not filename:
         return ""
     # Remove path separators and dangerous characters
-    filename = re.sub(r'[<>:"/\\|?*]', '', filename)
-    filename = filename.strip('. ')
+    filename = re.sub(r'[<>:"/\\|?*]', "", filename)
+    filename = filename.strip(". ")
     return filename[:255]  # Limit length
+
 
 def validate_file_type(extension: str, allowed_extensions: dict[str, str]) -> bool:
     """Validate file type against allowed extensions."""
     return extension.lower() in allowed_extensions
+
 
 def scan_file_content(content: bytes, extension: str) -> bool:
     """Basic file content scanning"""
@@ -171,11 +175,11 @@ def scan_file_content(content: bytes, extension: str) -> bool:
         return False
 
     # Check for suspicious patterns based on file extension
-    suspicious_patterns = [b'<script', b'javascript:', b'vbscript:', b'<?php']
+    suspicious_patterns = [b"<script", b"javascript:", b"vbscript:", b"<?php"]
     content_lower = content.lower()
 
     # Additional checks based on extension
-    if extension.lower() in ['.exe', '.bat', '.cmd']:
+    if extension.lower() in [".exe", ".bat", ".cmd"]:
         return False  # Block executable files
 
     for pattern in suspicious_patterns:
@@ -183,6 +187,7 @@ def scan_file_content(content: bytes, extension: str) -> bool:
             return False
 
     return True
+
 
 async def extract_metadata(content: bytes, filename: str) -> dict[str, Any]:
     """Extract file metadata with caching to improve performance."""
@@ -199,21 +204,24 @@ async def extract_metadata(content: bytes, filename: str) -> dict[str, Any]:
         return cached
 
     metadata: dict[str, Any] = {
-        'size': len(content),
-        'filename': filename,
-        'content_type': mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+        "size": len(content),
+        "filename": filename,
+        "content_type": mimetypes.guess_type(filename)[0] or "application/octet-stream",
     }
 
     # Try to extract image metadata if PIL is available
-    if Image and filename.lower().endswith(('.jpg', '.jpeg', '.png', '.gif')):
+    if Image and filename.lower().endswith((".jpg", ".jpeg", ".png", ".gif")):
         try:
             from io import BytesIO
+
             img = Image.open(BytesIO(content))
-            metadata.update({
-                'width': getattr(img, "width", None),
-                'height': getattr(img, "height", None),
-                'format': getattr(img, "format", None)
-            })
+            metadata.update(
+                {
+                    "width": getattr(img, "width", None),
+                    "height": getattr(img, "height", None),
+                    "format": getattr(img, "format", None),
+                }
+            )
         except Exception:
             # Ignore image metadata extraction failures
             pass
@@ -221,6 +229,7 @@ async def extract_metadata(content: bytes, filename: str) -> dict[str, Any]:
     # Cache the computed metadata
     await metadata_cache.set(key, metadata)
     return metadata
+
 
 class FileService:
     """Service class for file operations using EXISTING database abstraction layer."""
@@ -230,8 +239,18 @@ class FileService:
         self.db_manager = database_manager
         self.performance_logger = performance_logger
 
-    @async_track_performance("file_upload") if async_track_performance else (lambda f: f)
-    async def upload_file(self, file: UploadFile, user_id: int, sanitized_filename: str = None, content: bytes | None = None) -> FileRecord:
+    @(
+        async_track_performance("file_upload")
+        if async_track_performance
+        else (lambda f: f)
+    )
+    async def upload_file(
+        self,
+        file: UploadFile,
+        user_id: int,
+        sanitized_filename: str = None,
+        content: bytes | None = None,
+    ) -> FileRecord:
         """Upload file using EXISTING database abstraction layer.
 
         If content is provided, it will be used instead of re-reading the UploadFile.
@@ -260,10 +279,10 @@ class FileService:
                     params = {
                         "filename": filename_to_store,
                         "file_path": safe_path,
-                        "file_size": metadata['size'],
-                        "content_type": metadata['content_type'],
+                        "file_size": metadata["size"],
+                        "content_type": metadata["content_type"],
                         "upload_date": datetime.now(),
-                        "user_id": user_id
+                        "user_id": user_id,
                     }
 
                     # Use performance tracking if available
@@ -283,7 +302,7 @@ class FileService:
                             file_size=row[3],
                             content_type=row[4],
                             upload_date=row[5],
-                            user_id=row[6]
+                            user_id=row[6],
                         )
 
                 except Exception as e:
@@ -295,10 +314,10 @@ class FileService:
                 id=int(time.time()),  # best-effort unique id fallback
                 filename=filename_to_store,
                 file_path=safe_path,
-                file_size=metadata['size'],
-                content_type=metadata['content_type'],
+                file_size=metadata["size"],
+                content_type=metadata["content_type"],
                 upload_date=datetime.now(),
-                user_id=user_id
+                user_id=user_id,
             )
 
         except Exception as e:
@@ -306,7 +325,9 @@ class FileService:
             raise
 
     @async_track_performance("file_list") if async_track_performance else (lambda f: f)
-    async def list_files(self, user_id: int, limit: int = 50, offset: int = 0) -> list[FileRecord]:
+    async def list_files(
+        self, user_id: int, limit: int = 50, offset: int = 0
+    ) -> list[FileRecord]:
         """List files using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
@@ -324,15 +345,17 @@ class FileService:
                 files = []
                 if result:
                     for row in result:
-                        files.append(FileRecord(
-                            id=row[0],
-                            filename=row[1],
-                            file_path=row[2],
-                            file_size=row[3],
-                            content_type=row[4],
-                            upload_date=row[5],
-                            user_id=row[6]
-                        ))
+                        files.append(
+                            FileRecord(
+                                id=row[0],
+                                filename=row[1],
+                                file_path=row[2],
+                                file_size=row[3],
+                                content_type=row[4],
+                                upload_date=row[5],
+                                user_id=row[6],
+                            )
+                        )
 
                 return files
 
@@ -342,8 +365,10 @@ class FileService:
 
         return []
 
+
 # Initialize service
 file_service = FileService()
+
 
 # Pydantic models
 class FileUploadResponse(BaseModel):
@@ -354,25 +379,29 @@ class FileUploadResponse(BaseModel):
     upload_date: datetime
     message: str
 
+
 class FileListResponse(BaseModel):
     files: list[dict[str, Any]]
     total_count: int
     page: int
     per_page: int
 
-@router.post("/upload", response_model=FileUploadResponse, status_code=status.HTTP_201_CREATED)
+
+@router.post(
+    "/upload", response_model=FileUploadResponse, status_code=status.HTTP_201_CREATED
+)
 @secure_endpoint(
     auth_required=True,
     permission=RequiredPermission.WRITE,
     security_level=SecurityLevel.AUTHENTICATED,
     rate_limit_rpm=10,  # Stricter rate limiting for file uploads
-    audit_action="upload_file"
+    audit_action="upload_file",
 )
 async def upload_file(
     request: Request,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     """Upload a file with enhanced security validation and comprehensive logging."""
     client_ip = request.client.host if request.client else "unknown"
@@ -385,7 +414,7 @@ async def upload_file(
             endpoint="/files/upload",
             method="POST",
             ip_address=client_ip,
-            operation_id=operation_id
+            operation_id=operation_id,
         )
         logger.info(
             f"File upload initiated by user {current_user.get('id')}",
@@ -395,9 +424,9 @@ async def upload_file(
                 "filename": getattr(file, "filename", None),
                 "content_type": getattr(file, "content_type", None),
                 "client_ip": client_ip,
-                "operation_id": operation_id
+                "operation_id": operation_id,
             },
-            tags=["file_upload", "user_action", "security_sensitive"]
+            tags=["file_upload", "user_action", "security_sensitive"],
         )
     except Exception:
         # Ensure logging failures don't block upload
@@ -417,28 +446,45 @@ async def upload_file(
     try:
         # Validate file presence
         if not file or not getattr(file, "filename", None):
-            detail = {"code": ERROR_CODES["FILE_MISSING_FILENAME"], "message": "No filename provided"}
+            detail = {
+                "code": ERROR_CODES["FILE_MISSING_FILENAME"],
+                "message": "No filename provided",
+            }
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
 
         # Early sanitize filename to prevent early traversal attempts and trim length
         raw_filename = file.filename or ""
         sanitized_local = sanitize_filename(raw_filename)
         if len(sanitized_local) > FILENAME_MAX_LENGTH:
-            detail = {"code": ERROR_CODES["FILE_TOO_LARGE"], "message": f"Filename is too long (max {FILENAME_MAX_LENGTH} characters)"}
+            detail = {
+                "code": ERROR_CODES["FILE_TOO_LARGE"],
+                "message": f"Filename is too long (max {FILENAME_MAX_LENGTH} characters)",
+            }
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
 
         # Read file bytes for validation and scanning
         content = await file.read()
         file_size = len(content)
-        content_type = file.content_type or mimetypes.guess_type(raw_filename)[0] or "application/octet-stream"
+        content_type = (
+            file.content_type
+            or mimetypes.guess_type(raw_filename)[0]
+            or "application/octet-stream"
+        )
 
         # Use centralized security validation when available
         if security_system:
-            allowed, message = security_system.validate_file_upload(raw_filename, content_type, file_size)
+            allowed, message = security_system.validate_file_upload(
+                raw_filename, content_type, file_size
+            )
             if not allowed:
                 # Security system returned a rejection reason
-                detail = {"code": ERROR_CODES["FILE_SECURITY_VIOLATION"], "message": message}
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
+                detail = {
+                    "code": ERROR_CODES["FILE_SECURITY_VIOLATION"],
+                    "message": message,
+                }
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, detail=detail
+                )
             # On success, parse sanitized filename if included in message
             sanitized_name = None
             try:
@@ -450,25 +496,47 @@ async def upload_file(
         else:
             # Fallback validation if security system is missing
             # Check extension whitelist
-            file_ext = '.' + raw_filename.split('.')[-1].lower() if '.' in raw_filename else ''
+            file_ext = (
+                "." + raw_filename.split(".")[-1].lower() if "." in raw_filename else ""
+            )
             if not validate_file_type(file_ext, ALLOWED_EXTENSIONS):
-                detail = {"code": ERROR_CODES["FILE_TYPE_NOT_ALLOWED"], "message": f"File type {file_ext} not allowed"}
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
+                detail = {
+                    "code": ERROR_CODES["FILE_TYPE_NOT_ALLOWED"],
+                    "message": f"File type {file_ext} not allowed",
+                }
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, detail=detail
+                )
 
             if file_size > MAX_FILE_SIZE:
-                detail = {"code": ERROR_CODES["FILE_TOO_LARGE"], "message": f"File too large. Maximum size is {MAX_FILE_SIZE // (1024*1024)}MB"}
-                raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=detail)
+                detail = {
+                    "code": ERROR_CODES["FILE_TOO_LARGE"],
+                    "message": f"File too large. Maximum size is {MAX_FILE_SIZE // (1024*1024)}MB",
+                }
+                raise HTTPException(
+                    status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=detail
+                )
 
             if not scan_file_content(content, file_ext):
-                detail = {"code": ERROR_CODES["FILE_SECURITY_VIOLATION"], "message": "File content failed security scan"}
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
+                detail = {
+                    "code": ERROR_CODES["FILE_SECURITY_VIOLATION"],
+                    "message": "File content failed security scan",
+                }
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, detail=detail
+                )
 
             sanitized_name = sanitized_local
 
         # Additional defensive checks even after security system validation
         if file_size > MAX_FILE_SIZE:
-            detail = {"code": ERROR_CODES["FILE_TOO_LARGE"], "message": f"File too large. Maximum size is {MAX_FILE_SIZE // (1024*1024)}MB"}
-            raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=detail)
+            detail = {
+                "code": ERROR_CODES["FILE_TOO_LARGE"],
+                "message": f"File too large. Maximum size is {MAX_FILE_SIZE // (1024*1024)}MB",
+            }
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=detail
+            )
 
         # Ensure we have a sanitized filename to store
         if not sanitized_name:
@@ -484,20 +552,28 @@ async def upload_file(
             pass
 
         # Scan file content as additional layer (fast)
-        ext_for_scan = '.' + sanitized_name.split('.')[-1].lower() if '.' in sanitized_name else ''
+        ext_for_scan = (
+            "." + sanitized_name.split(".")[-1].lower() if "." in sanitized_name else ""
+        )
         if not scan_file_content(content, ext_for_scan):
-            detail = {"code": ERROR_CODES["FILE_SECURITY_VIOLATION"], "message": "File content failed security scan"}
+            detail = {
+                "code": ERROR_CODES["FILE_SECURITY_VIOLATION"],
+                "message": "File content failed security scan",
+            }
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
 
         # Upload file using service (pass content to avoid re-reading)
-        with (timer("file_upload_total") if timer else DummyContextManager()) as _:
-            file_record = await file_service.upload_file(file, current_user.get("id", 0), sanitized_filename=sanitized_name, content=content)
+        with timer("file_upload_total") if timer else DummyContextManager() as _:
+            file_record = await file_service.upload_file(
+                file,
+                current_user.get("id", 0),
+                sanitized_filename=sanitized_name,
+                content=content,
+            )
 
         # Schedule background processing
         background_tasks.add_task(
-            _process_file_background,
-            file_record.id,
-            current_user.get("id", 0)
+            _process_file_background, file_record.id, current_user.get("id", 0)
         )
 
         # Record performance metrics
@@ -505,7 +581,9 @@ async def upload_file(
         if performance_logger:
             try:
                 performance_logger.increment_counter("file_upload_completed", 1)
-                performance_logger.record_metric("file_upload_duration_ms", duration_ms, "ms")
+                performance_logger.record_metric(
+                    "file_upload_duration_ms", duration_ms, "ms"
+                )
             except Exception:
                 logger.debug("Failed to record performance metrics for file upload")
 
@@ -516,43 +594,48 @@ async def upload_file(
             file_size=file_record.file_size,
             content_type=file_record.content_type,
             upload_date=file_record.upload_date,
-            message="File uploaded successfully"
+            message="File uploaded successfully",
         )
 
     except HTTPException:
         # Re-raise structured HTTP exceptions directly
         raise
     except Exception as e:
-        logger.error(f"Unexpected error uploading file: {e}", metadata={"exception": str(e)})
-        detail = {"code": ERROR_CODES["INTERNAL_ERROR"], "message": "Internal server error"}
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=detail
+        logger.error(
+            f"Unexpected error uploading file: {e}", metadata={"exception": str(e)}
         )
+        detail = {
+            "code": ERROR_CODES["INTERNAL_ERROR"],
+            "message": "Internal server error",
+        }
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail
+        )
+
 
 # Minimal context manager to use when timer is unavailable
 class DummyContextManager:
     def __enter__(self):
         return self
+
     def __exit__(self, exc_type, exc, tb):
         return False
+
 
 async def _process_file_background(file_id: int, user_id: int):
     """Process file in background with multithreading support."""
     try:
-        logger.debug(f"Processing background tasks for file {file_id} by user {user_id}")
+        logger.debug(
+            f"Processing background tasks for file {file_id} by user {user_id}"
+        )
 
         # Use thread pool for CPU-intensive tasks
         loop = asyncio.get_event_loop()
-        await loop.run_in_executor(
-            executor,
-            _process_file_sync,
-            file_id,
-            user_id
-        )
+        await loop.run_in_executor(executor, _process_file_sync, file_id, user_id)
 
     except Exception as e:
         logger.error(f"Error in background file processing: {e}")
+
 
 def _process_file_sync(file_id: int, user_id: int):
     """Synchronous file processing for thread pool execution."""

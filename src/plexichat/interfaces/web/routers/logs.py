@@ -13,6 +13,7 @@ PLUGINS_DIR = LOG_DIR / "plugins"
 
 LEVELS = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
+
 @router.get("/", response_class=HTMLResponse)
 async def logs_ui(request: Request):
     return templates.TemplateResponse("admin/logs.html", {"request": request})
@@ -31,15 +32,23 @@ async def list_log_files() -> dict:
             for plugin_dir in PLUGINS_DIR.iterdir():
                 if plugin_dir.is_dir():
                     for p in plugin_dir.glob("*.log"):
-                        files.append({"name": f"plugins/{plugin_dir.name}/{p.name}", "path": str(p)})
+                        files.append(
+                            {
+                                "name": f"plugins/{plugin_dir.name}/{p.name}",
+                                "path": str(p),
+                            }
+                        )
         return {"files": files}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Could not list logs: {e}")
 
+
 @router.get("/view", response_class=PlainTextResponse)
-async def view_log(file: str = Query(..., description="Relative log file name"),
-                   level: str | None = Query(None, description="Filter by level (DEBUG..CRITICAL)"),
-                   tail_kb: int = Query(64, ge=1, le=8192, description="Tail size in kilobytes")) -> str:
+async def view_log(
+    file: str = Query(..., description="Relative log file name"),
+    level: str | None = Query(None, description="Filter by level (DEBUG..CRITICAL)"),
+    tail_kb: int = Query(64, ge=1, le=8192, description="Tail size in kilobytes"),
+) -> str:
     try:
         if not re.match(r"^[a-zA-Z0-9_./-]+$", file):
             raise HTTPException(status_code=400, detail="Invalid file name")
@@ -58,7 +67,7 @@ async def view_log(file: str = Query(..., description="Relative log file name"),
         with open(target, "rb") as f:
             f.seek(start)
             data = f.read()
-        text = data.decode('ascii', errors='replace')
+        text = data.decode("ascii", errors="replace")
         if level and level.upper() in LEVELS:
             lines = [ln for ln in text.splitlines() if f"[{level.upper():<8}]" in ln]
             return "\n".join(lines)

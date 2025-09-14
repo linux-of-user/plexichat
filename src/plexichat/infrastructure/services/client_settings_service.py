@@ -39,6 +39,7 @@ except ImportError:
 try:
     from Crypto.Cipher import AES
     from Crypto.Random import get_random_bytes
+
     CRYPTO_AVAILABLE = True
 except ImportError:
     CRYPTO_AVAILABLE = False
@@ -48,6 +49,7 @@ logger = logging.getLogger(__name__)
 
 class SettingType(Enum):
     """Supported setting data types."""
+
     STRING = "string"
     INTEGER = "integer"
     FLOAT = "float"
@@ -59,32 +61,38 @@ class SettingType(Enum):
 
 class ValidationError(Exception):
     """Raised when setting validation fails."""
+
     pass
 
 
 class RateLimitError(Exception):
     """Raised when rate limit is exceeded."""
+
     pass
 
 
 class StorageLimitError(Exception):
     """Raised when storage limit is exceeded."""
+
     pass
 
 
 class SecurityError(Exception):
     """Raised when security validation fails."""
+
     pass
 
 
 class EncryptionError(Exception):
     """Raised when encryption/decryption fails."""
+
     pass
 
 
 @dataclass
 class SettingLimits:
     """Configuration for setting limits."""
+
     max_key_length: int = 255
     max_string_value_length: int = 10000
     max_json_size: int = 100000  # 100KB
@@ -92,21 +100,35 @@ class SettingLimits:
     max_binary_size: int = 1048576  # 1MB
     max_settings_per_user: int = 1000
     max_total_storage_per_user: int = 52428800  # 50MB
-    allowed_image_types: set[str] = field(default_factory=lambda: {
-        'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'
-    })
+    allowed_image_types: set[str] = field(
+        default_factory=lambda: {
+            "image/jpeg",
+            "image/png",
+            "image/gif",
+            "image/webp",
+            "image/svg+xml",
+        }
+    )
     # Admin override limits
     admin_max_settings_per_user: int = 10000
     admin_max_total_storage_per_user: int = 524288000  # 500MB
     # Sensitive setting patterns (will be encrypted)
-    sensitive_key_patterns: set[str] = field(default_factory=lambda: {
-        'password', 'token', 'secret', 'key', 'credential', 'auth'
-    })
+    sensitive_key_patterns: set[str] = field(
+        default_factory=lambda: {
+            "password",
+            "token",
+            "secret",
+            "key",
+            "credential",
+            "auth",
+        }
+    )
 
 
 @dataclass
 class SecurityConfig:
     """Security configuration for client settings."""
+
     require_authentication: bool = True
     enable_encryption: bool = True
     enable_audit_logging: bool = True
@@ -119,6 +141,7 @@ class SecurityConfig:
 @dataclass
 class MetricsData:
     """Metrics tracking for client settings service."""
+
     total_requests: int = 0
     successful_requests: int = 0
     failed_requests: int = 0
@@ -152,22 +175,28 @@ class EncryptionManager:
 
         try:
             cipher = AES.new(self.encryption_key, AES.MODE_GCM)
-            ciphertext, tag = cipher.encrypt_and_digest(value.encode('utf-8'))
+            ciphertext, tag = cipher.encrypt_and_digest(value.encode("utf-8"))
 
             # Combine nonce, tag, and ciphertext
             encrypted_data = cipher.nonce + tag + ciphertext
-            return "enc:" + base64.b64encode(encrypted_data).decode('utf-8')
+            return "enc:" + base64.b64encode(encrypted_data).decode("utf-8")
         except Exception as e:
             self.logger.error(f"Encryption failed: {e}")
             raise EncryptionError(f"Failed to encrypt value: {e}")
 
     def decrypt_value(self, encrypted_value: str) -> str:
         """Decrypt a sensitive value."""
-        if not CRYPTO_AVAILABLE or not encrypted_value or not encrypted_value.startswith("enc:"):
+        if (
+            not CRYPTO_AVAILABLE
+            or not encrypted_value
+            or not encrypted_value.startswith("enc:")
+        ):
             return encrypted_value
 
         try:
-            encrypted_data = base64.b64decode(encrypted_value[4:])  # Remove "enc:" prefix
+            encrypted_data = base64.b64decode(
+                encrypted_value[4:]
+            )  # Remove "enc:" prefix
 
             # Extract nonce, tag, and ciphertext
             nonce = encrypted_data[:16]
@@ -176,7 +205,7 @@ class EncryptionManager:
 
             cipher = AES.new(self.encryption_key, AES.MODE_GCM, nonce=nonce)
             plaintext = cipher.decrypt_and_verify(ciphertext, tag)
-            return plaintext.decode('utf-8')
+            return plaintext.decode("utf-8")
         except Exception as e:
             self.logger.error(f"Decryption failed: {e}")
             raise EncryptionError(f"Failed to decrypt value: {e}")
@@ -193,13 +222,15 @@ class AuditLogger:
         self.logger = logging.getLogger(f"{__name__}.audit")
         self.metrics = MetricsData()
 
-    async def log_operation(self,
-                           operation: str,
-                           user_id: str,
-                           setting_key: str | None = None,
-                           success: bool = True,
-                           error: str | None = None,
-                           metadata: dict[str, Any] | None = None) -> None:
+    async def log_operation(
+        self,
+        operation: str,
+        user_id: str,
+        setting_key: str | None = None,
+        success: bool = True,
+        error: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
         """Log an audit event."""
         try:
             audit_event = {
@@ -211,14 +242,17 @@ class AuditLogger:
                 "error": error,
                 "metadata": metadata or {},
                 "ip_address": metadata.get("ip_address") if metadata else None,
-                "user_agent": metadata.get("user_agent") if metadata else None
+                "user_agent": metadata.get("user_agent") if metadata else None,
             }
 
             # Log to audit logger
             if success:
                 self.logger.info(f"AUDIT: {operation} by {user_id}", extra=audit_event)
             else:
-                self.logger.warning(f"AUDIT: Failed {operation} by {user_id}: {error}", extra=audit_event)
+                self.logger.warning(
+                    f"AUDIT: Failed {operation} by {user_id}: {error}",
+                    extra=audit_event,
+                )
 
             # Store in database if available
             if database_manager:
@@ -245,8 +279,8 @@ class AuditLogger:
                         "error": event.get("error"),
                         "metadata": json.dumps(event.get("metadata", {})),
                         "ip_address": event.get("ip_address"),
-                        "user_agent": event.get("user_agent")
-                    }
+                        "user_agent": event.get("user_agent"),
+                    },
                 )
                 await session.commit()
         except Exception as e:
@@ -267,56 +301,71 @@ def security_required(security_level=None):
                 return await func(self, user_id, *args, **kwargs)
 
             # Extract security context from kwargs if provided
-            security_context = kwargs.get('security_context')
+            security_context = kwargs.get("security_context")
 
             if self.security_config.require_authentication and get_security_system:
                 security_system = get_security_system()
 
                 if not security_context:
                     await self.audit_logger.log_operation(
-                        "security_violation", user_id,
-                        success=False, error="No security context provided"
+                        "security_violation",
+                        user_id,
+                        success=False,
+                        error="No security context provided",
                     )
                     raise SecurityError("Authentication required")
 
                 if not security_context.authenticated:
                     await self.audit_logger.log_operation(
-                        "security_violation", user_id,
-                        success=False, error="User not authenticated"
+                        "security_violation",
+                        user_id,
+                        success=False,
+                        error="User not authenticated",
                     )
                     raise SecurityError("User not authenticated")
 
                 if security_context.security_level.value < security_level.value:
                     await self.audit_logger.log_operation(
-                        "security_violation", user_id,
-                        success=False, error=f"Insufficient security level: {security_context.security_level}"
+                        "security_violation",
+                        user_id,
+                        success=False,
+                        error=f"Insufficient security level: {security_context.security_level}",
                     )
                     raise SecurityError("Insufficient security level")
 
             return await func(self, user_id, *args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
 def rate_limited_with_global():
     """Decorator to apply global rate limiting to methods."""
+
     def decorator(func):
         @wraps(func)
         async def wrapper(self, user_id: str, *args, **kwargs):
             # Use global rate limiter if available
             if get_rate_limiter:
                 rate_limiter = get_rate_limiter()
-                allowed, _info = await rate_limiter.check_user_action(user_id, "client_settings")
+                allowed, _info = await rate_limiter.check_user_action(
+                    user_id, "client_settings"
+                )
                 if not allowed:
                     self.metrics.rate_limited_requests += 1
                     await self.audit_logger.log_operation(
-                        "rate_limit_exceeded", user_id,
-                        success=False, error="Rate limit exceeded"
+                        "rate_limit_exceeded",
+                        user_id,
+                        success=False,
+                        error="Rate limit exceeded",
                     )
                     raise RateLimitError("Rate limit exceeded")
 
             return await func(self, user_id, *args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -334,23 +383,29 @@ class SettingValidator:
             raise ValidationError("Setting key cannot be empty")
 
         if len(key) > self.limits.max_key_length:
-            raise ValidationError(f"Setting key too long (max {self.limits.max_key_length} characters)")
+            raise ValidationError(
+                f"Setting key too long (max {self.limits.max_key_length} characters)"
+            )
 
         # Key should contain only alphanumeric characters, underscores, dots, and hyphens
-        if not all(c.isalnum() or c in '._-' for c in key):
+        if not all(c.isalnum() or c in "._-" for c in key):
             raise ValidationError("Setting key contains invalid characters")
 
         # Check for potentially dangerous key patterns
-        dangerous_patterns = ['__', 'admin', 'system', 'root', 'config']
+        dangerous_patterns = ["__", "admin", "system", "root", "config"]
         key_lower = key.lower()
         for pattern in dangerous_patterns:
             if pattern in key_lower:
-                self.logger.warning(f"Potentially dangerous key pattern detected: {key}")
+                self.logger.warning(
+                    f"Potentially dangerous key pattern detected: {key}"
+                )
 
     def is_sensitive_key(self, key: str) -> bool:
         """Check if a setting key should be treated as sensitive."""
         key_lower = key.lower()
-        return any(pattern in key_lower for pattern in self.limits.sensitive_key_patterns)
+        return any(
+            pattern in key_lower for pattern in self.limits.sensitive_key_patterns
+        )
 
     def validate_value(self, value: Any, setting_type: SettingType) -> Any:
         """Validate and convert setting value based on type."""
@@ -360,7 +415,9 @@ class SettingValidator:
         if setting_type == SettingType.STRING:
             str_value = str(value)
             if len(str_value) > self.limits.max_string_value_length:
-                raise ValidationError(f"String value too long (max {self.limits.max_string_value_length} characters)")
+                raise ValidationError(
+                    f"String value too long (max {self.limits.max_string_value_length} characters)"
+                )
             return str_value
 
         elif setting_type == SettingType.INTEGER:
@@ -379,7 +436,7 @@ class SettingValidator:
             if isinstance(value, bool):
                 return value
             if isinstance(value, str):
-                return value.lower() in ('true', '1', 'yes', 'on')
+                return value.lower() in ("true", "1", "yes", "on")
             return bool(value)
 
         elif setting_type == SettingType.JSON:
@@ -389,7 +446,9 @@ class SettingValidator:
                 json_str = str(value)
 
             if len(json_str) > self.limits.max_json_size:
-                raise ValidationError(f"JSON value too large (max {self.limits.max_json_size} bytes)")
+                raise ValidationError(
+                    f"JSON value too large (max {self.limits.max_json_size} bytes)"
+                )
 
             try:
                 return json.loads(json_str)
@@ -407,39 +466,41 @@ class SettingValidator:
 
     def _validate_image(self, value: Any) -> dict[str, Any]:
         """Validate image data."""
-        if isinstance(value, dict) and 'data' in value:
-            image_data = value['data']
-            content_type = value.get('content_type', 'image/jpeg')
+        if isinstance(value, dict) and "data" in value:
+            image_data = value["data"]
+            content_type = value.get("content_type", "image/jpeg")
         elif isinstance(value, str):
             # Assume base64 encoded image
             try:
                 image_data = base64.b64decode(value)
-                content_type = 'image/jpeg'  # Default
+                content_type = "image/jpeg"  # Default
             except Exception:
                 raise ValidationError("Invalid base64 image data")
         else:
             raise ValidationError("Invalid image format")
 
         if isinstance(image_data, str):
-            image_data = image_data.encode('utf-8')
+            image_data = image_data.encode("utf-8")
 
         if len(image_data) > self.limits.max_image_size:
-            raise ValidationError(f"Image too large (max {self.limits.max_image_size} bytes)")
+            raise ValidationError(
+                f"Image too large (max {self.limits.max_image_size} bytes)"
+            )
 
         if content_type not in self.limits.allowed_image_types:
             raise ValidationError(f"Unsupported image type: {content_type}")
 
         return {
-            'data': base64.b64encode(image_data).decode('utf-8'),
-            'content_type': content_type,
-            'size': len(image_data),
-            'hash': hashlib.sha256(image_data).hexdigest()
+            "data": base64.b64encode(image_data).decode("utf-8"),
+            "content_type": content_type,
+            "size": len(image_data),
+            "hash": hashlib.sha256(image_data).hexdigest(),
         }
 
     def _validate_binary(self, value: Any) -> dict[str, Any]:
         """Validate binary data."""
-        if isinstance(value, dict) and 'data' in value:
-            binary_data = value['data']
+        if isinstance(value, dict) and "data" in value:
+            binary_data = value["data"]
         elif isinstance(value, str):
             try:
                 binary_data = base64.b64decode(value)
@@ -451,15 +512,17 @@ class SettingValidator:
             raise ValidationError("Invalid binary format")
 
         if isinstance(binary_data, str):
-            binary_data = binary_data.encode('utf-8')
+            binary_data = binary_data.encode("utf-8")
 
         if len(binary_data) > self.limits.max_binary_size:
-            raise ValidationError(f"Binary data too large (max {self.limits.max_binary_size} bytes)")
+            raise ValidationError(
+                f"Binary data too large (max {self.limits.max_binary_size} bytes)"
+            )
 
         return {
-            'data': base64.b64encode(binary_data).decode('utf-8'),
-            'size': len(binary_data),
-            'hash': hashlib.sha256(binary_data).hexdigest()
+            "data": base64.b64encode(binary_data).decode("utf-8"),
+            "size": len(binary_data),
+            "hash": hashlib.sha256(binary_data).hexdigest(),
         }
 
 
@@ -469,15 +532,19 @@ class ClientSettingsService:
     rate limiting, security controls, encryption, and audit logging.
     """
 
-    def __init__(self,
-                 limits: SettingLimits | None = None,
-                 security_config: SecurityConfig | None = None):
+    def __init__(
+        self,
+        limits: SettingLimits | None = None,
+        security_config: SecurityConfig | None = None,
+    ):
         # Load configuration from config manager
         self._load_configuration()
 
         # Initialize components
         self.limits = limits or self._create_limits_from_config()
-        self.security_config = security_config or self._create_security_config_from_config()
+        self.security_config = (
+            security_config or self._create_security_config_from_config()
+        )
         self.validator = SettingValidator(self.limits, self.security_config)
         self.encryption_manager = EncryptionManager()
         self.audit_logger = AuditLogger()
@@ -502,15 +569,33 @@ class ClientSettingsService:
             return SettingLimits()
 
         return SettingLimits(
-            max_key_length=self.config_manager.get("client_settings.max_key_length", 255),
-            max_string_value_length=self.config_manager.get("client_settings.max_string_value_length", 10000),
-            max_json_size=self.config_manager.get("client_settings.max_json_size", 100000),
-            max_image_size=self.config_manager.get("client_settings.max_image_size", 5242880),
-            max_binary_size=self.config_manager.get("client_settings.max_binary_size", 1048576),
-            max_settings_per_user=self.config_manager.get("client_settings.max_settings_per_user", 1000),
-            max_total_storage_per_user=self.config_manager.get("client_settings.max_total_storage_per_user", 52428800),
-            admin_max_settings_per_user=self.config_manager.get("client_settings.admin_max_settings_per_user", 10000),
-            admin_max_total_storage_per_user=self.config_manager.get("client_settings.admin_max_total_storage_per_user", 524288000),
+            max_key_length=self.config_manager.get(
+                "client_settings.max_key_length", 255
+            ),
+            max_string_value_length=self.config_manager.get(
+                "client_settings.max_string_value_length", 10000
+            ),
+            max_json_size=self.config_manager.get(
+                "client_settings.max_json_size", 100000
+            ),
+            max_image_size=self.config_manager.get(
+                "client_settings.max_image_size", 5242880
+            ),
+            max_binary_size=self.config_manager.get(
+                "client_settings.max_binary_size", 1048576
+            ),
+            max_settings_per_user=self.config_manager.get(
+                "client_settings.max_settings_per_user", 1000
+            ),
+            max_total_storage_per_user=self.config_manager.get(
+                "client_settings.max_total_storage_per_user", 52428800
+            ),
+            admin_max_settings_per_user=self.config_manager.get(
+                "client_settings.admin_max_settings_per_user", 10000
+            ),
+            admin_max_total_storage_per_user=self.config_manager.get(
+                "client_settings.admin_max_total_storage_per_user", 524288000
+            ),
         )
 
     def _create_security_config_from_config(self) -> SecurityConfig:
@@ -519,24 +604,42 @@ class ClientSettingsService:
             return SecurityConfig()
 
         return SecurityConfig(
-            require_authentication=self.config_manager.get("client_settings.require_authentication", True),
-            enable_encryption=self.config_manager.get("client_settings.enable_encryption", True),
-            enable_audit_logging=self.config_manager.get("client_settings.enable_audit_logging", True),
-            max_failed_auth_attempts=self.config_manager.get("client_settings.max_failed_auth_attempts", 5),
-            auth_lockout_duration_minutes=self.config_manager.get("client_settings.auth_lockout_duration_minutes", 30),
-            encryption_key_rotation_days=self.config_manager.get("client_settings.encryption_key_rotation_days", 90),
-            audit_retention_days=self.config_manager.get("client_settings.audit_retention_days", 365),
+            require_authentication=self.config_manager.get(
+                "client_settings.require_authentication", True
+            ),
+            enable_encryption=self.config_manager.get(
+                "client_settings.enable_encryption", True
+            ),
+            enable_audit_logging=self.config_manager.get(
+                "client_settings.enable_audit_logging", True
+            ),
+            max_failed_auth_attempts=self.config_manager.get(
+                "client_settings.max_failed_auth_attempts", 5
+            ),
+            auth_lockout_duration_minutes=self.config_manager.get(
+                "client_settings.auth_lockout_duration_minutes", 30
+            ),
+            encryption_key_rotation_days=self.config_manager.get(
+                "client_settings.encryption_key_rotation_days", 90
+            ),
+            audit_retention_days=self.config_manager.get(
+                "client_settings.audit_retention_days", 365
+            ),
         )
 
     def _is_admin_user(self, security_context: SecurityContext | None) -> bool:
         """Check if user has admin privileges."""
         if not security_context:
             return False
-        return (security_context.security_level == SecurityLevel.ADMIN or
-                security_context.security_level == SecurityLevel.SYSTEM or
-                'admin' in security_context.permissions)
+        return (
+            security_context.security_level == SecurityLevel.ADMIN
+            or security_context.security_level == SecurityLevel.SYSTEM
+            or "admin" in security_context.permissions
+        )
 
-    def _get_effective_limits(self, security_context: SecurityContext | None) -> SettingLimits:
+    def _get_effective_limits(
+        self, security_context: SecurityContext | None
+    ) -> SettingLimits:
         """Get effective limits based on user privileges."""
         if self._is_admin_user(security_context):
             # Return admin limits
@@ -565,7 +668,11 @@ class ClientSettingsService:
                 await database_manager.ensure_table_exists(
                     "client_settings",
                     {
-                        "id": "INTEGER PRIMARY KEY AUTOINCREMENT" if database_manager.config.db_type == "sqlite" else "SERIAL PRIMARY KEY",
+                        "id": (
+                            "INTEGER PRIMARY KEY AUTOINCREMENT"
+                            if database_manager.config.db_type == "sqlite"
+                            else "SERIAL PRIMARY KEY"
+                        ),
                         "user_id": "TEXT NOT NULL",
                         "setting_key": "TEXT NOT NULL",
                         "setting_value": "TEXT",
@@ -576,8 +683,12 @@ class ClientSettingsService:
                         "size_bytes": "INTEGER DEFAULT 0",
                         "access_count": "INTEGER DEFAULT 0",
                         "last_accessed": "TIMESTAMP",
-                        "UNIQUE": "(user_id, setting_key)" if database_manager.config.db_type == "sqlite" else "",
-                    }
+                        "UNIQUE": (
+                            "(user_id, setting_key)"
+                            if database_manager.config.db_type == "sqlite"
+                            else ""
+                        ),
+                    },
                 )
 
                 # Create audit table
@@ -585,7 +696,11 @@ class ClientSettingsService:
                     await database_manager.ensure_table_exists(
                         "client_settings_audit",
                         {
-                            "id": "INTEGER PRIMARY KEY AUTOINCREMENT" if database_manager.config.db_type == "sqlite" else "SERIAL PRIMARY KEY",
+                            "id": (
+                                "INTEGER PRIMARY KEY AUTOINCREMENT"
+                                if database_manager.config.db_type == "sqlite"
+                                else "SERIAL PRIMARY KEY"
+                            ),
                             "timestamp": "TIMESTAMP NOT NULL",
                             "operation": "TEXT NOT NULL",
                             "user_id": "TEXT NOT NULL",
@@ -595,7 +710,7 @@ class ClientSettingsService:
                             "metadata": "TEXT",
                             "ip_address": "TEXT",
                             "user_agent": "TEXT",
-                        }
+                        },
                     )
 
                 # Create indexes for performance
@@ -625,7 +740,9 @@ class ClientSettingsService:
                 self.logger.info("Client settings service initialized successfully")
                 return True
             else:
-                self.logger.warning("Database manager not available, running in mock mode")
+                self.logger.warning(
+                    "Database manager not available, running in mock mode"
+                )
                 return False
 
         except Exception as e:
@@ -634,17 +751,24 @@ class ClientSettingsService:
 
     @security_required()
     @rate_limited_with_global()
-    async def get_user_settings(self,
-                               user_id: str,
-                               user_permissions: set[str] | None = None,
-                               security_context: SecurityContext | None = None,
-                               metadata: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    async def get_user_settings(
+        self,
+        user_id: str,
+        user_permissions: set[str] | None = None,
+        security_context: SecurityContext | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         """Get all settings for a user with security and audit logging."""
         await self.initialize()
 
         if not database_manager:
-            await self.audit_logger.log_operation("get_user_settings", user_id, success=False,
-                                                 error="Database not available", metadata=metadata)
+            await self.audit_logger.log_operation(
+                "get_user_settings",
+                user_id,
+                success=False,
+                error="Database not available",
+                metadata=metadata,
+            )
             return []
 
         try:
@@ -664,20 +788,29 @@ class ClientSettingsService:
                 for row in rows:
                     # Decrypt value if encrypted
                     setting_value = row["setting_value"]
-                    if row.get("is_encrypted", False) and self.security_config.enable_encryption:
+                    if (
+                        row.get("is_encrypted", False)
+                        and self.security_config.enable_encryption
+                    ):
                         try:
-                            setting_value = self.encryption_manager.decrypt_value(setting_value)
+                            setting_value = self.encryption_manager.decrypt_value(
+                                setting_value
+                            )
                         except EncryptionError as e:
-                            self.logger.error(f"Failed to decrypt setting {row['setting_key']}: {e}")
+                            self.logger.error(
+                                f"Failed to decrypt setting {row['setting_key']}: {e}"
+                            )
                             continue
 
                     setting = {
                         "setting_key": row["setting_key"],
-                        "setting_value": self._deserialize_value(setting_value, row["setting_type"]),
+                        "setting_value": self._deserialize_value(
+                            setting_value, row["setting_type"]
+                        ),
                         "setting_type": row["setting_type"],
                         "updated_at": row["updated_at"],
                         "size_bytes": row["size_bytes"],
-                        "access_count": row.get("access_count", 0)
+                        "access_count": row.get("access_count", 0),
                     }
                     settings.append(setting)
 
@@ -685,31 +818,45 @@ class ClientSettingsService:
                 await self._update_access_tracking(session, user_id, None)
 
                 self.metrics.successful_requests += 1
-                await self.audit_logger.log_operation("get_user_settings", user_id,
-                                                     success=True, metadata=metadata)
+                await self.audit_logger.log_operation(
+                    "get_user_settings", user_id, success=True, metadata=metadata
+                )
                 return settings
 
         except Exception as e:
             self.metrics.failed_requests += 1
             self.logger.error(f"Failed to get user settings for {user_id}: {e}")
-            await self.audit_logger.log_operation("get_user_settings", user_id,
-                                                 success=False, error=str(e), metadata=metadata)
+            await self.audit_logger.log_operation(
+                "get_user_settings",
+                user_id,
+                success=False,
+                error=str(e),
+                metadata=metadata,
+            )
             raise
 
     @security_required()
     @rate_limited_with_global()
-    async def get_setting(self,
-                         user_id: str,
-                         key: str,
-                         user_permissions: set[str] | None = None,
-                         security_context: SecurityContext | None = None,
-                         metadata: dict[str, Any] | None = None) -> dict[str, Any] | None:
+    async def get_setting(
+        self,
+        user_id: str,
+        key: str,
+        user_permissions: set[str] | None = None,
+        security_context: SecurityContext | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
         """Get a specific setting for a user with security and decryption."""
         await self.initialize()
 
         if not database_manager:
-            await self.audit_logger.log_operation("get_setting", user_id, key, success=False,
-                                                 error="Database not available", metadata=metadata)
+            await self.audit_logger.log_operation(
+                "get_setting",
+                user_id,
+                key,
+                success=False,
+                error="Database not available",
+                metadata=metadata,
+            )
             return None
 
         try:
@@ -726,19 +873,35 @@ class ClientSettingsService:
                 row = await session.fetchone(query, {"user_id": user_id, "key": key})
 
                 if not row:
-                    await self.audit_logger.log_operation("get_setting", user_id, key,
-                                                         success=True, metadata={**metadata, "found": False})
+                    await self.audit_logger.log_operation(
+                        "get_setting",
+                        user_id,
+                        key,
+                        success=True,
+                        metadata={**metadata, "found": False},
+                    )
                     return None
 
                 # Decrypt value if encrypted
                 setting_value = row["setting_value"]
-                if row.get("is_encrypted", False) and self.security_config.enable_encryption:
+                if (
+                    row.get("is_encrypted", False)
+                    and self.security_config.enable_encryption
+                ):
                     try:
-                        setting_value = self.encryption_manager.decrypt_value(setting_value)
+                        setting_value = self.encryption_manager.decrypt_value(
+                            setting_value
+                        )
                     except EncryptionError as e:
                         self.logger.error(f"Failed to decrypt setting {key}: {e}")
-                        await self.audit_logger.log_operation("get_setting", user_id, key,
-                                                             success=False, error=f"Decryption failed: {e}", metadata=metadata)
+                        await self.audit_logger.log_operation(
+                            "get_setting",
+                            user_id,
+                            key,
+                            success=False,
+                            error=f"Decryption failed: {e}",
+                            metadata=metadata,
+                        )
                         raise
 
                 # Update access tracking
@@ -747,42 +910,63 @@ class ClientSettingsService:
 
                 result = {
                     "setting_key": key,
-                    "setting_value": self._deserialize_value(setting_value, row["setting_type"]),
+                    "setting_value": self._deserialize_value(
+                        setting_value, row["setting_type"]
+                    ),
                     "setting_type": row["setting_type"],
                     "updated_at": row["updated_at"],
                     "size_bytes": row["size_bytes"],
-                    "access_count": row.get("access_count", 0) + 1
+                    "access_count": row.get("access_count", 0) + 1,
                 }
 
                 self.metrics.successful_requests += 1
-                await self.audit_logger.log_operation("get_setting", user_id, key,
-                                                     success=True, metadata=metadata)
+                await self.audit_logger.log_operation(
+                    "get_setting", user_id, key, success=True, metadata=metadata
+                )
                 return result
 
         except Exception as e:
             self.metrics.failed_requests += 1
             self.logger.error(f"Failed to get setting {key} for user {user_id}: {e}")
-            await self.audit_logger.log_operation("get_setting", user_id, key,
-                                                 success=False, error=str(e), metadata=metadata)
+            await self.audit_logger.log_operation(
+                "get_setting",
+                user_id,
+                key,
+                success=False,
+                error=str(e),
+                metadata=metadata,
+            )
             raise
 
     @security_required()
     @rate_limited_with_global()
-    async def set_setting(self,
-                         user_id: str,
-                         key: str,
-                         value: Any,
-                         setting_type: str | SettingType = SettingType.STRING,
-                         user_permissions: set[str] | None = None,
-                         security_context: SecurityContext | None = None,
-                         metadata: dict[str, Any] | None = None) -> dict[str, Any]:
+    async def set_setting(
+        self,
+        user_id: str,
+        key: str,
+        value: Any,
+        setting_type: str | SettingType = SettingType.STRING,
+        user_permissions: set[str] | None = None,
+        security_context: SecurityContext | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Set or update a setting for a user with security and encryption."""
         await self.initialize()
 
         if not database_manager:
-            await self.audit_logger.log_operation("set_setting", user_id, key, success=False,
-                                                 error="Database not available", metadata=metadata)
-            return {"setting_key": key, "setting_value": value, "updated_at": datetime.utcnow()}
+            await self.audit_logger.log_operation(
+                "set_setting",
+                user_id,
+                key,
+                success=False,
+                error="Database not available",
+                metadata=metadata,
+            )
+            return {
+                "setting_key": key,
+                "setting_value": value,
+                "updated_at": datetime.utcnow(),
+            }
 
         try:
             self.metrics.total_requests += 1
@@ -799,30 +983,43 @@ class ClientSettingsService:
             effective_limits = self._get_effective_limits(security_context)
 
             # Check storage limits with effective limits
-            await self._check_storage_limits(user_id, key, validated_value, user_permissions,
-                                           effective_limits=effective_limits)
+            await self._check_storage_limits(
+                user_id,
+                key,
+                validated_value,
+                user_permissions,
+                effective_limits=effective_limits,
+            )
 
             async with get_session(user_permissions) as session:
                 serialized_value = self._serialize_value(validated_value, setting_type)
 
                 # Encrypt sensitive values
                 is_encrypted = False
-                if (self.security_config.enable_encryption and
-                    self.validator.is_sensitive_key(key)):
+                if (
+                    self.security_config.enable_encryption
+                    and self.validator.is_sensitive_key(key)
+                ):
                     try:
-                        serialized_value = self.encryption_manager.encrypt_value(serialized_value)
+                        serialized_value = self.encryption_manager.encrypt_value(
+                            serialized_value
+                        )
                         is_encrypted = True
                         self.metrics.encryption_operations += 1
                     except EncryptionError as e:
-                        self.logger.warning(f"Failed to encrypt sensitive setting {key}: {e}")
+                        self.logger.warning(
+                            f"Failed to encrypt sensitive setting {key}: {e}"
+                        )
 
-                size_bytes = len(serialized_value.encode('utf-8')) if serialized_value else 0
+                size_bytes = (
+                    len(serialized_value.encode("utf-8")) if serialized_value else 0
+                )
                 now = datetime.utcnow()
 
                 # Check if setting exists
                 existing = await session.fetchone(
                     "SELECT id FROM client_settings WHERE user_id = :user_id AND setting_key = :key",
-                    {"user_id": user_id, "key": key}
+                    {"user_id": user_id, "key": key},
                 )
 
                 if existing:
@@ -834,9 +1031,9 @@ class ClientSettingsService:
                             "setting_type": setting_type.value,
                             "is_encrypted": is_encrypted,
                             "updated_at": now,
-                            "size_bytes": size_bytes
+                            "size_bytes": size_bytes,
                         },
-                        {"user_id": user_id, "setting_key": key}
+                        {"user_id": user_id, "setting_key": key},
                     )
                 else:
                     # Insert new setting
@@ -852,8 +1049,8 @@ class ClientSettingsService:
                             "updated_at": now,
                             "size_bytes": size_bytes,
                             "access_count": 0,
-                            "last_accessed": now
-                        }
+                            "last_accessed": now,
+                        },
                     )
 
                 await session.commit()
@@ -868,34 +1065,49 @@ class ClientSettingsService:
                     "setting_type": setting_type.value,
                     "updated_at": now,
                     "size_bytes": size_bytes,
-                    "is_encrypted": is_encrypted
+                    "is_encrypted": is_encrypted,
                 }
 
-                await self.audit_logger.log_operation("set_setting", user_id, key,
-                                                     success=True, metadata=metadata)
+                await self.audit_logger.log_operation(
+                    "set_setting", user_id, key, success=True, metadata=metadata
+                )
                 return result
 
         except Exception as e:
             self.metrics.failed_requests += 1
             self.logger.error(f"Failed to set setting {key} for user {user_id}: {e}")
-            await self.audit_logger.log_operation("set_setting", user_id, key,
-                                                 success=False, error=str(e), metadata=metadata)
+            await self.audit_logger.log_operation(
+                "set_setting",
+                user_id,
+                key,
+                success=False,
+                error=str(e),
+                metadata=metadata,
+            )
             raise
 
     @security_required()
     @rate_limited_with_global()
-    async def delete_setting(self,
-                            user_id: str,
-                            key: str,
-                            user_permissions: set[str] | None = None,
-                            security_context: SecurityContext | None = None,
-                            metadata: dict[str, Any] | None = None) -> bool:
+    async def delete_setting(
+        self,
+        user_id: str,
+        key: str,
+        user_permissions: set[str] | None = None,
+        security_context: SecurityContext | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> bool:
         """Delete a setting for a user with security and audit logging."""
         await self.initialize()
 
         if not database_manager:
-            await self.audit_logger.log_operation("delete_setting", user_id, key, success=False,
-                                                 error="Database not available", metadata=metadata)
+            await self.audit_logger.log_operation(
+                "delete_setting",
+                user_id,
+                key,
+                success=False,
+                error="Database not available",
+                metadata=metadata,
+            )
             return True
 
         try:
@@ -906,59 +1118,87 @@ class ClientSettingsService:
                 # Get setting info before deletion for audit
                 existing = await session.fetchone(
                     "SELECT size_bytes FROM client_settings WHERE user_id = :user_id AND setting_key = :key",
-                    {"user_id": user_id, "key": key}
+                    {"user_id": user_id, "key": key},
                 )
 
                 if existing:
                     size_bytes = existing.get("size_bytes", 0)
 
                     result = await session.delete(
-                        "client_settings",
-                        {"user_id": user_id, "setting_key": key}
+                        "client_settings", {"user_id": user_id, "setting_key": key}
                     )
                     await session.commit()
 
                     # Update metrics
-                    self.metrics.storage_bytes_used = max(0, self.metrics.storage_bytes_used - size_bytes)
-                    self.metrics.settings_count = max(0, self.metrics.settings_count - 1)
+                    self.metrics.storage_bytes_used = max(
+                        0, self.metrics.storage_bytes_used - size_bytes
+                    )
+                    self.metrics.settings_count = max(
+                        0, self.metrics.settings_count - 1
+                    )
 
                     self.metrics.successful_requests += 1
-                    await self.audit_logger.log_operation("delete_setting", user_id, key,
-                                                         success=True, metadata={**metadata, "size_bytes": size_bytes})
+                    await self.audit_logger.log_operation(
+                        "delete_setting",
+                        user_id,
+                        key,
+                        success=True,
+                        metadata={**metadata, "size_bytes": size_bytes},
+                    )
                     return True
                 else:
                     # Setting doesn't exist
-                    await self.audit_logger.log_operation("delete_setting", user_id, key,
-                                                         success=True, metadata={**metadata, "found": False})
+                    await self.audit_logger.log_operation(
+                        "delete_setting",
+                        user_id,
+                        key,
+                        success=True,
+                        metadata={**metadata, "found": False},
+                    )
                     return True
 
         except Exception as e:
             self.metrics.failed_requests += 1
             self.logger.error(f"Failed to delete setting {key} for user {user_id}: {e}")
-            await self.audit_logger.log_operation("delete_setting", user_id, key,
-                                                 success=False, error=str(e), metadata=metadata)
+            await self.audit_logger.log_operation(
+                "delete_setting",
+                user_id,
+                key,
+                success=False,
+                error=str(e),
+                metadata=metadata,
+            )
             raise
 
     @security_required()
     @rate_limited_with_global()
-    async def bulk_update_settings(self,
-                                  user_id: str,
-                                  settings: dict[str, Any],
-                                  user_permissions: set[str] | None = None,
-                                  security_context: SecurityContext | None = None,
-                                  metadata: dict[str, Any] | None = None) -> dict[str, Any]:
+    async def bulk_update_settings(
+        self,
+        user_id: str,
+        settings: dict[str, Any],
+        user_permissions: set[str] | None = None,
+        security_context: SecurityContext | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Bulk update multiple settings for a user with security and encryption."""
         await self.initialize()
 
         if not database_manager:
-            await self.audit_logger.log_operation("bulk_update_settings", user_id, success=False,
-                                                 error="Database not available", metadata=metadata)
+            await self.audit_logger.log_operation(
+                "bulk_update_settings",
+                user_id,
+                success=False,
+                error="Database not available",
+                metadata=metadata,
+            )
             return {"updated_count": len(settings)}
 
         # Limit bulk operations based on user privileges
         max_bulk_size = 1000 if self._is_admin_user(security_context) else 100
         if len(settings) > max_bulk_size:
-            raise ValidationError(f"Too many settings in bulk update (max {max_bulk_size})")
+            raise ValidationError(
+                f"Too many settings in bulk update (max {max_bulk_size})"
+            )
 
         try:
             self.metrics.total_requests += 1
@@ -977,32 +1217,54 @@ class ClientSettingsService:
 
                         # Determine type from value
                         setting_type = self._infer_type(value)
-                        validated_value = self.validator.validate_value(value, setting_type)
+                        validated_value = self.validator.validate_value(
+                            value, setting_type
+                        )
 
                         # Check storage limits for this setting
-                        await self._check_storage_limits(user_id, key, validated_value, user_permissions,
-                                                       session, effective_limits)
+                        await self._check_storage_limits(
+                            user_id,
+                            key,
+                            validated_value,
+                            user_permissions,
+                            session,
+                            effective_limits,
+                        )
 
-                        serialized_value = self._serialize_value(validated_value, setting_type)
+                        serialized_value = self._serialize_value(
+                            validated_value, setting_type
+                        )
 
                         # Encrypt sensitive values
                         is_encrypted = False
-                        if (self.security_config.enable_encryption and
-                            self.validator.is_sensitive_key(key)):
+                        if (
+                            self.security_config.enable_encryption
+                            and self.validator.is_sensitive_key(key)
+                        ):
                             try:
-                                serialized_value = self.encryption_manager.encrypt_value(serialized_value)
+                                serialized_value = (
+                                    self.encryption_manager.encrypt_value(
+                                        serialized_value
+                                    )
+                                )
                                 is_encrypted = True
                                 self.metrics.encryption_operations += 1
                             except EncryptionError as e:
-                                self.logger.warning(f"Failed to encrypt sensitive setting {key}: {e}")
+                                self.logger.warning(
+                                    f"Failed to encrypt sensitive setting {key}: {e}"
+                                )
 
-                        size_bytes = len(serialized_value.encode('utf-8')) if serialized_value else 0
+                        size_bytes = (
+                            len(serialized_value.encode("utf-8"))
+                            if serialized_value
+                            else 0
+                        )
                         now = datetime.utcnow()
 
                         # Check if setting exists
                         existing = await session.fetchone(
                             "SELECT id, size_bytes FROM client_settings WHERE user_id = :user_id AND setting_key = :key",
-                            {"user_id": user_id, "key": key}
+                            {"user_id": user_id, "key": key},
                         )
 
                         if existing:
@@ -1014,11 +1276,11 @@ class ClientSettingsService:
                                     "setting_type": setting_type.value,
                                     "is_encrypted": is_encrypted,
                                     "updated_at": now,
-                                    "size_bytes": size_bytes
+                                    "size_bytes": size_bytes,
                                 },
-                                {"user_id": user_id, "setting_key": key}
+                                {"user_id": user_id, "setting_key": key},
                             )
-                            total_size_added += (size_bytes - old_size)
+                            total_size_added += size_bytes - old_size
                         else:
                             await session.insert(
                                 "client_settings",
@@ -1032,8 +1294,8 @@ class ClientSettingsService:
                                     "updated_at": now,
                                     "size_bytes": size_bytes,
                                     "access_count": 0,
-                                    "last_accessed": now
-                                }
+                                    "last_accessed": now,
+                                },
                             )
                             total_size_added += size_bytes
                             self.metrics.settings_count += 1
@@ -1052,28 +1314,42 @@ class ClientSettingsService:
 
                 result = {
                     "updated_count": updated_count,
-                    "total_size_added": total_size_added
+                    "total_size_added": total_size_added,
                 }
                 if errors:
                     result["errors"] = errors
 
-                await self.audit_logger.log_operation("bulk_update_settings", user_id,
-                                                     success=True,
-                                                     metadata={**metadata, "updated_count": updated_count, "errors": len(errors)})
+                await self.audit_logger.log_operation(
+                    "bulk_update_settings",
+                    user_id,
+                    success=True,
+                    metadata={
+                        **metadata,
+                        "updated_count": updated_count,
+                        "errors": len(errors),
+                    },
+                )
                 return result
 
         except Exception as e:
             self.metrics.failed_requests += 1
             self.logger.error(f"Failed to bulk update settings for user {user_id}: {e}")
-            await self.audit_logger.log_operation("bulk_update_settings", user_id,
-                                                 success=False, error=str(e), metadata=metadata)
+            await self.audit_logger.log_operation(
+                "bulk_update_settings",
+                user_id,
+                success=False,
+                error=str(e),
+                metadata=metadata,
+            )
             raise
 
-    async def get_user_stats(self,
-                           user_id: str,
-                           user_permissions: set[str] | None = None,
-                           security_context: SecurityContext | None = None,
-                           metadata: dict[str, Any] | None = None) -> dict[str, Any]:
+    async def get_user_stats(
+        self,
+        user_id: str,
+        user_permissions: set[str] | None = None,
+        security_context: SecurityContext | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Get storage statistics for a user with effective limits."""
         await self.initialize()
 
@@ -1111,15 +1387,20 @@ class ClientSettingsService:
                     "settings_limit": effective_limits.max_settings_per_user,
                     "storage_usage_percent": 0,
                     "settings_usage_percent": 0,
-                    "is_admin_user": self._is_admin_user(security_context)
+                    "is_admin_user": self._is_admin_user(security_context),
                 }
 
                 # Calculate usage percentages
                 if effective_limits.max_total_storage_per_user > 0:
-                    stats["storage_usage_percent"] = (stats["total_storage_bytes"] / effective_limits.max_total_storage_per_user) * 100
+                    stats["storage_usage_percent"] = (
+                        stats["total_storage_bytes"]
+                        / effective_limits.max_total_storage_per_user
+                    ) * 100
 
                 if effective_limits.max_settings_per_user > 0:
-                    stats["settings_usage_percent"] = (stats["total_settings"] / effective_limits.max_settings_per_user) * 100
+                    stats["settings_usage_percent"] = (
+                        stats["total_settings"] / effective_limits.max_settings_per_user
+                    ) * 100
 
                 return stats
 
@@ -1127,11 +1408,13 @@ class ClientSettingsService:
             self.logger.error(f"Failed to get user stats for {user_id}: {e}")
             return {"total_settings": 0, "total_storage_bytes": 0}
 
-    async def get_user_images(self,
-                            user_id: str,
-                            user_permissions: set[str] | None = None,
-                            security_context: SecurityContext | None = None,
-                            metadata: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    async def get_user_images(
+        self,
+        user_id: str,
+        user_permissions: set[str] | None = None,
+        security_context: SecurityContext | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> list[dict[str, Any]]:
         """Get all image settings for a user with security and decryption."""
         await self.initialize()
 
@@ -1154,21 +1437,32 @@ class ClientSettingsService:
                     try:
                         # Decrypt value if encrypted
                         setting_value = row["setting_value"]
-                        if row.get("is_encrypted", False) and self.security_config.enable_encryption:
-                            setting_value = self.encryption_manager.decrypt_value(setting_value)
+                        if (
+                            row.get("is_encrypted", False)
+                            and self.security_config.enable_encryption
+                        ):
+                            setting_value = self.encryption_manager.decrypt_value(
+                                setting_value
+                            )
 
                         image_data = self._deserialize_value(setting_value, "image")
-                        images.append({
-                            "setting_key": row["setting_key"],
-                            "content_type": image_data.get("content_type", "image/jpeg"),
-                            "size": row["size_bytes"],
-                            "hash": image_data.get("hash"),
-                            "updated_at": row["updated_at"],
-                            "access_count": row.get("access_count", 0),
-                            "is_encrypted": row.get("is_encrypted", False)
-                        })
+                        images.append(
+                            {
+                                "setting_key": row["setting_key"],
+                                "content_type": image_data.get(
+                                    "content_type", "image/jpeg"
+                                ),
+                                "size": row["size_bytes"],
+                                "hash": image_data.get("hash"),
+                                "updated_at": row["updated_at"],
+                                "access_count": row.get("access_count", 0),
+                                "is_encrypted": row.get("is_encrypted", False),
+                            }
+                        )
                     except Exception as e:
-                        self.logger.error(f"Failed to process image setting {row['setting_key']}: {e}")
+                        self.logger.error(
+                            f"Failed to process image setting {row['setting_key']}: {e}"
+                        )
                         continue
 
                 return images
@@ -1177,17 +1471,24 @@ class ClientSettingsService:
             self.logger.error(f"Failed to get user images for {user_id}: {e}")
             return []
 
-    async def cleanup_expired_settings(self,
-                                     days_old: int = 365,
-                                     security_context: SecurityContext | None = None,
-                                     metadata: dict[str, Any] | None = None) -> int:
+    async def cleanup_expired_settings(
+        self,
+        days_old: int = 365,
+        security_context: SecurityContext | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> int:
         """Clean up old unused settings (admin operation)."""
         await self.initialize()
 
         # Require admin privileges for cleanup
         if not self._is_admin_user(security_context):
-            await self.audit_logger.log_operation("cleanup_expired_settings", "system",
-                                                 success=False, error="Admin privileges required", metadata=metadata)
+            await self.audit_logger.log_operation(
+                "cleanup_expired_settings",
+                "system",
+                success=False,
+                error="Admin privileges required",
+                metadata=metadata,
+            )
             raise SecurityError("Admin privileges required for cleanup operation")
 
         if not database_manager:
@@ -1199,42 +1500,61 @@ class ClientSettingsService:
             async with get_session() as session:
                 # Get count before deletion for audit
                 count_query = "SELECT COUNT(*) as count FROM client_settings WHERE updated_at < :cutoff"
-                count_result = await session.fetchone(count_query, {"cutoff": cutoff_date})
+                count_result = await session.fetchone(
+                    count_query, {"cutoff": cutoff_date}
+                )
                 settings_to_delete = count_result["count"] if count_result else 0
 
                 # Delete expired settings
                 result = await session.execute(
                     "DELETE FROM client_settings WHERE updated_at < :cutoff",
-                    {"cutoff": cutoff_date}
+                    {"cutoff": cutoff_date},
                 )
                 await session.commit()
 
                 # Clean up audit logs if enabled
                 if self.security_config.enable_audit_logging:
-                    audit_cutoff = datetime.utcnow() - timedelta(days=self.security_config.audit_retention_days)
+                    audit_cutoff = datetime.utcnow() - timedelta(
+                        days=self.security_config.audit_retention_days
+                    )
                     await session.execute(
                         "DELETE FROM client_settings_audit WHERE timestamp < :cutoff",
-                        {"cutoff": audit_cutoff}
+                        {"cutoff": audit_cutoff},
                     )
                     await session.commit()
 
-                deleted_count = getattr(result, 'rowcount', settings_to_delete)
+                deleted_count = getattr(result, "rowcount", settings_to_delete)
 
-                await self.audit_logger.log_operation("cleanup_expired_settings", "system",
-                                                     success=True,
-                                                     metadata={**metadata, "deleted_count": deleted_count, "days_old": days_old})
+                await self.audit_logger.log_operation(
+                    "cleanup_expired_settings",
+                    "system",
+                    success=True,
+                    metadata={
+                        **metadata,
+                        "deleted_count": deleted_count,
+                        "days_old": days_old,
+                    },
+                )
 
-                self.logger.info(f"Cleaned up {deleted_count} expired settings older than {days_old} days")
+                self.logger.info(
+                    f"Cleaned up {deleted_count} expired settings older than {days_old} days"
+                )
                 return deleted_count
 
         except Exception as e:
             self.logger.error(f"Failed to cleanup expired settings: {e}")
-            await self.audit_logger.log_operation("cleanup_expired_settings", "system",
-                                                 success=False, error=str(e), metadata=metadata)
+            await self.audit_logger.log_operation(
+                "cleanup_expired_settings",
+                "system",
+                success=False,
+                error=str(e),
+                metadata=metadata,
+            )
             return 0
 
-    async def get_service_metrics(self,
-                                security_context: SecurityContext | None = None) -> dict[str, Any]:
+    async def get_service_metrics(
+        self, security_context: SecurityContext | None = None
+    ) -> dict[str, Any]:
         """Get service metrics (admin operation)."""
         if not self._is_admin_user(security_context):
             raise SecurityError("Admin privileges required for metrics access")
@@ -1263,24 +1583,32 @@ class ClientSettingsService:
                     # Get total settings count
                     count_query = "SELECT COUNT(*) as total FROM client_settings"
                     count_result = await session.fetchone(count_query)
-                    metrics["total_settings_in_db"] = count_result["total"] if count_result else 0
+                    metrics["total_settings_in_db"] = (
+                        count_result["total"] if count_result else 0
+                    )
 
                     # Get total storage used
                     storage_query = "SELECT COALESCE(SUM(size_bytes), 0) as total_storage FROM client_settings"
                     storage_result = await session.fetchone(storage_query)
-                    metrics["total_storage_in_db"] = storage_result["total_storage"] if storage_result else 0
+                    metrics["total_storage_in_db"] = (
+                        storage_result["total_storage"] if storage_result else 0
+                    )
 
                     # Get user count
                     user_query = "SELECT COUNT(DISTINCT user_id) as user_count FROM client_settings"
                     user_result = await session.fetchone(user_query)
-                    metrics["unique_users"] = user_result["user_count"] if user_result else 0
+                    metrics["unique_users"] = (
+                        user_result["user_count"] if user_result else 0
+                    )
 
             except Exception as e:
                 self.logger.error(f"Failed to get database metrics: {e}")
 
         return metrics
 
-    async def _update_access_tracking(self, session, user_id: str, setting_key: str | None) -> None:
+    async def _update_access_tracking(
+        self, session, user_id: str, setting_key: str | None
+    ) -> None:
         """Update access tracking for settings."""
         try:
             now = datetime.utcnow()
@@ -1288,17 +1616,14 @@ class ClientSettingsService:
                 # Update specific setting
                 await session.update(
                     "client_settings",
-                    {
-                        "access_count": "access_count + 1",
-                        "last_accessed": now
-                    },
-                    {"user_id": user_id, "setting_key": setting_key}
+                    {"access_count": "access_count + 1", "last_accessed": now},
+                    {"user_id": user_id, "setting_key": setting_key},
                 )
             else:
                 # Update all settings for user (bulk access)
                 await session.execute(
                     "UPDATE client_settings SET last_accessed = :now WHERE user_id = :user_id",
-                    {"now": now, "user_id": user_id}
+                    {"now": now, "user_id": user_id},
                 )
         except Exception as e:
             self.logger.warning(f"Failed to update access tracking: {e}")
@@ -1327,8 +1652,12 @@ class ClientSettingsService:
         elif setting_type_enum == SettingType.FLOAT:
             return float(serialized)
         elif setting_type_enum == SettingType.BOOLEAN:
-            return serialized.lower() in ('true', '1', 'yes')
-        elif setting_type_enum in (SettingType.JSON, SettingType.IMAGE, SettingType.BINARY):
+            return serialized.lower() in ("true", "1", "yes")
+        elif setting_type_enum in (
+            SettingType.JSON,
+            SettingType.IMAGE,
+            SettingType.BINARY,
+        ):
             return json.loads(serialized)
         else:
             return serialized
@@ -1343,9 +1672,9 @@ class ClientSettingsService:
             return SettingType.FLOAT
         elif isinstance(value, (dict, list)):
             # Check if it looks like image data
-            if isinstance(value, dict) and 'data' in value and 'content_type' in value:
-                content_type = value.get('content_type', '')
-                if content_type.startswith('image/'):
+            if isinstance(value, dict) and "data" in value and "content_type" in value:
+                content_type = value.get("content_type", "")
+                if content_type.startswith("image/"):
                     return SettingType.IMAGE
                 else:
                     return SettingType.BINARY
@@ -1353,13 +1682,15 @@ class ClientSettingsService:
         else:
             return SettingType.STRING
 
-    async def _check_storage_limits(self,
-                                   user_id: str,
-                                   key: str,
-                                   value: Any,
-                                   user_permissions: set[str] | None = None,
-                                   session=None,
-                                   effective_limits: SettingLimits | None = None) -> None:
+    async def _check_storage_limits(
+        self,
+        user_id: str,
+        key: str,
+        value: Any,
+        user_permissions: set[str] | None = None,
+        session=None,
+        effective_limits: SettingLimits | None = None,
+    ) -> None:
         """Check if setting the value would exceed storage limits."""
         if not database_manager:
             return
@@ -1370,7 +1701,7 @@ class ClientSettingsService:
         # Calculate size of new value
         setting_type = self._infer_type(value)
         serialized_value = self._serialize_value(value, setting_type)
-        new_size = len(serialized_value.encode('utf-8')) if serialized_value else 0
+        new_size = len(serialized_value.encode("utf-8")) if serialized_value else 0
 
         # Get current stats
         if session:
@@ -1394,7 +1725,9 @@ class ClientSettingsService:
                     FROM client_settings 
                     WHERE user_id = :user_id
                 """
-                row = await temp_session.fetchone(stats_query, {"user_id": user_id, "key": key})
+                row = await temp_session.fetchone(
+                    stats_query, {"user_id": user_id, "key": key}
+                )
 
         current_settings = row["total_settings"] or 0
         current_storage = row["total_storage_bytes"] or 0
@@ -1402,12 +1735,16 @@ class ClientSettingsService:
 
         # Check settings count limit (only if this is a new setting)
         if current_key_size == 0 and current_settings >= limits.max_settings_per_user:
-            raise StorageLimitError(f"Maximum number of settings exceeded ({limits.max_settings_per_user})")
+            raise StorageLimitError(
+                f"Maximum number of settings exceeded ({limits.max_settings_per_user})"
+            )
 
         # Check total storage limit
         new_total_storage = current_storage - current_key_size + new_size
         if new_total_storage > limits.max_total_storage_per_user:
-            raise StorageLimitError(f"Storage limit exceeded ({limits.max_total_storage_per_user} bytes)")
+            raise StorageLimitError(
+                f"Storage limit exceeded ({limits.max_total_storage_per_user} bytes)"
+            )
 
 
 # Global service instance
@@ -1415,78 +1752,110 @@ client_settings_service = ClientSettingsService()
 
 
 # Convenience functions for backward compatibility with enhanced security
-async def get_user_settings(user_id: str,
-                           user_permissions: set[str] | None = None,
-                           security_context: SecurityContext | None = None,
-                           metadata: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+async def get_user_settings(
+    user_id: str,
+    user_permissions: set[str] | None = None,
+    security_context: SecurityContext | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     """Get all settings for a user."""
-    return await client_settings_service.get_user_settings(user_id, user_permissions, security_context, metadata)
+    return await client_settings_service.get_user_settings(
+        user_id, user_permissions, security_context, metadata
+    )
 
 
-async def get_setting(user_id: str,
-                     key: str,
-                     user_permissions: set[str] | None = None,
-                     security_context: SecurityContext | None = None,
-                     metadata: dict[str, Any] | None = None) -> dict[str, Any] | None:
+async def get_setting(
+    user_id: str,
+    key: str,
+    user_permissions: set[str] | None = None,
+    security_context: SecurityContext | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
     """Get a specific setting for a user."""
-    return await client_settings_service.get_setting(user_id, key, user_permissions, security_context, metadata)
+    return await client_settings_service.get_setting(
+        user_id, key, user_permissions, security_context, metadata
+    )
 
 
-async def set_setting(user_id: str,
-                     key: str,
-                     value: Any,
-                     setting_type: str | SettingType = SettingType.STRING,
-                     user_permissions: set[str] | None = None,
-                     security_context: SecurityContext | None = None,
-                     metadata: dict[str, Any] | None = None) -> dict[str, Any]:
+async def set_setting(
+    user_id: str,
+    key: str,
+    value: Any,
+    setting_type: str | SettingType = SettingType.STRING,
+    user_permissions: set[str] | None = None,
+    security_context: SecurityContext | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Set or update a setting for a user."""
-    return await client_settings_service.set_setting(user_id, key, value, setting_type,
-                                                     user_permissions, security_context, metadata)
+    return await client_settings_service.set_setting(
+        user_id, key, value, setting_type, user_permissions, security_context, metadata
+    )
 
 
-async def delete_setting(user_id: str,
-                        key: str,
-                        user_permissions: set[str] | None = None,
-                        security_context: SecurityContext | None = None,
-                        metadata: dict[str, Any] | None = None) -> bool:
+async def delete_setting(
+    user_id: str,
+    key: str,
+    user_permissions: set[str] | None = None,
+    security_context: SecurityContext | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> bool:
     """Delete a setting for a user."""
-    return await client_settings_service.delete_setting(user_id, key, user_permissions, security_context, metadata)
+    return await client_settings_service.delete_setting(
+        user_id, key, user_permissions, security_context, metadata
+    )
 
 
-async def bulk_update_settings(user_id: str,
-                              settings: dict[str, Any],
-                              user_permissions: set[str] | None = None,
-                              security_context: SecurityContext | None = None,
-                              metadata: dict[str, Any] | None = None) -> dict[str, Any]:
+async def bulk_update_settings(
+    user_id: str,
+    settings: dict[str, Any],
+    user_permissions: set[str] | None = None,
+    security_context: SecurityContext | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Bulk update multiple settings for a user."""
-    return await client_settings_service.bulk_update_settings(user_id, settings, user_permissions,
-                                                             security_context, metadata)
+    return await client_settings_service.bulk_update_settings(
+        user_id, settings, user_permissions, security_context, metadata
+    )
 
 
-async def get_user_stats(user_id: str,
-                        user_permissions: set[str] | None = None,
-                        security_context: SecurityContext | None = None,
-                        metadata: dict[str, Any] | None = None) -> dict[str, Any]:
+async def get_user_stats(
+    user_id: str,
+    user_permissions: set[str] | None = None,
+    security_context: SecurityContext | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Get storage statistics for a user."""
-    return await client_settings_service.get_user_stats(user_id, user_permissions, security_context, metadata)
+    return await client_settings_service.get_user_stats(
+        user_id, user_permissions, security_context, metadata
+    )
 
 
-async def get_user_images(user_id: str,
-                         user_permissions: set[str] | None = None,
-                         security_context: SecurityContext | None = None,
-                         metadata: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+async def get_user_images(
+    user_id: str,
+    user_permissions: set[str] | None = None,
+    security_context: SecurityContext | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
     """Get all image settings for a user."""
-    return await client_settings_service.get_user_images(user_id, user_permissions, security_context, metadata)
+    return await client_settings_service.get_user_images(
+        user_id, user_permissions, security_context, metadata
+    )
 
 
-async def cleanup_expired_settings(days_old: int = 365,
-                                  security_context: SecurityContext | None = None,
-                                  metadata: dict[str, Any] | None = None) -> int:
+async def cleanup_expired_settings(
+    days_old: int = 365,
+    security_context: SecurityContext | None = None,
+    metadata: dict[str, Any] | None = None,
+) -> int:
     """Clean up old unused settings (admin operation)."""
-    return await client_settings_service.cleanup_expired_settings(days_old, security_context, metadata)
+    return await client_settings_service.cleanup_expired_settings(
+        days_old, security_context, metadata
+    )
 
 
-async def get_service_metrics(security_context: SecurityContext | None = None) -> dict[str, Any]:
+async def get_service_metrics(
+    security_context: SecurityContext | None = None,
+) -> dict[str, Any]:
     """Get service metrics (admin operation)."""
     return await client_settings_service.get_service_metrics(security_context)
 

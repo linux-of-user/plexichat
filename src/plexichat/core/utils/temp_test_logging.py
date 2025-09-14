@@ -19,6 +19,7 @@ def test_redact_pii():
     assert "[REDACTED]" in redacted
     print(f"PASS: redact_pii works - {redacted}")
 
+
 def test_sanitize_for_logging():
     message = "Test with email@example.com and unicode ☃"
     sanitized = sanitize_for_logging(message)
@@ -26,22 +27,29 @@ def test_sanitize_for_logging():
     assert "☃" in sanitized  # Unicode preserved
     print(f"PASS: sanitize_for_logging works - {sanitized}")
 
+
 def test_colored_formatter():
     formatter = ColoredFormatter()
-    record = logging.LogRecord("test", logging.INFO, "test.py", 1, "Test message", (), None)
+    record = logging.LogRecord(
+        "test", logging.INFO, "test.py", 1, "Test message", (), None
+    )
     output = formatter.format(record)
     assert "\033[32m" in output  # Green for INFO
     assert "\033[0m" in output  # Reset
     print("PASS: ColoredFormatter applies colors")
 
+
 def test_structured_formatter():
     formatter = StructuredFormatter()
-    record = logging.LogRecord("test", logging.INFO, "test.py", 1, "Test message", (), None)
+    record = logging.LogRecord(
+        "test", logging.INFO, "test.py", 1, "Test message", (), None
+    )
     output = formatter.format(record)
     log_dict = json.loads(output)
     assert log_dict["level"] == "INFO"
     assert log_dict["message"] == "Test message"
     print("PASS: StructuredFormatter produces valid JSON")
+
 
 def test_get_logger():
     logger = get_logger("test")
@@ -49,10 +57,12 @@ def test_get_logger():
     assert len(logger.handlers) > 0
     print("PASS: get_logger configures handlers correctly")
 
+
 def test_handler_factory():
     handler = get_handler_factory(format_type="structured", log_file="test.log")
-    assert hasattr(handler, 'setLevel')
+    assert hasattr(handler, "setLevel")
     print("PASS: Handler factory creates configured handler")
+
 
 if __name__ == "__main__":
     test_redact_pii()

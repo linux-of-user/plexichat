@@ -15,7 +15,9 @@ import click
 # pyright: reportReturnType=false
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 """
@@ -26,6 +28,7 @@ Default CLI interface that runs without subcommands.
 Provides 300+ commands in a unified interface that works
 in both terminal and web UI with identical functionality.
 """
+
 
 class UnifiedCLIDefault:
     """Unified CLI that runs as the default interface."""
@@ -47,104 +50,362 @@ class UnifiedCLIDefault:
             "system": {
                 "description": "System management commands",
                 "commands": [
-                    "status", "info", "version", "health", "diagnostics", "logs",
-                    "config", "update", "backup", "restore", "reboot", "shutdown",
-                    "restart", "maintenance", "performance", "resources", "processes",
-                    "services", "daemons", "cron", "monitoring", "alerts", "metrics"
-                ]
+                    "status",
+                    "info",
+                    "version",
+                    "health",
+                    "diagnostics",
+                    "logs",
+                    "config",
+                    "update",
+                    "backup",
+                    "restore",
+                    "reboot",
+                    "shutdown",
+                    "restart",
+                    "maintenance",
+                    "performance",
+                    "resources",
+                    "processes",
+                    "services",
+                    "daemons",
+                    "cron",
+                    "monitoring",
+                    "alerts",
+                    "metrics",
+                ],
             },
             "user_management": {
                 "description": "User management commands",
                 "commands": [
-                    "user", "role", "permission", "group", "session", "profile",
-                    "preferences", "activity", "security", "verification", "authentication",
-                    "authorization", "registration", "login", "logout", "password",
-                    "reset", "lock", "unlock", "ban", "unban", "suspend", "activate",
-                    "deactivate", "promote", "demote", "invite", "remove", "block"
-                ]
+                    "user",
+                    "role",
+                    "permission",
+                    "group",
+                    "session",
+                    "profile",
+                    "preferences",
+                    "activity",
+                    "security",
+                    "verification",
+                    "authentication",
+                    "authorization",
+                    "registration",
+                    "login",
+                    "logout",
+                    "password",
+                    "reset",
+                    "lock",
+                    "unlock",
+                    "ban",
+                    "unban",
+                    "suspend",
+                    "activate",
+                    "deactivate",
+                    "promote",
+                    "demote",
+                    "invite",
+                    "remove",
+                    "block",
+                ],
             },
             "messaging": {
                 "description": "Messaging and communication commands",
                 "commands": [
-                    "message", "channel", "room", "conversation", "thread", "reaction",
-                    "attachment", "search", "archive", "moderation", "send", "receive",
-                    "forward", "reply", "edit", "delete", "pin", "unpin", "star",
-                    "unstar", "mark", "unmark", "mute", "unmute", "block", "unblock",
-                    "report", "flag", "spam", "filter", "broadcast", "notify"
-                ]
+                    "message",
+                    "channel",
+                    "room",
+                    "conversation",
+                    "thread",
+                    "reaction",
+                    "attachment",
+                    "search",
+                    "archive",
+                    "moderation",
+                    "send",
+                    "receive",
+                    "forward",
+                    "reply",
+                    "edit",
+                    "delete",
+                    "pin",
+                    "unpin",
+                    "star",
+                    "unstar",
+                    "mark",
+                    "unmark",
+                    "mute",
+                    "unmute",
+                    "block",
+                    "unblock",
+                    "report",
+                    "flag",
+                    "spam",
+                    "filter",
+                    "broadcast",
+                    "notify",
+                ],
             },
             "ai_features": {
                 "description": "AI and machine learning commands",
                 "commands": [
-                    "ai", "chatbot", "translation", "summarization", "sentiment",
-                    "recommendation", "automation", "learning", "model", "training",
-                    "inference", "prediction", "classification", "clustering", "regression",
-                    "neural", "deep", "machine", "natural", "language", "processing",
-                    "computer", "vision", "speech", "recognition", "nlp", "ml", "dl"
-                ]
+                    "ai",
+                    "chatbot",
+                    "translation",
+                    "summarization",
+                    "sentiment",
+                    "recommendation",
+                    "automation",
+                    "learning",
+                    "model",
+                    "training",
+                    "inference",
+                    "prediction",
+                    "classification",
+                    "clustering",
+                    "regression",
+                    "neural",
+                    "deep",
+                    "machine",
+                    "natural",
+                    "language",
+                    "processing",
+                    "computer",
+                    "vision",
+                    "speech",
+                    "recognition",
+                    "nlp",
+                    "ml",
+                    "dl",
+                ],
             },
             "security": {
                 "description": "Security and protection commands",
                 "commands": [
-                    "security", "encryption", "certificate", "firewall", "vulnerability",
-                    "audit", "compliance", "threat", "incident", "forensics", "penetration",
-                    "testing", "malware", "antivirus", "antispam", "intrusion", "detection",
-                    "prevention", "authentication", "authorization", "identity", "management",
-                    "access", "control", "data", "protection", "privacy", "gdpr", "compliance",
-                    "pci", "dss", "sox", "hipaa"
-                ]
+                    "security",
+                    "encryption",
+                    "certificate",
+                    "firewall",
+                    "vulnerability",
+                    "audit",
+                    "compliance",
+                    "threat",
+                    "incident",
+                    "forensics",
+                    "penetration",
+                    "testing",
+                    "malware",
+                    "antivirus",
+                    "antispam",
+                    "intrusion",
+                    "detection",
+                    "prevention",
+                    "authentication",
+                    "authorization",
+                    "identity",
+                    "management",
+                    "access",
+                    "control",
+                    "data",
+                    "protection",
+                    "privacy",
+                    "gdpr",
+                    "compliance",
+                    "pci",
+                    "dss",
+                    "sox",
+                    "hipaa",
+                ],
             },
             "administration": {
                 "description": "Administrative commands",
                 "commands": [
-                    "admin", "server", "cluster", "node", "service", "process", "resource",
-                    "maintenance", "monitoring", "reporting", "dashboard", "analytics", "metrics",
-                    "alerts", "notifications", "scheduling", "automation", "orchestration",
-                    "deployment", "scaling", "load", "balancing", "failover", "disaster",
-                    "recovery", "backup", "restore", "migration", "upgrade", "downgrade",
-                    "rollback", "versioning", "patching", "updating"
-                ]
+                    "admin",
+                    "server",
+                    "cluster",
+                    "node",
+                    "service",
+                    "process",
+                    "resource",
+                    "maintenance",
+                    "monitoring",
+                    "reporting",
+                    "dashboard",
+                    "analytics",
+                    "metrics",
+                    "alerts",
+                    "notifications",
+                    "scheduling",
+                    "automation",
+                    "orchestration",
+                    "deployment",
+                    "scaling",
+                    "load",
+                    "balancing",
+                    "failover",
+                    "disaster",
+                    "recovery",
+                    "backup",
+                    "restore",
+                    "migration",
+                    "upgrade",
+                    "downgrade",
+                    "rollback",
+                    "versioning",
+                    "patching",
+                    "updating",
+                ],
             },
             "development": {
                 "description": "Development and debugging commands",
                 "commands": [
-                    "dev", "plugin", "api", "test", "debug", "profile", "benchmark", "lint",
-                    "format", "documentation", "code", "review", "pull", "request", "merge",
-                    "conflict", "resolution", "branch", "tag", "commit", "push", "pull", "clone",
-                    "fork", "repository", "version", "control", "git", "svn", "mercurial",
-                    "deployment", "ci", "cd", "pipeline"
-                ]
+                    "dev",
+                    "plugin",
+                    "api",
+                    "test",
+                    "debug",
+                    "profile",
+                    "benchmark",
+                    "lint",
+                    "format",
+                    "documentation",
+                    "code",
+                    "review",
+                    "pull",
+                    "request",
+                    "merge",
+                    "conflict",
+                    "resolution",
+                    "branch",
+                    "tag",
+                    "commit",
+                    "push",
+                    "pull",
+                    "clone",
+                    "fork",
+                    "repository",
+                    "version",
+                    "control",
+                    "git",
+                    "svn",
+                    "mercurial",
+                    "deployment",
+                    "ci",
+                    "cd",
+                    "pipeline",
+                ],
             },
             "data_management": {
                 "description": "Data management commands",
                 "commands": [
-                    "data", "database", "migration", "backup", "restore", "export", "import",
-                    "cleanup", "validation", "analytics", "warehouse", "lake", "streaming",
-                    "batch", "processing", "etl", "elt", "transformation", "aggregation",
-                    "indexing", "searching", "querying", "optimization", "performance", "tuning",
-                    "replication", "sharding", "partitioning", "archiving", "compression"
-                ]
+                    "data",
+                    "database",
+                    "migration",
+                    "backup",
+                    "restore",
+                    "export",
+                    "import",
+                    "cleanup",
+                    "validation",
+                    "analytics",
+                    "warehouse",
+                    "lake",
+                    "streaming",
+                    "batch",
+                    "processing",
+                    "etl",
+                    "elt",
+                    "transformation",
+                    "aggregation",
+                    "indexing",
+                    "searching",
+                    "querying",
+                    "optimization",
+                    "performance",
+                    "tuning",
+                    "replication",
+                    "sharding",
+                    "partitioning",
+                    "archiving",
+                    "compression",
+                ],
             },
             "network": {
                 "description": "Network and connectivity commands",
                 "commands": [
-                    "network", "connection", "proxy", "vpn", "dns", "firewall", "routing",
-                    "bandwidth", "latency", "throughput", "load", "balancing", "failover",
-                    "redundancy", "availability", "uptime", "downtime", "maintenance", "window",
-                    "monitoring", "alerting", "logging", "tracing", "profiling", "debugging",
-                    "tcp", "udp", "http", "httpss", "ssl", "tls", "certificate"
-                ]
+                    "network",
+                    "connection",
+                    "proxy",
+                    "vpn",
+                    "dns",
+                    "firewall",
+                    "routing",
+                    "bandwidth",
+                    "latency",
+                    "throughput",
+                    "load",
+                    "balancing",
+                    "failover",
+                    "redundancy",
+                    "availability",
+                    "uptime",
+                    "downtime",
+                    "maintenance",
+                    "window",
+                    "monitoring",
+                    "alerting",
+                    "logging",
+                    "tracing",
+                    "profiling",
+                    "debugging",
+                    "tcp",
+                    "udp",
+                    "http",
+                    "httpss",
+                    "ssl",
+                    "tls",
+                    "certificate",
+                ],
             },
             "integration": {
                 "description": "Integration and API commands",
                 "commands": [
-                    "integration", "webhook", "api", "oauth", "sso", "ldap", "saml", "oauth2",
-                    "jwt", "token", "authentication", "authorization", "federation", "identity",
-                    "provider", "service", "bus", "message", "queue", "event", "streaming",
-                    "microservices", "monolith", "architecture", "pattern", "design", "principle",
-                    "rest", "graphql", "grpc", "soap", "xml", "json", "yaml"
-                ]
-            }
+                    "integration",
+                    "webhook",
+                    "api",
+                    "oauth",
+                    "sso",
+                    "ldap",
+                    "saml",
+                    "oauth2",
+                    "jwt",
+                    "token",
+                    "authentication",
+                    "authorization",
+                    "federation",
+                    "identity",
+                    "provider",
+                    "service",
+                    "bus",
+                    "message",
+                    "queue",
+                    "event",
+                    "streaming",
+                    "microservices",
+                    "monolith",
+                    "architecture",
+                    "pattern",
+                    "design",
+                    "principle",
+                    "rest",
+                    "graphql",
+                    "grpc",
+                    "soap",
+                    "xml",
+                    "json",
+                    "yaml",
+                ],
+            },
         }
 
     def initialize_commands(self):
@@ -158,28 +419,30 @@ class UnifiedCLIDefault:
         self.commands[command_name] = {
             "category": category,
             "description": f"Execute {command_name} command",
-            "help": f"Help for {command_name} command"
+            "help": f"Help for {command_name} command",
         }
 
     def create_cli_group(self):
         """Create the main CLI group."""
+
         @click.group(invoke_without_command=True)
-        @click.option('--verbose', '-v', is_flag=True, help='Enable verbose output')
-        @click.option('--json', '-j', is_flag=True, help='Output in JSON format')
-        @click.option('--quiet', '-q', is_flag=True, help='Suppress output')
+        @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
+        @click.option("--json", "-j", is_flag=True, help="Output in JSON format")
+        @click.option("--quiet", "-q", is_flag=True, help="Suppress output")
         @click.pass_context
         def cli(ctx, verbose: bool, json: bool, quiet: bool):
             """PlexiChat Unified CLI System - 300+ Commands (Default Interface)"""
             ctx.ensure_object(dict)
-            ctx.obj['verbose'] = verbose
-            ctx.obj['json'] = json
-            ctx.obj['quiet'] = quiet
+            ctx.obj["verbose"] = verbose
+            ctx.obj["json"] = json
+            ctx.obj["quiet"] = quiet
 
             if verbose:
                 logging.getLogger().setLevel(logging.DEBUG)
 
             if ctx.invoked_subcommand is None:
                 self.run_interactive_mode(ctx)
+
         return cli
 
     def run_interactive_mode(self, ctx):
@@ -196,11 +459,11 @@ class UnifiedCLIDefault:
                 if not command_input:
                     continue
 
-                if command_input.lower() in ['quit', 'exit', 'q']:
+                if command_input.lower() in ["quit", "exit", "q"]:
                     print("Goodbye!")
                     break
 
-                if command_input.lower() == 'help':
+                if command_input.lower() == "help":
                     self.show_help()
                     continue
 
@@ -210,10 +473,10 @@ class UnifiedCLIDefault:
 
                 result = self.execute_command(command, args, ctx.obj)
 
-                if ctx.obj.get('json'):
+                if ctx.obj.get("json"):
                     print(json.dumps(result, indent=2))
-                elif not ctx.obj.get('quiet'):
-                    print(result.get('message', 'Command executed'))
+                elif not ctx.obj.get("quiet"):
+                    print(result.get("message", "Command executed"))
 
             except KeyboardInterrupt:
                 print("\nGoodbye!")
@@ -221,12 +484,14 @@ class UnifiedCLIDefault:
             except Exception as e:
                 print(f"Error: {e}")
 
-    def execute_command(self, command: str, args: list[str], context: dict[str, Any]) -> dict[str, Any]:
+    def execute_command(
+        self, command: str, args: list[str], context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Execute a command."""
         if command not in self.commands:
             return {
                 "error": f"Unknown command: {command}",
-                "suggestions": self.get_suggestions(command)
+                "suggestions": self.get_suggestions(command),
             }
 
         command_info = self.commands[command]
@@ -238,7 +503,9 @@ class UnifiedCLIDefault:
 
     def get_suggestions(self, partial_command: str) -> list[str]:
         """Get command suggestions for partial input."""
-        suggestions = [cmd for cmd in self.commands.keys() if cmd.startswith(partial_command)]
+        suggestions = [
+            cmd for cmd in self.commands.keys() if cmd.startswith(partial_command)
+        ]
         return suggestions[:5]
 
     def show_help(self):
@@ -249,8 +516,8 @@ class UnifiedCLIDefault:
 
         for category, info in self.categories.items():
             print(f"  {category}: {info['description']}")
-            cmd_list = ", ".join(info['commands'][:5])
-            if len(info['commands']) > 5:
+            cmd_list = ", ".join(info["commands"][:5])
+            if len(info["commands"]) > 5:
                 cmd_list += "..."
             print(f"    Commands: {cmd_list}")
 
@@ -265,7 +532,9 @@ class UnifiedCLIDefault:
         print("  ai chat              - Start AI chat")
         print()
 
-    def execute_default_command(self, command: str, args: list[str], context: dict[str, Any]) -> dict[str, Any]:
+    def execute_default_command(
+        self, command: str, args: list[str], context: dict[str, Any]
+    ) -> dict[str, Any]:
         """Default command executor."""
         category = self.commands.get(command, {}).get("category", "unknown")
         return {
@@ -274,13 +543,15 @@ class UnifiedCLIDefault:
             "status": "success",
             "timestamp": datetime.now().isoformat(),
             "message": f"'{command}' executed successfully",
-            "args": args
+            "args": args,
         }
 
     def __getattr__(self, name: str) -> Callable[..., dict[str, Any]]:
         if name.startswith("execute_") and name.endswith("_command"):
             return self.execute_default_command
-        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+        raise AttributeError(
+            f"'{type(self).__name__}' object has no attribute '{name}'"
+        )
 
     def get_command_count(self) -> int:
         """Get total number of commands."""
@@ -290,7 +561,7 @@ class UnifiedCLIDefault:
         """Get information about all categories."""
         return {
             "total_commands": self.get_command_count(),
-            "categories": self.categories
+            "categories": self.categories,
         }
 
     def run_terminal(self):
@@ -308,16 +579,18 @@ class UnifiedCLIDefault:
         self.logger.info("Starting API interface")
         pass
 
+
 def main():
     """Main entry point."""
     cli = UnifiedCLIDefault()
 
-    if len(sys.argv) > 1 and sys.argv[1] == '--web':
+    if len(sys.argv) > 1 and sys.argv[1] == "--web":
         cli.run_web()
-    elif len(sys.argv) > 1 and sys.argv[1] == '--api':
+    elif len(sys.argv) > 1 and sys.argv[1] == "--api":
         cli.run_api()
     else:
         cli.run_terminal()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

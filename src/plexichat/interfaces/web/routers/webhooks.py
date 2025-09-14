@@ -52,10 +52,12 @@ from plexichat.core.security.security_decorators import (
 try:
     from plexichat.infrastructure.utils.security import InputSanitizer
 except ImportError:
+
     class InputSanitizer:
         @staticmethod
         def sanitize_input(text: str) -> str:
             return text.strip()
+
 
 # HTTP client imports
 try:
@@ -70,22 +72,27 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
 # Initialize EXISTING performance systems
-optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
+optimization_engine = (
+    PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
+)
+
 
 # Pydantic models
 class WebhookCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
-    url: str = Field(..., pattern=r'^https?://.+')
+    url: str = Field(..., pattern=r"^https?://.+")
     secret: str | None = Field(None, max_length=255)
     events: list[str] = Field(..., min_items=1)
     is_active: bool = True
 
+
 class WebhookUpdate(BaseModel):
     name: str | None = Field(None, min_length=1, max_length=100)
-    url: str | None = Field(None, pattern=r'^https?://.+')
+    url: str | None = Field(None, pattern=r"^https?://.+")
     secret: str | None = Field(None, max_length=255)
     events: list[str] | None = Field(None, min_items=1)
     is_active: bool | None = None
+
 
 class WebhookResponse(BaseModel):
     id: int
@@ -96,10 +103,12 @@ class WebhookResponse(BaseModel):
     created_at: datetime
     last_triggered: datetime | None = None
 
+
 class WebhookEvent(BaseModel):
     event_type: str
     data: dict[str, Any]
     timestamp: datetime
+
 
 class WebhookDelivery(BaseModel):
     id: int
@@ -110,6 +119,7 @@ class WebhookDelivery(BaseModel):
     response_body: str | None = None
     created_at: datetime
 
+
 class WebhookService:
     """Service class for webhook operations using EXISTING database abstraction layer."""
 
@@ -119,8 +129,14 @@ class WebhookService:
         # Use unified logger for performance telemetry and logs
         self.logger = logger
 
-    @async_track_performance("webhook_creation") if async_track_performance else lambda f: f
-    async def create_webhook(self, webhook_data: WebhookCreate, user_id: int) -> WebhookResponse:
+    @(
+        async_track_performance("webhook_creation")
+        if async_track_performance
+        else lambda f: f
+    )
+    async def create_webhook(
+        self, webhook_data: WebhookCreate, user_id: int
+    ) -> WebhookResponse:
         """Create webhook using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
@@ -137,15 +153,19 @@ class WebhookService:
                     "events": json.dumps(webhook_data.events),
                     "is_active": webhook_data.is_active,
                     "user_id": user_id,
-                    "created_at": datetime.now()
+                    "created_at": datetime.now(),
                 }
 
                 # Use unified logger's timer context when available for timing DB queries
                 try:
                     with logger.timer("webhook_creation_query"):
-                        result = await self.db_manager.execute_query(create_query, create_params)
+                        result = await self.db_manager.execute_query(
+                            create_query, create_params
+                        )
                 except Exception:
-                    result = await self.db_manager.execute_query(create_query, create_params)
+                    result = await self.db_manager.execute_query(
+                        create_query, create_params
+                    )
 
                 if result:
                     row = result[0]
@@ -156,11 +176,15 @@ class WebhookService:
                         events=json.loads(row[3]) if row[3] else [],
                         is_active=bool(row[4]),
                         created_at=row[5],
-                        last_triggered=row[6]
+                        last_triggered=row[6],
                     )
 
             except Exception as e:
-                self.logger.error(f"Error creating webhook: {e}", category=LogCategory.DATABASE, extra_data={"error": str(e)})
+                self.logger.error(
+                    f"Error creating webhook: {e}",
+                    category=LogCategory.DATABASE,
+                    extra_data={"error": str(e)},
+                )
                 raise HTTPException(status_code=500, detail="Failed to create webhook")
 
         # Fallback mock webhook
@@ -171,11 +195,13 @@ class WebhookService:
             events=webhook_data.events,
             is_active=webhook_data.is_active,
             created_at=datetime.now(),
-            last_triggered=None
+            last_triggered=None,
         )
 
     @async_track_performance("webhook_list") if async_track_performance else lambda f: f
-    async def list_webhooks(self, user_id: int, limit: int = 50, offset: int = 0) -> list[WebhookResponse]:
+    async def list_webhooks(
+        self, user_id: int, limit: int = 50, offset: int = 0
+    ) -> list[WebhookResponse]:
         """List webhooks using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
@@ -197,25 +223,35 @@ class WebhookService:
                 webhooks = []
                 if result:
                     for row in result:
-                        webhooks.append(WebhookResponse(
-                            id=row[0],
-                            name=row[1],
-                            url=row[2],
-                            events=json.loads(row[3]) if row[3] else [],
-                            is_active=bool(row[4]),
-                            created_at=row[5],
-                            last_triggered=row[6]
-                        ))
+                        webhooks.append(
+                            WebhookResponse(
+                                id=row[0],
+                                name=row[1],
+                                url=row[2],
+                                events=json.loads(row[3]) if row[3] else [],
+                                is_active=bool(row[4]),
+                                created_at=row[5],
+                                last_triggered=row[6],
+                            )
+                        )
 
                 return webhooks
 
             except Exception as e:
-                self.logger.error(f"Error listing webhooks: {e}", category=LogCategory.DATABASE, extra_data={"error": str(e)})
+                self.logger.error(
+                    f"Error listing webhooks: {e}",
+                    category=LogCategory.DATABASE,
+                    extra_data={"error": str(e)},
+                )
                 return []
 
         return []
 
-    @async_track_performance("webhook_trigger") if async_track_performance else lambda f: f
+    @(
+        async_track_performance("webhook_trigger")
+        if async_track_performance
+        else lambda f: f
+    )
     async def trigger_webhook(self, webhook_id: int, event: WebhookEvent) -> bool:
         """Trigger webhook delivery using EXISTING database abstraction layer."""
         if self.db_manager:
@@ -230,9 +266,13 @@ class WebhookService:
 
                 try:
                     with logger.timer("webhook_get_query"):
-                        result = await self.db_manager.execute_query(webhook_query, webhook_params)
+                        result = await self.db_manager.execute_query(
+                            webhook_query, webhook_params
+                        )
                 except Exception:
-                    result = await self.db_manager.execute_query(webhook_query, webhook_params)
+                    result = await self.db_manager.execute_query(
+                        webhook_query, webhook_params
+                    )
 
                 if not result:
                     return False
@@ -249,7 +289,7 @@ class WebhookService:
                     "event": event.event_type,
                     "data": event.data,
                     "timestamp": event.timestamp.isoformat(),
-                    "webhook_id": webhook_id
+                    "webhook_id": webhook_id,
                 }
 
                 # Create signature if secret is provided
@@ -258,7 +298,7 @@ class WebhookService:
                     signature = hmac.new(
                         webhook_row[3].encode(),
                         json.dumps(payload).encode(),
-                        hashlib.sha256
+                        hashlib.sha256,
                     ).hexdigest()
                     headers["X-Webhook-Signature"] = f"sha256={signature}"
 
@@ -271,15 +311,19 @@ class WebhookService:
                     try:
                         async with httpx.AsyncClient(timeout=30.0) as client:
                             response = await client.post(
-                                webhook_row[2],  # url
-                                json=payload,
-                                headers=headers
+                                webhook_row[2], json=payload, headers=headers  # url
                             )
                             response_code = response.status_code
                             response_body = response.text[:1000]  # Limit response body
-                            delivery_status = "success" if 200 <= response_code < 300 else "failed"
+                            delivery_status = (
+                                "success" if 200 <= response_code < 300 else "failed"
+                            )
                     except Exception as e:
-                        self.logger.error(f"Webhook delivery failed: {e}", category=LogCategory.API, extra_data={"webhook_id": webhook_id, "error": str(e)})
+                        self.logger.error(
+                            f"Webhook delivery failed: {e}",
+                            category=LogCategory.API,
+                            extra_data={"webhook_id": webhook_id, "error": str(e)},
+                        )
                         delivery_status = "failed"
                         response_body = str(e)[:1000]
 
@@ -294,12 +338,14 @@ class WebhookService:
                     "status": delivery_status,
                     "response_code": response_code,
                     "response_body": response_body,
-                    "created_at": datetime.now()
+                    "created_at": datetime.now(),
                 }
 
                 try:
                     with logger.timer("webhook_delivery_log"):
-                        await self.db_manager.execute_query(delivery_query, delivery_params)
+                        await self.db_manager.execute_query(
+                            delivery_query, delivery_params
+                        )
                 except Exception:
                     await self.db_manager.execute_query(delivery_query, delivery_params)
 
@@ -318,30 +364,36 @@ class WebhookService:
                 return delivery_status == "success"
 
             except Exception as e:
-                self.logger.error(f"Error triggering webhook: {e}", category=LogCategory.API, extra_data={"error": str(e)})
+                self.logger.error(
+                    f"Error triggering webhook: {e}",
+                    category=LogCategory.API,
+                    extra_data={"error": str(e)},
+                )
                 return False
 
         return False
 
+
 # Initialize service
 webhook_service = WebhookService()
+
 
 @router.post(
     "/",
     response_model=WebhookResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Create webhook"
+    summary="Create webhook",
 )
 @secure_endpoint(
     auth_required=True,
     permission=RequiredPermission.WRITE,
     rate_limit_rpm=10,
-    audit_action="create_webhook"
+    audit_action="create_webhook",
 )
 async def create_webhook(
     request: Request,
     webhook_data: WebhookCreate,
-    current_user: dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """Create a new webhook with enhanced security and performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
@@ -352,7 +404,7 @@ async def create_webhook(
             user_id=str(current_user.get("id", "")),
             endpoint="/webhooks/",
             method="POST",
-            ip_address=client_ip
+            ip_address=client_ip,
         )
     except Exception:
         # best-effort, non-fatal
@@ -364,11 +416,15 @@ async def create_webhook(
         extra_data={
             "metadata": {
                 "webhook_name": webhook_data.name,
-                "webhook_url": webhook_data.url[:100] + "..." if len(webhook_data.url) > 100 else webhook_data.url,
-                "event_count": len(webhook_data.events)
+                "webhook_url": (
+                    webhook_data.url[:100] + "..."
+                    if len(webhook_data.url) > 100
+                    else webhook_data.url
+                ),
+                "event_count": len(webhook_data.events),
             },
-            "tags": ["webhook", "create", "api"]
-        }
+            "tags": ["webhook", "create", "api"],
+        },
     )
 
     # Performance tracking with unified logger timer
@@ -378,7 +434,9 @@ async def create_webhook(
             webhook_data.name = InputSanitizer.sanitize_input(webhook_data.name)
             webhook_data.url = InputSanitizer.sanitize_input(webhook_data.url)
 
-            result = await webhook_service.create_webhook(webhook_data, current_user.get("id", 0))
+            result = await webhook_service.create_webhook(
+                webhook_data, current_user.get("id", 0)
+            )
 
             # Log successful creation as audit
             logger.audit(
@@ -386,11 +444,11 @@ async def create_webhook(
                 category=LogCategory.AUDIT,
                 extra_data={
                     "metadata": {
-                        "webhook_id": getattr(result, 'id', None),
-                        "created_by": current_user.get("username")
+                        "webhook_id": getattr(result, "id", None),
+                        "created_by": current_user.get("username"),
                     },
-                    "tags": ["webhook", "created", "success"]
-                }
+                    "tags": ["webhook", "created", "success"],
+                },
             )
 
             return result
@@ -398,23 +456,18 @@ async def create_webhook(
         # Fallback path without timer if timer usage fails
         webhook_data.name = InputSanitizer.sanitize_input(webhook_data.name)
         webhook_data.url = InputSanitizer.sanitize_input(webhook_data.url)
-        return await webhook_service.create_webhook(webhook_data, current_user.get("id", 0))
+        return await webhook_service.create_webhook(
+            webhook_data, current_user.get("id", 0)
+        )
 
-@router.get(
-    "/",
-    response_model=list[WebhookResponse],
-    summary="List webhooks"
-)
-@secure_endpoint(
-    auth_required=True,
-    rate_limit_rpm=60,
-    audit_action="list_webhooks"
-)
+
+@router.get("/", response_model=list[WebhookResponse], summary="List webhooks")
+@secure_endpoint(auth_required=True, rate_limit_rpm=60, audit_action="list_webhooks")
 async def list_webhooks(
     request: Request,
     limit: int = 50,
     offset: int = 0,
-    current_user: dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """List user's webhooks with enhanced performance monitoring."""
     client_ip = request.client.host if request.client else "unknown"
@@ -424,7 +477,7 @@ async def list_webhooks(
             user_id=str(current_user.get("id", "")),
             endpoint="/webhooks/",
             method="GET",
-            ip_address=client_ip
+            ip_address=client_ip,
         )
     except Exception:
         pass
@@ -436,15 +489,17 @@ async def list_webhooks(
             "metadata": {
                 "limit": limit,
                 "offset": offset,
-                "user_id": current_user.get("id")
+                "user_id": current_user.get("id"),
             },
-            "tags": ["webhook", "list", "api"]
-        }
+            "tags": ["webhook", "list", "api"],
+        },
     )
 
     try:
         with logger.timer("list_webhooks"):
-            result = await webhook_service.list_webhooks(current_user.get("id", 0), limit, offset)
+            result = await webhook_service.list_webhooks(
+                current_user.get("id", 0), limit, offset
+            )
 
             logger.debug(
                 f"Listed {len(result)} webhooks for user {current_user.get('username')}",
@@ -453,32 +508,32 @@ async def list_webhooks(
                     "metadata": {
                         "result_count": len(result),
                         "query_limit": limit,
-                        "query_offset": offset
+                        "query_offset": offset,
                     },
-                    "tags": ["webhook", "list", "performance"]
-                }
+                    "tags": ["webhook", "list", "performance"],
+                },
             )
 
             return result
     except Exception:
-        return await webhook_service.list_webhooks(current_user.get("id", 0), limit, offset)
+        return await webhook_service.list_webhooks(
+            current_user.get("id", 0), limit, offset
+        )
 
-@router.post(
-    "/{webhook_id}/trigger",
-    summary="Trigger webhook"
-)
+
+@router.post("/{webhook_id}/trigger", summary="Trigger webhook")
 @secure_endpoint(
     auth_required=True,
     permission=RequiredPermission.WRITE,
     rate_limit_rpm=20,
-    audit_action="trigger_webhook"
+    audit_action="trigger_webhook",
 )
 async def trigger_webhook(
     request: Request,
     webhook_id: int,
     event: WebhookEvent,
     background_tasks: BackgroundTasks,
-    current_user: dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """Trigger a webhook manually with enhanced security and monitoring."""
     client_ip = request.client.host if request.client else "unknown"
@@ -488,7 +543,7 @@ async def trigger_webhook(
             user_id=str(current_user.get("id", "")),
             endpoint=f"/webhooks/{webhook_id}/trigger",
             method="POST",
-            ip_address=client_ip
+            ip_address=client_ip,
         )
     except Exception:
         pass
@@ -500,10 +555,10 @@ async def trigger_webhook(
             "metadata": {
                 "webhook_id": webhook_id,
                 "event_type": event.event_type,
-                "user_id": current_user.get("id")
+                "user_id": current_user.get("id"),
             },
-            "tags": ["webhook", "trigger", "api"]
-        }
+            "tags": ["webhook", "trigger", "api"],
+        },
     )
 
     # Security audit
@@ -515,10 +570,10 @@ async def trigger_webhook(
                 "webhook_id": webhook_id,
                 "event_type": event.event_type,
                 "triggered_by": current_user.get("username"),
-                "user_id": current_user.get("id")
+                "user_id": current_user.get("id"),
             },
-            "tags": ["webhook", "manual_trigger", "audit"]
-        }
+            "tags": ["webhook", "manual_trigger", "audit"],
+        },
     )
 
     try:
@@ -527,7 +582,9 @@ async def trigger_webhook(
             event.event_type = InputSanitizer.sanitize_input(event.event_type)
 
             # Trigger webhook in background
-            background_tasks.add_task(webhook_service.trigger_webhook, webhook_id, event)
+            background_tasks.add_task(
+                webhook_service.trigger_webhook, webhook_id, event
+            )
 
             return {"message": "Webhook triggered", "webhook_id": webhook_id}
     except Exception:
@@ -535,29 +592,36 @@ async def trigger_webhook(
         background_tasks.add_task(webhook_service.trigger_webhook, webhook_id, event)
         return {"message": "Webhook triggered", "webhook_id": webhook_id}
 
-@router.post(
-    "/broadcast",
-    summary="Broadcast event to all webhooks"
-)
+
+@router.post("/broadcast", summary="Broadcast event to all webhooks")
 async def broadcast_event(
     request: Request,
     event: WebhookEvent,
     background_tasks: BackgroundTasks,
-    current_user: dict[str, Any] = Depends(require_admin)
+    current_user: dict[str, Any] = Depends(require_admin),
 ):
     """Broadcast an event to all active webhooks (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"Webhook broadcast requested by admin {current_user.get('username')} from {client_ip}", category=LogCategory.API)
+    logger.info(
+        f"Webhook broadcast requested by admin {current_user.get('username')} from {client_ip}",
+        category=LogCategory.API,
+    )
 
     # Get all active webhooks (limited)
-    webhooks = await webhook_service.list_webhooks(current_user.get("id", 0), limit=1000)
+    webhooks = await webhook_service.list_webhooks(
+        current_user.get("id", 0), limit=1000
+    )
 
     # Trigger all webhooks in background
     for webhook in webhooks:
         if webhook.is_active and event.event_type in webhook.events:
-            background_tasks.add_task(webhook_service.trigger_webhook, webhook.id, event)
+            background_tasks.add_task(
+                webhook_service.trigger_webhook, webhook.id, event
+            )
 
     return {
         "message": "Event broadcasted to all matching webhooks",
-        "webhook_count": len([w for w in webhooks if w.is_active and event.event_type in w.events])
+        "webhook_count": len(
+            [w for w in webhooks if w.is_active and event.event_type in w.events]
+        ),
     }

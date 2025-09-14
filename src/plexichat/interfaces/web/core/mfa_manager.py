@@ -21,9 +21,11 @@ from plexichat.interfaces.web.core.config_manager import get_webui_config
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class MFADevice:
     """MFA device information."""
+
     device_id: str
     device_type: str  # 'totp', 'sms', 'email', 'biometric'
     device_name: str
@@ -39,9 +41,11 @@ class MFADevice:
         if self.created_at is None:
             self.created_at = datetime.now(UTC)
 
+
 @dataclass
 class MFASession:
     """MFA session information."""
+
     session_id: str
     user_id: str
     username: str
@@ -54,8 +58,10 @@ class MFASession:
     user_agent: str
     device_fingerprint: str | None = None
 
+
 class MFAManager:
     """Multi-Factor Authentication Manager integrated with UnifiedAuthManager."""
+
     def __init__(self):
         self.config = get_webui_config()
         self.mfa_config = self.config.mfa_config
@@ -96,7 +102,9 @@ class MFAManager:
         """Get available MFA methods for a user role."""
         return self.config.get_mfa_methods_for_user(user_role)
 
-    def setup_totp_device(self, user_id: str, username: str, device_name: str) -> dict[str, Any]:
+    def setup_totp_device(
+        self, user_id: str, username: str, device_name: str
+    ) -> dict[str, Any]:
         """Set up a new TOTP device for a user and store it in unified storage."""
         try:
             # Generate secret key
@@ -104,14 +112,16 @@ class MFAManager:
 
             # Create TOTP URI
             totp = pyotp.TOTP(secret_key)
-            provisioning_uri = totp.provisioning_uri(name=username, issuer_name="PlexiChat")
+            provisioning_uri = totp.provisioning_uri(
+                name=username, issuer_name="PlexiChat"
+            )
             qr = qrcode.QRCode(version=1, box_size=10, border=5)
             qr.add_data(provisioning_uri)
             qr.make(fit=True)
 
             qr_image = qr.make_image(fill_color="black", back_color="white")
             qr_buffer = io.BytesIO()
-            qr_image.save(qr_buffer, format='PNG')
+            qr_image.save(qr_buffer, format="PNG")
             qr_code_base64 = base64.b64encode(qr_buffer.getvalue()).decode()
 
             # Create device object
@@ -119,6 +129,7 @@ class MFAManager:
             # Use TOTP issuer from config if present
             try:
                 from plexichat.core.config_manager import get_config
+
                 issuer = str(get_config("security.totp_issuer", "PlexiChat"))
             except Exception:
                 issuer = "PlexiChat"
@@ -127,12 +138,14 @@ class MFAManager:
                 device_type="totp",
                 device_name=device_name or issuer,
                 secret_key=secret_key,
-                is_active=False  # Will be activated after verification
+                is_active=False,  # Will be activated after verification
             )
 
             # Persist TOTP secret in MFA store for backend verification
             try:
-                if hasattr(self.auth_manager, 'mfa_store') and hasattr(self.auth_manager.mfa_store, 'set_totp_secret'):
+                if hasattr(self.auth_manager, "mfa_store") and hasattr(
+                    self.auth_manager.mfa_store, "set_totp_secret"
+                ):
                     self.auth_manager.mfa_store.set_totp_secret(user_id, secret_key)
             except Exception:
                 logger.debug("Failed to persist TOTP secret in MFA store")
@@ -148,27 +161,32 @@ class MFAManager:
 
             # Optionally generate an initial challenge tied to this setup flow
             challenge_id = secrets.token_urlsafe(24)
-            self.auth_manager.mfa_store.set_challenge(challenge_id, {
-                "type": "totp_setup",
-                "user_id": user_id,
-                "device_id": device_id,
-                "created_at": datetime.now(UTC).isoformat()
-            })
+            self.auth_manager.mfa_store.set_challenge(
+                challenge_id,
+                {
+                    "type": "totp_setup",
+                    "user_id": user_id,
+                    "device_id": device_id,
+                    "created_at": datetime.now(UTC).isoformat(),
+                },
+            )
 
             return {
-                'device_id': device_id,
-                'secret_key': secret_key,
-                'qr_code': qr_code_base64,
-                'provisioning_uri': provisioning_uri,
-                'backup_codes': backup_codes,
-                'challenge_id': challenge_id
+                "device_id": device_id,
+                "secret_key": secret_key,
+                "qr_code": qr_code_base64,
+                "provisioning_uri": provisioning_uri,
+                "backup_codes": backup_codes,
+                "challenge_id": challenge_id,
             }
 
         except Exception as e:
             logger.error(f"Failed to setup TOTP device: {e}")
             raise
 
-    def verify_totp_setup(self, user_id: str, device_id: str, verification_code: str) -> bool:
+    def verify_totp_setup(
+        self, user_id: str, device_id: str, verification_code: str
+    ) -> bool:
         """Verify TOTP setup with a verification code and activate device in unified storage."""
         try:
             device = self._get_device(user_id, device_id)
@@ -191,7 +209,9 @@ class MFAManager:
             logger.error(f"Failed to verify TOTP setup: {e}")
             return False
 
-    def verify_totp_code(self, user_id: str, device_id: str, code: str, session_id: str | None = None) -> bool:
+    def verify_totp_code(
+        self, user_id: str, device_id: str, code: str, session_id: str | None = None
+    ) -> bool:
         """
         Verify a TOTP code against a user's device and mark MFA as complete for the session.
         If session_id is provided, link the result to the MFASession stored in unified storage.
@@ -211,11 +231,17 @@ class MFAManager:
                     completed = self.complete_mfa_for_session(session_id, "totp")
                     if completed:
                         # On completion, create/activate a unified session so the user gets a real access token
-                        mfa_session = self.auth_manager.mfa_store.get_session(session_id)
+                        mfa_session = self.auth_manager.mfa_store.get_session(
+                            session_id
+                        )
                         if mfa_session:
                             # Build a SessionInfo compatible with UnifiedAuthManager and activate it
                             now = datetime.now(UTC)
-                            permissions = set(self.auth_manager.get_user_permissions(mfa_session.user_id))
+                            permissions = set(
+                                self.auth_manager.get_user_permissions(
+                                    mfa_session.user_id
+                                )
+                            )
                             unified_session = SessionInfo(
                                 session_id=mfa_session.session_id,
                                 user_id=mfa_session.user_id,
@@ -225,24 +251,39 @@ class MFAManager:
                                 permissions=permissions,
                                 ip_address=mfa_session.ip_address,
                                 user_agent=mfa_session.user_agent,
-                                is_active=True
+                                is_active=True,
                             )
                             # Store in unified active sessions
-                            self.auth_manager.active_sessions[unified_session.session_id] = unified_session
+                            self.auth_manager.active_sessions[
+                                unified_session.session_id
+                            ] = unified_session
 
                             # Optionally create a short-lived access token via unified auth manager
                             try:
-                                token = self.auth_manager.create_access_token(unified_session.user_id, unified_session.permissions)
+                                token = self.auth_manager.create_access_token(
+                                    unified_session.user_id, unified_session.permissions
+                                )
                                 # Store the issued token as a challenge result for retrieval by the web layer
-                                current_challenge = self.auth_manager.mfa_store.get_challenge(session_id) or {}
-                                current_challenge.update({
-                                    "mfa_completed": True,
-                                    "access_token": token,
-                                    "issued_at": datetime.now(UTC).isoformat()
-                                })
-                                self.auth_manager.mfa_store.set_challenge(session_id, current_challenge)
+                                current_challenge = (
+                                    self.auth_manager.mfa_store.get_challenge(
+                                        session_id
+                                    )
+                                    or {}
+                                )
+                                current_challenge.update(
+                                    {
+                                        "mfa_completed": True,
+                                        "access_token": token,
+                                        "issued_at": datetime.now(UTC).isoformat(),
+                                    }
+                                )
+                                self.auth_manager.mfa_store.set_challenge(
+                                    session_id, current_challenge
+                                )
                             except Exception:
-                                logger.debug("Failed to create access token upon MFA completion")
+                                logger.debug(
+                                    "Failed to create access token upon MFA completion"
+                                )
                         return True
 
                 return True
@@ -258,7 +299,12 @@ class MFAManager:
         # Generate backup codes, count is configurable in security.backup_codes_count
         try:
             from plexichat.core.config_manager import get_config
-            count = int(get_config("security.backup_codes_count", self.mfa_config.backup_codes_count))
+
+            count = int(
+                get_config(
+                    "security.backup_codes_count", self.mfa_config.backup_codes_count
+                )
+            )
         except Exception:
             count = self.mfa_config.backup_codes_count
         backup_codes = []
@@ -267,19 +313,25 @@ class MFAManager:
             backup_codes.append(code)
 
         # Store encrypted backup codes in unified storage
-        encrypted_codes = [self.cipher.encrypt(code.encode()).decode() for code in backup_codes]
+        encrypted_codes = [
+            self.cipher.encrypt(code.encode()).decode() for code in backup_codes
+        ]
         self.auth_manager.mfa_store.set_backup_codes(user_id, encrypted_codes)
 
         # Also store hashed backup codes for backend verification/consumption
         try:
-            if hasattr(self.auth_manager.mfa_store, 'set_backup_codes_hashed'):
-                self.auth_manager.mfa_store.set_backup_codes_hashed(user_id, backup_codes)
+            if hasattr(self.auth_manager.mfa_store, "set_backup_codes_hashed"):
+                self.auth_manager.mfa_store.set_backup_codes_hashed(
+                    user_id, backup_codes
+                )
         except Exception:
             logger.debug("Failed to persist hashed backup codes")
 
         return backup_codes
 
-    def verify_backup_code(self, user_id: str, code: str, session_id: str | None = None) -> bool:
+    def verify_backup_code(
+        self, user_id: str, code: str, session_id: str | None = None
+    ) -> bool:
         """Verify a backup code and mark MFA as complete for the session if provided."""
         try:
             encrypted_codes = self.auth_manager.mfa_store.get_backup_codes(user_id)
@@ -290,13 +342,17 @@ class MFAManager:
 
             for i, encrypted_code in enumerate(encrypted_codes):
                 try:
-                    decrypted_code = self.cipher.decrypt(encrypted_code.encode()).decode()
+                    decrypted_code = self.cipher.decrypt(
+                        encrypted_code.encode()
+                    ).decode()
                     if decrypted_code == code_upper:
                         # Remove used backup code
                         encrypted_codes.pop(i)
                         logger.info(f"Backup code used for user {user_id}")
                         # Update storage
-                        self.auth_manager.mfa_store.set_backup_codes(user_id, encrypted_codes)
+                        self.auth_manager.mfa_store.set_backup_codes(
+                            user_id, encrypted_codes
+                        )
                         # Mark MFA completed for session if provided
                         if session_id:
                             self.complete_mfa_for_session(session_id, "backup_code")
@@ -322,7 +378,14 @@ class MFAManager:
 
         return [d for d in devices if d.is_active]
 
-    def create_mfa_session(self, user_id: str, username: str, ip_address: str, user_agent: str, user_role: str = "user") -> MFASession:
+    def create_mfa_session(
+        self,
+        user_id: str,
+        username: str,
+        ip_address: str,
+        user_agent: str,
+        user_role: str = "user",
+    ) -> MFASession:
         """
         Create a new MFA session and store it in the UnifiedAuthManager context.
         Returns the MFASession object.
@@ -343,7 +406,7 @@ class MFAManager:
             created_at=now,
             expires_at=expires_at,
             ip_address=ip_address,
-            user_agent=user_agent
+            user_agent=user_agent,
         )
 
         # Store in unified session storage
@@ -357,11 +420,12 @@ class MFAManager:
                 user_id=user_id,
                 created_at=now,
                 last_accessed=now,
-                expires_at=now + timedelta(seconds=self.config.get_session_timeout(False)),
+                expires_at=now
+                + timedelta(seconds=self.config.get_session_timeout(False)),
                 permissions=set(),
                 ip_address=ip_address,
                 user_agent=user_agent,
-                is_active=False
+                is_active=False,
             )
             self.auth_manager.active_sessions[session_id] = placeholder
         except Exception:
@@ -369,19 +433,21 @@ class MFAManager:
 
         # Optionally create a challenge token for the session that frontend can poll
         challenge_id = secrets.token_urlsafe(24)
-        self.auth_manager.mfa_store.set_challenge(challenge_id, {
-            "type": "mfa_session",
-            "session_id": session_id,
-            "user_id": user_id,
-            "created_at": now.isoformat()
-        })
+        self.auth_manager.mfa_store.set_challenge(
+            challenge_id,
+            {
+                "type": "mfa_session",
+                "session_id": session_id,
+                "user_id": user_id,
+                "created_at": now.isoformat(),
+            },
+        )
 
         # Link challenge id to session for convenience
         current_challenge = self.auth_manager.mfa_store.get_challenge(session_id) or {}
-        current_challenge.update({
-            "challenge_id": challenge_id,
-            "mfa_required": mfa_required
-        })
+        current_challenge.update(
+            {"challenge_id": challenge_id, "mfa_required": mfa_required}
+        )
         self.auth_manager.mfa_store.set_challenge(session_id, current_challenge)
 
         return session
@@ -399,15 +465,21 @@ class MFAManager:
         required_methods = self.get_available_mfa_methods()
         # Consider MFA completed if any required method is present in completed list,
         # or if MFA is not strictly required by configuration.
-        if not session.mfa_required or any(m in session.mfa_methods_completed for m in required_methods):
+        if not session.mfa_required or any(
+            m in session.mfa_methods_completed for m in required_methods
+        ):
             session.mfa_completed = True
             # Extend expiry to MFA-completed timeout
-            session.expires_at = datetime.now(UTC) + timedelta(seconds=self.config.get_session_timeout(True))
+            session.expires_at = datetime.now(UTC) + timedelta(
+                seconds=self.config.get_session_timeout(True)
+            )
 
             # Update unified session active state and permissions
             try:
                 # Pull permissions via unified auth manager
-                permissions = set(self.auth_manager.get_user_permissions(session.user_id))
+                permissions = set(
+                    self.auth_manager.get_user_permissions(session.user_id)
+                )
                 now = datetime.now(UTC)
                 unified_session = SessionInfo(
                     session_id=session.session_id,
@@ -418,25 +490,37 @@ class MFAManager:
                     permissions=permissions,
                     ip_address=session.ip_address,
                     user_agent=session.user_agent,
-                    is_active=True
+                    is_active=True,
                 )
                 self.auth_manager.active_sessions[session.session_id] = unified_session
 
                 # Create an access token for the user upon MFA completion and store it in challenge storage
                 try:
-                    token = self.auth_manager.create_access_token(unified_session.user_id, unified_session.permissions)
-                    current_challenge = self.auth_manager.mfa_store.get_challenge(session_id) or {}
-                    current_challenge.update({
-                        "mfa_completed": True,
-                        "access_token": token,
-                        "issued_at": datetime.now(UTC).isoformat()
-                    })
-                    self.auth_manager.mfa_store.set_challenge(session_id, current_challenge)
+                    token = self.auth_manager.create_access_token(
+                        unified_session.user_id, unified_session.permissions
+                    )
+                    current_challenge = (
+                        self.auth_manager.mfa_store.get_challenge(session_id) or {}
+                    )
+                    current_challenge.update(
+                        {
+                            "mfa_completed": True,
+                            "access_token": token,
+                            "issued_at": datetime.now(UTC).isoformat(),
+                        }
+                    )
+                    self.auth_manager.mfa_store.set_challenge(
+                        session_id, current_challenge
+                    )
                 except Exception:
-                    logger.debug("Failed to create access token in complete_mfa_for_session")
+                    logger.debug(
+                        "Failed to create access token in complete_mfa_for_session"
+                    )
 
             except Exception as e:
-                logger.error(f"Failed to finalize unified session on MFA completion: {e}")
+                logger.error(
+                    f"Failed to finalize unified session on MFA completion: {e}"
+                )
 
         return session.mfa_completed
 
@@ -480,7 +564,9 @@ class MFAManager:
                     if device.device_id == device_id:
                         devices.pop(i)
                         self.auth_manager.mfa_store.set_devices(user_id, devices)
-                        logger.info(f"MFA device {device_id} removed for user {user_id}")
+                        logger.info(
+                            f"MFA device {device_id} removed for user {user_id}"
+                        )
                         return True
                 except Exception:
                     continue
@@ -503,16 +589,20 @@ class MFAManager:
         device_dict = json.loads(decrypted_data.decode())
 
         # Convert datetime strings back to datetime objects if present
-        if device_dict.get('created_at'):
+        if device_dict.get("created_at"):
             try:
-                device_dict['created_at'] = datetime.fromisoformat(device_dict['created_at'])
+                device_dict["created_at"] = datetime.fromisoformat(
+                    device_dict["created_at"]
+                )
             except Exception:
-                device_dict['created_at'] = datetime.now(UTC)
-        if device_dict.get('last_used'):
+                device_dict["created_at"] = datetime.now(UTC)
+        if device_dict.get("last_used"):
             try:
-                device_dict['last_used'] = datetime.fromisoformat(device_dict['last_used'])
+                device_dict["last_used"] = datetime.fromisoformat(
+                    device_dict["last_used"]
+                )
             except Exception:
-                device_dict['last_used'] = None
+                device_dict["last_used"] = None
 
         return MFADevice(**device_dict)
 
@@ -548,7 +638,9 @@ class MFAManager:
                 continue
 
     # Additional utility methods to expose unified challenge/results to web layer
-    def get_challenge_result(self, challenge_id_or_session_id: str) -> dict[str, Any] | None:
+    def get_challenge_result(
+        self, challenge_id_or_session_id: str
+    ) -> dict[str, Any] | None:
         """Retrieve stored challenge results (like access token issued upon MFA completion)."""
         return self.auth_manager.mfa_store.get_challenge(challenge_id_or_session_id)
 
@@ -564,8 +656,10 @@ class MFAManager:
             logger.error(f"Failed to invalidate MFA session {session_id}: {e}")
             return False
 
+
 # Global MFA manager instance integrated with UnifiedAuthManager
 mfa_manager = MFAManager()
+
 
 def get_mfa_manager() -> MFAManager:
     """Get the global MFA manager."""

@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 
 class WizardStep(str, Enum):
     """Enhanced wizard steps."""
+
     WELCOME = "welcome"
     DATABASE_SELECTION = "database_selection"
     CONNECTION_CONFIG = "connection_config"
@@ -55,6 +56,7 @@ class WizardStep(str, Enum):
 @dataclass
 class DatabaseTemplate:
     """Database configuration template."""
+
     name: str
     db_type: DatabaseType
     category: DatabaseCategory
@@ -71,6 +73,7 @@ class DatabaseTemplate:
 @dataclass
 class WizardProgress:
     """Enhanced wizard progress tracking."""
+
     current_step: WizardStep = WizardStep.WELCOME
     completed_steps: list[WizardStep] = field(default_factory=list)
     database_type: DatabaseType | None = None
@@ -91,6 +94,7 @@ class WizardProgress:
 
 class EnhancedDatabaseWizard:
     """Enhanced database setup wizard with comprehensive support."""
+
     def __init__(self):
         self.progress = WizardProgress()
         self.templates = self._load_database_templates()
@@ -106,7 +110,12 @@ class EnhancedDatabaseWizard:
             db_type=DatabaseType.POSTGRESQL,
             category=DatabaseCategory.RELATIONAL,
             description="Advanced open-source relational database with excellent performance and features",
-            use_cases=["web_applications", "analytics", "data_warehousing", "geospatial"],
+            use_cases=[
+                "web_applications",
+                "analytics",
+                "data_warehousing",
+                "geospatial",
+            ],
             complexity="intermediate",
             default_config={
                 "host": "localhost",
@@ -114,7 +123,7 @@ class EnhancedDatabaseWizard:
                 "database": "plexichat",
                 "pool_size": 20,
                 "max_overflow": 30,
-                "ssl_mode": "prefer"
+                "ssl_mode": "prefer",
             },
             required_fields=["host", "port", "database", "username", "password"],
             optional_fields=["ssl_mode", "pool_size", "max_overflow", "schema"],
@@ -122,14 +131,14 @@ class EnhancedDatabaseWizard:
                 "Use connection pooling for better performance",
                 "Enable query optimization with EXPLAIN ANALYZE",
                 "Consider partitioning for large tables",
-                "Use appropriate indexes for your queries"
+                "Use appropriate indexes for your queries",
             ],
             security_recommendations=[
                 "Use SSL/TLS encryption",
                 "Create dedicated database user with minimal privileges",
                 "Enable row-level security if needed",
-                "Regular security updates"
-            ]
+                "Regular security updates",
+            ],
         )
 
         # MongoDB
@@ -138,14 +147,19 @@ class EnhancedDatabaseWizard:
             db_type=DatabaseType.MONGODB,
             category=DatabaseCategory.DOCUMENT,
             description="Flexible document database for modern applications",
-            use_cases=["content_management", "real_time_analytics", "iot", "mobile_apps"],
+            use_cases=[
+                "content_management",
+                "real_time_analytics",
+                "iot",
+                "mobile_apps",
+            ],
             complexity="beginner",
             default_config={
                 "host": "localhost",
                 "port": 27017,
                 "database": "plexichat",
                 "replica_set": None,
-                "auth_source": "admin"
+                "auth_source": "admin",
             },
             required_fields=["host", "port", "database"],
             optional_fields=["replica_set", "auth_source", "ssl", "read_preference"],
@@ -153,14 +167,14 @@ class EnhancedDatabaseWizard:
                 "Use appropriate indexes for query patterns",
                 "Consider sharding for horizontal scaling",
                 "Use aggregation pipeline for complex queries",
-                "Monitor slow queries"
+                "Monitor slow queries",
             ],
             security_recommendations=[
                 "Enable authentication",
                 "Use SSL/TLS encryption",
                 "Create role-based access control",
-                "Regular backups"
-            ]
+                "Regular backups",
+            ],
         )
 
         # Redis
@@ -176,7 +190,7 @@ class EnhancedDatabaseWizard:
                 "port": 6379,
                 "database": 0,
                 "max_connections": 100,
-                "decode_responses": True
+                "decode_responses": True,
             },
             required_fields=["host", "port"],
             optional_fields=["password", "database", "max_connections", "ssl"],
@@ -184,14 +198,14 @@ class EnhancedDatabaseWizard:
                 "Use connection pooling",
                 "Monitor memory usage",
                 "Use appropriate data structures",
-                "Consider Redis Cluster for scaling"
+                "Consider Redis Cluster for scaling",
             ],
             security_recommendations=[
                 "Set strong password",
                 "Use SSL/TLS if available",
                 "Bind to specific interfaces",
-                "Regular security updates"
-            ]
+                "Regular security updates",
+            ],
         )
 
         # Elasticsearch
@@ -206,7 +220,7 @@ class EnhancedDatabaseWizard:
                 "hosts": ["localhost:9200"],
                 "index_prefix": "plexichat",
                 "number_of_shards": 1,
-                "number_of_replicas": 0
+                "number_of_replicas": 0,
             },
             required_fields=["hosts"],
             optional_fields=["username", "password", "api_key", "ssl_verify"],
@@ -214,14 +228,14 @@ class EnhancedDatabaseWizard:
                 "Optimize mapping for your data",
                 "Use appropriate shard count",
                 "Monitor cluster health",
-                "Use bulk operations for indexing"
+                "Use bulk operations for indexing",
             ],
             security_recommendations=[
                 "Enable security features",
                 "Use authentication",
                 "Configure SSL/TLS",
-                "Set up role-based access"
-            ]
+                "Set up role-based access",
+            ],
         )
 
         # Add more templates for other database types...
@@ -246,9 +260,9 @@ class EnhancedDatabaseWizard:
                     "Connection testing",
                     "Performance optimization",
                     "Security setup",
-                    "Migration assistance"
-                ]
-            }
+                    "Migration assistance",
+                ],
+            },
         }
 
     async def select_database(self, database_type: str) -> dict[str, Any]:
@@ -259,7 +273,7 @@ class EnhancedDatabaseWizard:
             if db_type not in self.templates:
                 return {
                     "success": False,
-                    "error": f"Database type {database_type} not supported"
+                    "error": f"Database type {database_type} not supported",
                 }
 
             self.progress.database_type = db_type
@@ -276,33 +290,30 @@ class EnhancedDatabaseWizard:
                     "description": self.current_template.description,
                     "category": self.current_template.category,
                     "use_cases": self.current_template.use_cases,
-                    "complexity": self.current_template.complexity
+                    "complexity": self.current_template.complexity,
                 },
                 "configuration_template": {
                     "default_config": self.current_template.default_config,
                     "required_fields": self.current_template.required_fields,
-                    "optional_fields": self.current_template.optional_fields
+                    "optional_fields": self.current_template.optional_fields,
                 },
                 "recommendations": {
                     "performance_tips": self.current_template.performance_tips,
-                    "security_recommendations": self.current_template.security_recommendations
-                }
+                    "security_recommendations": self.current_template.security_recommendations,
+                },
             }
 
         except ValueError:
             return {
                 "success": False,
-                "error": f"Invalid database type: {database_type}"
+                "error": f"Invalid database type: {database_type}",
             }
 
     async def configure_connection(self, config: dict[str, Any]) -> dict[str, Any]:
         """Configure database connection settings."""
         try:
             if not self.current_template:
-                return {
-                    "success": False,
-                    "error": "No database type selected"
-                }
+                return {"success": False, "error": "No database type selected"}
 
             # Validate required fields
             missing_fields = []
@@ -313,13 +324,13 @@ class EnhancedDatabaseWizard:
             if missing_fields:
                 return {
                     "success": False,
-                    "error": f"Missing required fields: {', '.join(missing_fields)}"
+                    "error": f"Missing required fields: {', '.join(missing_fields)}",
                 }
 
             # Merge with default config
             self.progress.connection_config = {
                 **self.current_template.default_config,
-                **config
+                **config,
             }
 
             self.progress.completed_steps.append(WizardStep.CONNECTION_CONFIG)
@@ -332,31 +343,25 @@ class EnhancedDatabaseWizard:
                 "config": self.progress.connection_config,
                 "next_step_info": {
                     "title": "Authentication Setup",
-                    "description": "Configure database authentication and security"
-                }
+                    "description": "Configure database authentication and security",
+                },
             }
 
         except Exception as e:
-            return {
-                "success": False,
-                "error": f"Configuration error: {e!s}"
-            }
+            return {"success": False, "error": f"Configuration error: {e!s}"}
 
     async def test_connection(self) -> dict[str, Any]:
         """Test database connection with current configuration."""
         try:
             if not self.progress.connection_config:
-                return {
-                    "success": False,
-                    "error": "No connection configuration found"
-                }
+                return {"success": False, "error": "No connection configuration found"}
 
             # Import appropriate adapter
             adapter_class = self._get_adapter_class(self.progress.database_type)
             if not adapter_class:
                 return {
                     "success": False,
-                    "error": f"No adapter available for {self.progress.database_type}"
+                    "error": f"No adapter available for {self.progress.database_type}",
                 }
 
             # Create adapter and test connection
@@ -371,7 +376,7 @@ class EnhancedDatabaseWizard:
                 self.progress.test_results = {
                     "connection_success": True,
                     "health_check": health_info,
-                    "tested_at": asyncio.get_event_loop().time()
+                    "tested_at": asyncio.get_event_loop().time(),
                 }
 
                 return {
@@ -379,13 +384,15 @@ class EnhancedDatabaseWizard:
                     "message": "Database connection successful",
                     "health_info": health_info,
                     "capabilities": adapter.capabilities.__dict__,
-                    "recommendations": self._get_connection_recommendations(health_info)
+                    "recommendations": self._get_connection_recommendations(
+                        health_info
+                    ),
                 }
             else:
                 return {
                     "success": False,
                     "error": "Failed to connect to database",
-                    "troubleshooting": self._get_troubleshooting_tips()
+                    "troubleshooting": self._get_troubleshooting_tips(),
                 }
 
         except Exception as e:
@@ -393,7 +400,7 @@ class EnhancedDatabaseWizard:
             return {
                 "success": False,
                 "error": f"Connection test error: {e!s}",
-                "troubleshooting": self._get_troubleshooting_tips()
+                "troubleshooting": self._get_troubleshooting_tips(),
             }
 
     def _get_adapter_class(self, db_type: DatabaseType):
@@ -418,7 +425,9 @@ class EnhancedDatabaseWizard:
         if self.progress.database_type == DatabaseType.REDIS:
             memory_used = health_info.get("memory_used", "")
             if "MB" in memory_used and int(memory_used.split("MB")[0]) > 1000:
-                recommendations.append("[WARNING] Consider monitoring Redis memory usage")
+                recommendations.append(
+                    "[WARNING] Consider monitoring Redis memory usage"
+                )
 
         return recommendations
 
@@ -429,19 +438,23 @@ class EnhancedDatabaseWizard:
             "Check network connectivity",
             "Validate credentials",
             "Ensure firewall allows connections",
-            "Check database-specific configuration"
+            "Check database-specific configuration",
         ]
 
         # Add database-specific tips
         if self.progress.database_type == DatabaseType.POSTGRESQL:
-            tips.extend([
-                "Check pg_hba.conf for authentication settings",
-                "Verify postgresql.conf allows connections"
-            ])
+            tips.extend(
+                [
+                    "Check pg_hba.conf for authentication settings",
+                    "Verify postgresql.conf allows connections",
+                ]
+            )
         elif self.progress.database_type == DatabaseType.MONGODB:
-            tips.extend([
-                "Check MongoDB authentication is enabled",
-                "Verify replica set configuration if using"
-            ])
+            tips.extend(
+                [
+                    "Check MongoDB authentication is enabled",
+                    "Verify replica set configuration if using",
+                ]
+            )
 
         return tips

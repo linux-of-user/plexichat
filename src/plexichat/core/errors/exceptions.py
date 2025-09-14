@@ -76,56 +76,67 @@ class BaseAPIException(PlexiChatException):
 
 class AuthenticationError(BaseAuthenticationError):
     """Authentication failed."""
+
     pass
 
 
 class AuthorizationError(BaseAuthorizationError):
     """Authorization failed."""
+
     pass
 
 
 class ValidationError(BaseValidationError):
     """Data validation failed."""
+
     pass
 
 
 class DatabaseError(BaseDatabaseError):
     """Database operation failed."""
+
     pass
 
 
 class NetworkError(BaseNetworkError):
     """Network operation failed."""
+
     pass
 
 
 class FileError(BaseFileError):
     """File operation failed."""
+
     pass
 
 
 class ExternalServiceError(BaseExternalServiceError):
     """External service error."""
+
     pass
 
 
 class RateLimitError(BaseRateLimitError):
     """Rate limit exceeded."""
+
     pass
 
 
 class ConfigurationError(BaseConfigurationError):
     """Configuration error."""
+
     pass
 
 
 class ProcessLockError(BaseProcessLockError):
     """Process lock error."""
+
     pass
 
 
 class StartupError(BaseStartupError):
     """Startup error."""
+
     pass
 
 

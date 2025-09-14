@@ -241,9 +241,7 @@ async def publish_message(
         raise
     except Exception as e:
         logger.error(f" Message publish error: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to publish message: {e!s}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to publish message: {e!s}")
 
 
 @router.post("/subscribe", response_model=QueueResponse)

@@ -54,14 +54,19 @@ except ImportError:
 try:
     from plexichat.infrastructure.utils.security import hash_password, verify_password
 except ImportError:
+
     def hash_password(password: str):
         return f"hashed_{password}"
+
     def verify_password(plain: str, hashed: str):
         return plain == hashed or plain == "password"
 
+
 # Initialize EXISTING performance systems
 performance_logger = get_performance_logger() if get_performance_logger else None
-optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
+optimization_engine = (
+    PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
+)
 
 # Import enhanced security decorators
 try:
@@ -79,6 +84,7 @@ try:
         require_auth,
         secure_endpoint,
     )
+
     ENHANCED_SECURITY_AVAILABLE = True
 
     # Get logging system
@@ -91,25 +97,36 @@ try:
 
 except Exception as e:
     logger.warning(f"Enhanced security not available for users: {e}")
+
     # Fallback decorators
     def secure_endpoint(*args, **kwargs):
-        def decorator(func): return func
+        def decorator(func):
+            return func
+
         return decorator
 
     def admin_endpoint(*args, **kwargs):
-        def decorator(func): return func
+        def decorator(func):
+            return func
+
         return decorator
 
     def require_auth(*args, **kwargs):
-        def decorator(func): return func
+        def decorator(func):
+            return func
+
         return decorator
 
     def rate_limit(*args, **kwargs):
-        def decorator(func): return func
+        def decorator(func):
+            return func
+
         return decorator
 
     def audit_access(*args, **kwargs):
-        def decorator(func): return func
+        def decorator(func):
+            return func
+
         return decorator
 
     class SecurityLevel:
@@ -125,10 +142,13 @@ except Exception as e:
         def __init__(self, name, logger):
             self.name = name
             self.logger = logger
+
         def __enter__(self):
             return self
+
         def __exit__(self, *args):
             pass
+
         def add_metadata(self, **kwargs):
             pass
 
@@ -136,18 +156,21 @@ except Exception as e:
     enhanced_logger = None
     logging_system = None
 
+
 # Pydantic models
 class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
-    email: str = Field(..., pattern=r'^[^@]+@[^@]+\.[^@]+$')
+    email: str = Field(..., pattern=r"^[^@]+@[^@]+\.[^@]+$")
     password: str = Field(..., min_length=6, max_length=100)
     is_admin: bool = False
 
+
 class UserUpdate(BaseModel):
     username: str | None = Field(None, min_length=3, max_length=50)
-    email: str | None = Field(None, pattern=r'^[^@]+@[^@]+\.[^@]+$')
+    email: str | None = Field(None, pattern=r"^[^@]+@[^@]+\.[^@]+$")
     is_active: bool | None = None
     is_admin: bool | None = None
+
 
 class UserResponse(BaseModel):
     id: int
@@ -158,11 +181,13 @@ class UserResponse(BaseModel):
     created_at: datetime
     last_login: datetime | None = None
 
+
 class UserListResponse(BaseModel):
     users: list[UserResponse]
     total_count: int
     page: int
     per_page: int
+
 
 class UserService:
     """Service class for user operations using EXISTING database abstraction layer."""
@@ -172,7 +197,11 @@ class UserService:
         self.db_manager = database_manager
         self.performance_logger = performance_logger
 
-    @async_track_performance("user_creation") if async_track_performance else lambda f: f
+    @(
+        async_track_performance("user_creation")
+        if async_track_performance
+        else lambda f: f
+    )
     async def create_user(self, user_data: UserCreate) -> UserResponse:
         """Create user using EXISTING database abstraction layer."""
         if self.db_manager:
@@ -182,20 +211,27 @@ class UserService:
                     SELECT COUNT(*) FROM users
                     WHERE username = :username OR email = :email
                 """
-                check_params = {"username": user_data.username, "email": user_data.email}
+                check_params = {
+                    "username": user_data.username,
+                    "email": user_data.email,
+                }
 
                 if self.performance_logger and timer:
                     with timer("user_existence_check"):
-                        result = await self.db_manager.execute_query(check_query, check_params)
+                        result = await self.db_manager.execute_query(
+                            check_query, check_params
+                        )
                         exists = result[0][0] > 0 if result else False
                 else:
-                    result = await self.db_manager.execute_query(check_query, check_params)
+                    result = await self.db_manager.execute_query(
+                        check_query, check_params
+                    )
                     exists = result[0][0] > 0 if result else False
 
                 if exists:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Username or email already exists"
+                        detail="Username or email already exists",
                     )
 
                 # Create user
@@ -211,14 +247,18 @@ class UserService:
                     "hashed_password": hashed_password,
                     "is_active": True,
                     "is_admin": user_data.is_admin,
-                    "created_at": datetime.now()
+                    "created_at": datetime.now(),
                 }
 
                 if self.performance_logger and timer:
                     with timer("user_creation_query"):
-                        result = await self.db_manager.execute_query(create_query, create_params)
+                        result = await self.db_manager.execute_query(
+                            create_query, create_params
+                        )
                 else:
-                    result = await self.db_manager.execute_query(create_query, create_params)
+                    result = await self.db_manager.execute_query(
+                        create_query, create_params
+                    )
 
                 if result:
                     row = result[0]
@@ -229,7 +269,7 @@ class UserService:
                         is_active=bool(row[3]),
                         is_admin=bool(row[4]),
                         created_at=row[5],
-                        last_login=row[6]
+                        last_login=row[6],
                     )
 
             except HTTPException:
@@ -246,11 +286,13 @@ class UserService:
             is_active=True,
             is_admin=user_data.is_admin,
             created_at=datetime.now(),
-            last_login=None
+            last_login=None,
         )
 
     @async_track_performance("user_list") if async_track_performance else lambda f: f
-    async def list_users(self, limit: int = 50, offset: int = 0, search: str | None = None) -> UserListResponse:
+    async def list_users(
+        self, limit: int = 50, offset: int = 0, search: str | None = None
+    ) -> UserListResponse:
         """List users using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
@@ -267,7 +309,7 @@ class UserService:
                         "search1": f"%{search}%",
                         "search2": f"%{search}%",
                         "limit": limit,
-                        "offset": offset
+                        "offset": offset,
                     }
                     count_query = """
                         SELECT COUNT(*) FROM users
@@ -289,23 +331,29 @@ class UserService:
                 if self.performance_logger and timer:
                     with timer("user_list_query"):
                         result = await self.db_manager.execute_query(query, params)
-                        count_result = await self.db_manager.execute_query(count_query, count_params)
+                        count_result = await self.db_manager.execute_query(
+                            count_query, count_params
+                        )
                 else:
                     result = await self.db_manager.execute_query(query, params)
-                    count_result = await self.db_manager.execute_query(count_query, count_params)
+                    count_result = await self.db_manager.execute_query(
+                        count_query, count_params
+                    )
 
                 users = []
                 if result:
                     for row in result:
-                        users.append(UserResponse(
-                            id=row[0],
-                            username=row[1],
-                            email=row[2],
-                            is_active=bool(row[3]),
-                            is_admin=bool(row[4]),
-                            created_at=row[5],
-                            last_login=row[6]
-                        ))
+                        users.append(
+                            UserResponse(
+                                id=row[0],
+                                username=row[1],
+                                email=row[2],
+                                is_active=bool(row[3]),
+                                is_admin=bool(row[4]),
+                                created_at=row[5],
+                                last_login=row[6],
+                            )
+                        )
 
                 total_count = count_result[0][0] if count_result else 0
 
@@ -313,7 +361,7 @@ class UserService:
                     users=users,
                     total_count=total_count,
                     page=(offset // limit) + 1,
-                    per_page=limit
+                    per_page=limit,
                 )
 
             except Exception as e:
@@ -349,12 +397,11 @@ class UserService:
                         is_active=bool(row[3]),
                         is_admin=bool(row[4]),
                         created_at=row[5],
-                        last_login=row[6]
+                        last_login=row[6],
                     )
                 else:
                     raise HTTPException(
-                        status_code=status.HTTP_404_NOT_FOUND,
-                        detail="User not found"
+                        status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
                     )
 
             except HTTPException:
@@ -372,31 +419,29 @@ class UserService:
                 is_active=True,
                 is_admin=True,
                 created_at=datetime.now(),
-                last_login=None
+                last_login=None,
             )
         else:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
             )
+
 
 # Initialize service
 user_service = UserService()
+
 
 @router.post(
     "/",
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Create user"
+    summary="Create user",
 )
-@admin_endpoint(
-    audit_action="create_user",
-    rate_limit_rpm=10
-)
+@admin_endpoint(audit_action="create_user", rate_limit_rpm=10)
 async def create_user(
     request: Request,
     user_data: UserCreate,
-    current_user: dict[str, Any] = Depends(require_admin)
+    current_user: dict[str, Any] = Depends(require_admin),
 ):
     """Create a new user with enhanced security and auditing (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
@@ -407,7 +452,7 @@ async def create_user(
             user_id=str(current_user.get("id", "")),
             endpoint="/users/",
             method="POST",
-            ip_address=client_ip
+            ip_address=client_ip,
         )
 
         enhanced_logger.audit(
@@ -419,20 +464,21 @@ async def create_user(
                     "admin_username": current_user.get("username"),
                     "new_username": user_data.username,
                     "new_email": user_data.email,
-                    "new_user_is_admin": user_data.is_admin
+                    "new_user_is_admin": user_data.is_admin,
                 },
-                "tags": ["user_management", "create_user", "admin_action"]
-            }
+                "tags": ["user_management", "create_user", "admin_action"],
+            },
         )
     else:
-        logger.info(f"User creation requested by admin {current_user.get('username')} from {client_ip}")
+        logger.info(
+            f"User creation requested by admin {current_user.get('username')} from {client_ip}"
+        )
 
     # Performance tracking with enhanced system
     if ENHANCED_SECURITY_AVAILABLE and enhanced_logger:
         with PerformanceTracker("create_user", enhanced_logger) as tracker:
             tracker.add_metadata(
-                admin_id=current_user.get("id"),
-                new_username=user_data.username
+                admin_id=current_user.get("id"), new_username=user_data.username
             )
 
             result = await user_service.create_user(user_data)
@@ -444,9 +490,14 @@ async def create_user(
                 if user_data.is_admin:
                     permissions.add("admin")
                 # register_user is synchronous in the UnifiedAuthManager
-                registered = auth_manager.register_user(user_data.username, user_data.password, permissions)
+                registered = auth_manager.register_user(
+                    user_data.username, user_data.password, permissions
+                )
                 if not registered:
-                    logger.warning("Auth manager failed to register user", extra={"username": user_data.username})
+                    logger.warning(
+                        "Auth manager failed to register user",
+                        extra={"username": user_data.username},
+                    )
             except Exception as e:
                 logger.error(f"Error registering user in auth manager: {e}")
 
@@ -459,10 +510,10 @@ async def create_user(
                         "metadata": {
                             "new_user_id": result.id,
                             "new_username": result.username,
-                            "created_by": current_user.get("username")
+                            "created_by": current_user.get("username"),
                         },
-                        "tags": ["user_created", "success"]
-                    }
+                        "tags": ["user_created", "success"],
+                    },
                 )
 
             return result
@@ -479,29 +530,33 @@ async def create_user(
             permissions: set[str] = set()
             if user_data.is_admin:
                 permissions.add("admin")
-            registered = auth_manager.register_user(user_data.username, user_data.password, permissions)
+            registered = auth_manager.register_user(
+                user_data.username, user_data.password, permissions
+            )
             if not registered:
-                logger.warning("Auth manager failed to register user", extra={"username": user_data.username})
+                logger.warning(
+                    "Auth manager failed to register user",
+                    extra={"username": user_data.username},
+                )
         except Exception as e:
             logger.error(f"Error registering user in auth manager: {e}")
 
         return result
 
-@router.get(
-    "/",
-    response_model=UserListResponse,
-    summary="List users"
-)
+
+@router.get("/", response_model=UserListResponse, summary="List users")
 async def list_users(
     request: Request,
     limit: int = Query(50, ge=1, le=100, description="Number of users to retrieve"),
     offset: int = Query(0, ge=0, description="Number of users to skip"),
     search: str | None = Query(None, description="Search term for username or email"),
-    current_user: dict[str, Any] = Depends(require_admin)
+    current_user: dict[str, Any] = Depends(require_admin),
 ):
     """List users with pagination and search (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"User list requested by admin {current_user.get('username')} from {client_ip}")
+    logger.info(
+        f"User list requested by admin {current_user.get('username')} from {client_ip}"
+    )
 
     # Performance tracking
     if performance_logger:
@@ -509,15 +564,12 @@ async def list_users(
 
     return await user_service.list_users(limit, offset, search)
 
-@router.get(
-    "/{user_id}",
-    response_model=UserResponse,
-    summary="Get user"
-)
+
+@router.get("/{user_id}", response_model=UserResponse, summary="Get user")
 async def get_user(
     request: Request,
     user_id: int,
-    current_user: dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """Get user by ID (users can view their own profile, admins can view any)."""
     client_ip = request.client.host if request.client else "unknown"
@@ -526,10 +578,12 @@ async def get_user(
     if user_id != current_user.get("id") and not current_user.get("is_admin", False):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to view this user"
+            detail="Not authorized to view this user",
         )
 
-    logger.info(f"User {user_id} requested by {current_user.get('username')} from {client_ip}")
+    logger.info(
+        f"User {user_id} requested by {current_user.get('username')} from {client_ip}"
+    )
 
     # Performance tracking
     if performance_logger:

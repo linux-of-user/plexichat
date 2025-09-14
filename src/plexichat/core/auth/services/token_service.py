@@ -189,9 +189,7 @@ class TokenService(ITokenService):
             logger.error(f"Token revocation error: {e}")
             return False
 
-    async def revoke_user_tokens(
-        self, user_id: str, reason: str | None = None
-    ) -> int:
+    async def revoke_user_tokens(self, user_id: str, reason: str | None = None) -> int:
         """Revoke all tokens for a user."""
         revoked_count = 0
         tokens_to_revoke = []

@@ -83,8 +83,7 @@ class MFAService(IMFAProvider):
             mfa_type=mfa_type,
             secret=secret,
             code=code,
-            expires_at=datetime.now(UTC)
-            + timedelta(seconds=self.challenge_timeout),
+            expires_at=datetime.now(UTC) + timedelta(seconds=self.challenge_timeout),
         )
 
         self.challenges[challenge_id] = challenge

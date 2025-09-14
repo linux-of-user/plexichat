@@ -22,6 +22,7 @@ except ImportError:
 try:
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.metrics.pairwise import cosine_similarity
+
     SKLEARN_AVAILABLE = True
 except ImportError:
     SKLEARN_AVAILABLE = False
@@ -32,8 +33,10 @@ try:
     from plexichat.core.logging import get_logger  # type: ignore
 except ImportError:
     import logging
+
     def get_logger(name):
         return logging.getLogger(name)
+
 
 try:
     from plexichat.infrastructure.services.base_service import (  # type: ignore
@@ -59,6 +62,7 @@ except ImportError:
         async def stop(self):
             self.state = ServiceState.STOPPING
 
+
 from plexichat.features.ai.core.ai_abstraction_layer import (
     AIAbstractionLayer,
     AIRequest,
@@ -69,6 +73,7 @@ logger = get_logger(__name__)
 
 class FeatureType(str, Enum):
     """AI feature types."""
+
     SUMMARIZATION = "summarization"
     CONTENT_SUGGESTIONS = "content_suggestions"
     SENTIMENT_ANALYSIS = "sentiment_analysis"
@@ -81,6 +86,7 @@ class FeatureType(str, Enum):
 
 class SentimentType(str, Enum):
     """Sentiment analysis types."""
+
     POSITIVE = "positive"
     NEGATIVE = "negative"
     NEUTRAL = "neutral"
@@ -89,6 +95,7 @@ class SentimentType(str, Enum):
 
 class ModerationAction(str, Enum):
     """Moderation action types."""
+
     ALLOW = "allow"
     FLAG = "flag"
     BLOCK = "block"
@@ -98,6 +105,7 @@ class ModerationAction(str, Enum):
 @dataclass
 class SummarizationResult:
     """Summarization result data structure."""
+
     summary_id: str
     original_text: str
     summary: str
@@ -111,6 +119,7 @@ class SummarizationResult:
 @dataclass
 class ContentSuggestion:
     """Content suggestion data structure."""
+
     suggestion_id: str
     content: str
     suggestion_type: str
@@ -123,6 +132,7 @@ class ContentSuggestion:
 @dataclass
 class SentimentAnalysisResult:
     """Sentiment analysis result data structure."""
+
     analysis_id: str
     text: str
     sentiment: SentimentType
@@ -136,6 +146,7 @@ class SentimentAnalysisResult:
 @dataclass
 class SemanticSearchResult:
     """Semantic search result data structure."""
+
     result_id: str
     content: str
     similarity_score: float
@@ -146,6 +157,7 @@ class SemanticSearchResult:
 @dataclass
 class ModerationResult:
     """Automated moderation result data structure."""
+
     moderation_id: str
     content: str
     action: ModerationAction
@@ -177,19 +189,19 @@ class AIPoweredFeaturesService(BaseService):  # type: ignore
         """Initialize the text vectorizer for semantic search."""
         if SKLEARN_AVAILABLE and TfidfVectorizer:
             self.vectorizer = TfidfVectorizer(
-                max_features=1000,
-                stop_words='english',
-                ngram_range=(1, 2)
+                max_features=1000, stop_words="english", ngram_range=(1, 2)
             )
         else:
-            logger.warning("scikit-learn not available, semantic search will be limited")
+            logger.warning(
+                "scikit-learn not available, semantic search will be limited"
+            )
 
     async def start(self) -> None:
         """Start the AI features service."""
         try:
             await super().start()
             # Initialize AI layer if it has an initialize method
-            if hasattr(self.ai_layer, 'initialize'):
+            if hasattr(self.ai_layer, "initialize"):
                 await self.ai_layer.initialize()  # type: ignore
             self.state = ServiceState.RUNNING
             logger.info("AI Features Service started successfully")
@@ -203,7 +215,7 @@ class AIPoweredFeaturesService(BaseService):  # type: ignore
         try:
             self.state = ServiceState.STOPPING
             # Shutdown AI layer if it has a shutdown method
-            if hasattr(self.ai_layer, 'shutdown'):
+            if hasattr(self.ai_layer, "shutdown"):
                 await self.ai_layer.shutdown()  # type: ignore
             await super().stop()
             self.state = ServiceState.STOPPED
@@ -218,7 +230,7 @@ class AIPoweredFeaturesService(BaseService):  # type: ignore
         text: str,
         summary_type: str = "brief",
         max_length: int | None = None,
-        user_id: str | None = None
+        user_id: str | None = None,
     ) -> SummarizationResult:
         """Generate intelligent summaries using AI."""
         start_time = time.time()
@@ -229,7 +241,9 @@ class AIPoweredFeaturesService(BaseService):  # type: ignore
                 raise ValueError("Text too short for summarization")
 
             # Create cache key
-            cache_key = hashlib.md5(f"{text}_{summary_type}_{max_length}".encode()).hexdigest()
+            cache_key = hashlib.md5(
+                f"{text}_{summary_type}_{max_length}".encode()
+            ).hexdigest()
 
             # Check cache
             if cache_key in self.cache:
@@ -243,17 +257,14 @@ class AIPoweredFeaturesService(BaseService):  # type: ignore
                 prompt=prompt,
                 model_id=self.config.get("summarization_model", "gpt-3.5-turbo"),
                 user_id=user_id or "system",
-                parameters={
-                    "max_tokens": max_length or 150,
-                    "temperature": 0.3
-                }
+                parameters={"max_tokens": max_length or 150, "temperature": 0.3},
             )
 
             # Process with AI
             response = await self.ai_layer.process_request(ai_request)
 
-            if not getattr(response, 'success', True):
-                error_msg = getattr(response, 'error', 'Unknown error')
+            if not getattr(response, "success", True):
+                error_msg = getattr(response, "error", "Unknown error")
                 raise Exception(f"AI request failed: {error_msg}")
 
             # Create result
@@ -263,7 +274,7 @@ class AIPoweredFeaturesService(BaseService):  # type: ignore
                 summary=response.content,
                 summary_type=summary_type,
                 compression_ratio=len(response.content) / len(text),
-                processing_time_ms=(time.time() - start_time) * 1000
+                processing_time_ms=(time.time() - start_time) * 1000,
             )
 
             # Cache result
@@ -275,23 +286,25 @@ class AIPoweredFeaturesService(BaseService):  # type: ignore
             logger.error(f"Summarization failed: {e}")
             raise
 
-    def _build_summarization_prompt(self, text: str, summary_type: str, max_length: int | None) -> str:
+    def _build_summarization_prompt(
+        self, text: str, summary_type: str, max_length: int | None
+    ) -> str:
         """Build the summarization prompt."""
-        length_instruction = f" in approximately {max_length} words" if max_length else ""
+        length_instruction = (
+            f" in approximately {max_length} words" if max_length else ""
+        )
 
         prompts = {
             "brief": f"Provide a brief summary of the following text{length_instruction}:\n\n{text}",
             "detailed": f"Provide a detailed summary of the following text{length_instruction}:\n\n{text}",
             "bullet": f"Summarize the following text as bullet points{length_instruction}:\n\n{text}",
-            "executive": f"Provide an executive summary of the following text{length_instruction}:\n\n{text}"
+            "executive": f"Provide an executive summary of the following text{length_instruction}:\n\n{text}",
         }
 
         return prompts.get(summary_type, prompts["brief"])
 
     async def analyze_sentiment(
-        self,
-        text: str,
-        user_id: str | None = None
+        self, text: str, user_id: str | None = None
     ) -> SentimentAnalysisResult:
         """Analyze sentiment of text using AI."""
         start_time = time.time()
@@ -308,17 +321,14 @@ class AIPoweredFeaturesService(BaseService):  # type: ignore
                 prompt=prompt,
                 model_id=self.config.get("sentiment_model", "gpt-3.5-turbo"),
                 user_id=user_id or "system",
-                parameters={
-                    "max_tokens": 200,
-                    "temperature": 0.1
-                }
+                parameters={"max_tokens": 200, "temperature": 0.1},
             )
 
             # Process with AI
             response = await self.ai_layer.process_request(ai_request)
 
-            if not getattr(response, 'success', True):
-                error_msg = getattr(response, 'error', 'Unknown error')
+            if not getattr(response, "success", True):
+                error_msg = getattr(response, "error", "Unknown error")
                 raise Exception(f"AI request failed: {error_msg}")
 
             # Parse response
@@ -340,7 +350,7 @@ class AIPoweredFeaturesService(BaseService):  # type: ignore
                 sentiment=sentiment,
                 confidence_score=confidence,
                 emotion_scores=emotions,
-                processing_time_ms=(time.time() - start_time) * 1000
+                processing_time_ms=(time.time() - start_time) * 1000,
             )
 
             return result

@@ -2,7 +2,9 @@ import os
 import sys
 
 # Add project root to path to allow absolute imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../')))
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../"))
+)
 
 try:
     from rich.console import Console
@@ -10,7 +12,9 @@ try:
     from rich.table import Table
     from typer import Argument, Option, Typer
 except ImportError:
-    print("Error: Typer and Rich libraries are required. Please run 'pip install typer rich'.")
+    print(
+        "Error: Typer and Rich libraries are required. Please run 'pip install typer rich'."
+    )
     sys.exit(1)
 
 import builtins
@@ -32,30 +36,46 @@ app = Typer(
 
 # --- Command Definitions ---
 
+
 @app.command()
-def help(command: str | None = Argument(None, help="Show help for a specific command.")):
+def help(
+    command: str | None = Argument(None, help="Show help for a specific command.")
+):
     """Shows help for a command or the main help screen."""
     if command:
         ultimate_cli.show_command_help(command)
     else:
         show_main_help()
 
+
 @app.command()
-def list(category: str | None = Option(None, "--category", "-c", help="Filter by category.")):
+def list(
+    category: str | None = Option(None, "--category", "-c", help="Filter by category.")
+):
     """Lists all available commands, optionally filtered by category."""
     ultimate_cli.list_commands(category)
 
+
 @app.command()
-async def run(command: str, args: builtins.list[str] = Argument(None, help="Arguments for the command.")):
+async def run(
+    command: str,
+    args: builtins.list[str] = Argument(None, help="Arguments for the command."),
+):
     """Executes a plexichat command."""
     await ultimate_cli.execute_command(command, *args)
 
+
 # --- Helper Functions ---
+
 
 def show_main_help():
     """Displays the main help screen with categories and examples."""
-    console.print(Panel("[bold blue]Welcome to the PlexiChat Ultimate CLI![/]", expand=False))
-    console.print("This CLI provides over 200 commands to manage every aspect of your PlexiChat instance.")
+    console.print(
+        Panel("[bold blue]Welcome to the PlexiChat Ultimate CLI![/]", expand=False)
+    )
+    console.print(
+        "This CLI provides over 200 commands to manage every aspect of your PlexiChat instance."
+    )
     console.print("\n[bold]Available Command Categories:[/bold]")
 
     table = Table(show_header=True, header_style="bold magenta")
@@ -66,8 +86,13 @@ def show_main_help():
         table.add_row(category.value, ultimate_cli.get_category_description(category))
 
     console.print(table)
-    console.print("\nUse [bold]'plexichat list --category <category>'[/] to see commands in a category.")
-    console.print("Use [bold]'plexichat help <command>'[/] for detailed help on a specific command.")
+    console.print(
+        "\nUse [bold]'plexichat list --category <category>'[/] to see commands in a category."
+    )
+    console.print(
+        "Use [bold]'plexichat help <command>'[/] for detailed help on a specific command."
+    )
+
 
 def initialize_and_register_commands():
     """Initializes the CLI and registers all command modules."""
@@ -75,9 +100,13 @@ def initialize_and_register_commands():
     # In a real application, command modules would be imported here to register themselves.
     # For this example, we'll assume they are already registered in the coordinator.
     ultimate_cli.register_all_commands()
-    console.print(f"[green]Initialization complete. {ultimate_cli.stats['total_commands']} commands registered.[/green]")
+    console.print(
+        f"[green]Initialization complete. {ultimate_cli.stats['total_commands']} commands registered.[/green]"
+    )
+
 
 # --- Main Execution ---
+
 
 def main():
     """Main entry point for the Ultimate CLI."""
@@ -87,6 +116,7 @@ def main():
     except Exception as e:
         console.print(f"[bold red]An unexpected error occurred: {e}[/bold red]")
         logger.exception("CLI Error")
+
 
 if __name__ == "__main__":
     main()

@@ -12,6 +12,7 @@ from typing import Any
 try:
     import openai  # type: ignore
     from openai import OpenAI  # type: ignore
+
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
@@ -38,6 +39,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class OpenAIConfig(ProviderConfig):
     """OpenAI-specific configuration."""
+
     organization: str | None = None
     project: str | None = None
 
@@ -62,10 +64,10 @@ class OpenAIProvider(BaseAIProvider):
                     api_key=config.api_key,
                     organization=config.organization,
                     project=config.project,
-                base_url=config.base_url,
-                timeout=config.timeout,
-                max_retries=config.max_retries
-            )
+                    base_url=config.base_url,
+                    timeout=config.timeout,
+                    max_retries=config.max_retries,
+                )
             self._load_models()
         except Exception as e:
             logger.error(f"Failed to initialize OpenAI client: {e}")
@@ -79,24 +81,33 @@ class OpenAIProvider(BaseAIProvider):
                 {
                     "id": "gpt-4",
                     "name": "GPT-4",
-                    "capabilities": [ModelCapability.CHAT, ModelCapability.TEXT_GENERATION],
+                    "capabilities": [
+                        ModelCapability.CHAT,
+                        ModelCapability.TEXT_GENERATION,
+                    ],
                     "max_tokens": 8192,
-                    "cost_per_token": 0.00003
+                    "cost_per_token": 0.00003,
                 },
                 {
                     "id": "gpt-4-turbo",
                     "name": "GPT-4 Turbo",
-                    "capabilities": [ModelCapability.CHAT, ModelCapability.TEXT_GENERATION],
+                    "capabilities": [
+                        ModelCapability.CHAT,
+                        ModelCapability.TEXT_GENERATION,
+                    ],
                     "max_tokens": 128000,
-                    "cost_per_token": 0.00001
+                    "cost_per_token": 0.00001,
                 },
                 {
                     "id": "gpt-3.5-turbo",
                     "name": "GPT-3.5 Turbo",
-                    "capabilities": [ModelCapability.CHAT, ModelCapability.TEXT_GENERATION],
+                    "capabilities": [
+                        ModelCapability.CHAT,
+                        ModelCapability.TEXT_GENERATION,
+                    ],
                     "max_tokens": 4096,
-                    "cost_per_token": 0.0000015
-                }
+                    "cost_per_token": 0.0000015,
+                },
             ]
 
             for model_data in models_data:
@@ -107,7 +118,7 @@ class OpenAIProvider(BaseAIProvider):
                     capabilities=model_data["capabilities"],
                     max_tokens=model_data["max_tokens"],
                     cost_per_token=model_data["cost_per_token"],
-                    status=ModelStatus.AVAILABLE
+                    status=ModelStatus.AVAILABLE,
                 )
                 self.models[model.id] = model
 
@@ -144,7 +155,7 @@ class OpenAIProvider(BaseAIProvider):
                 model_id=request.model_id,
                 provider=AIProvider.OPENAI.value,
                 status="error",
-                error="OpenAI client not initialized"
+                error="OpenAI client not initialized",
             )
 
         try:
@@ -158,8 +169,16 @@ class OpenAIProvider(BaseAIProvider):
             response = self.client.chat.completions.create(  # type: ignore
                 model=request.model_id,
                 messages=messages,  # type: ignore
-                max_tokens=request.parameters.get("max_tokens", 1000) if request.parameters else 1000,
-                temperature=request.parameters.get("temperature", 0.7) if request.parameters else 0.7
+                max_tokens=(
+                    request.parameters.get("max_tokens", 1000)
+                    if request.parameters
+                    else 1000
+                ),
+                temperature=(
+                    request.parameters.get("temperature", 0.7)
+                    if request.parameters
+                    else 0.7
+                ),
             )
 
             # Extract response content
@@ -170,8 +189,10 @@ class OpenAIProvider(BaseAIProvider):
             # Calculate usage
             usage = {
                 "prompt_tokens": response.usage.prompt_tokens if response.usage else 0,
-                "completion_tokens": response.usage.completion_tokens if response.usage else 0,
-                "total_tokens": response.usage.total_tokens if response.usage else 0
+                "completion_tokens": (
+                    response.usage.completion_tokens if response.usage else 0
+                ),
+                "total_tokens": response.usage.total_tokens if response.usage else 0,
             }
 
             return AIResponse(
@@ -180,7 +201,7 @@ class OpenAIProvider(BaseAIProvider):
                 model_id=request.model_id,
                 provider=AIProvider.OPENAI.value,
                 usage=usage,
-                metadata={"model": response.model}
+                metadata={"model": response.model},
             )
 
         except Exception as e:
@@ -191,5 +212,5 @@ class OpenAIProvider(BaseAIProvider):
                 model_id=request.model_id,
                 provider=AIProvider.OPENAI.value,
                 status="error",
-                error=str(e)
+                error=str(e),
             )

@@ -30,19 +30,16 @@ templates = None
 if templates_path.exists():
     templates = Jinja2Templates(directory=str(templates_path))
 
+
 @router.get("/", response_class=HTMLResponse)
 @rate_limit(requests_per_minute=60)
 @audit_access("view", "ultimate_webui")
 async def ultimate_dashboard(
-    request: Request,
-    current_user: dict | None = Depends(get_current_user_optional)
+    request: Request, current_user: dict | None = Depends(get_current_user_optional)
 ):
     """Ultimate dashboard with comprehensive features."""
     if not templates:
-        return HTMLResponse(
-            content=get_fallback_dashboard(),
-            status_code=HTTP_200_OK
-        )
+        return HTMLResponse(content=get_fallback_dashboard(), status_code=HTTP_200_OK)
 
     try:
         # Get system statistics
@@ -63,20 +60,20 @@ async def ultimate_dashboard(
                 "activity_data": activity_data,
                 "security_status": security_status,
                 "version": get_settings().version,
-                "title": "PlexiChat Server Management Interface"
-            }
+                "title": "PlexiChat Server Management Interface",
+            },
         )
     except Exception as e:
         logger.error(f"Ultimate dashboard error: {e}")
         raise HTTPException(
-            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Dashboard loading error"
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail="Dashboard loading error"
         )
+
 
 @router.get("/api/stats", response_class=JSONResponse)
 @rate_limit(requests_per_minute=120)
 async def get_dashboard_stats(
-    current_user: dict | None = Depends(get_current_user_optional)
+    current_user: dict | None = Depends(get_current_user_optional),
 ):
     """Get real-time dashboard statistics."""
     try:
@@ -86,14 +83,14 @@ async def get_dashboard_stats(
         logger.error(f"Stats API error: {e}")
         return JSONResponse(
             content={"error": "Failed to fetch stats"},
-            status_code=HTTP_500_INTERNAL_SERVER_ERROR
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
 
 @router.get("/api/activity", response_class=JSONResponse)
 @rate_limit(requests_per_minute=60)
 async def get_activity_feed(
-    limit: int = 50,
-    current_user: dict | None = Depends(get_current_user_optional)
+    limit: int = 50, current_user: dict | None = Depends(get_current_user_optional)
 ):
     """Get recent activity feed."""
     try:
@@ -103,13 +100,14 @@ async def get_activity_feed(
         logger.error(f"Activity API error: {e}")
         return JSONResponse(
             content={"error": "Failed to fetch activity"},
-            status_code=HTTP_500_INTERNAL_SERVER_ERROR
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
 
 @router.get("/api/security", response_class=JSONResponse)
 @rate_limit(requests_per_minute=30)
 async def get_security_info(
-    current_user: dict | None = Depends(get_current_user_optional)
+    current_user: dict | None = Depends(get_current_user_optional),
 ):
     """Get security status and alerts."""
     try:
@@ -119,15 +117,16 @@ async def get_security_info(
         logger.error(f"Security API error: {e}")
         return JSONResponse(
             content={"error": "Failed to fetch security info"},
-            status_code=HTTP_500_INTERNAL_SERVER_ERROR
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
 
 @router.post("/api/actions/{action_type}")
 @rate_limit(requests_per_minute=30)
 async def execute_action(
     action_type: str,
     request: Request,
-    current_user: dict | None = Depends(get_current_user_optional)
+    current_user: dict | None = Depends(get_current_user_optional),
 ):
     """Execute dashboard actions."""
     try:
@@ -138,22 +137,19 @@ async def execute_action(
         logger.error(f"Action execution error: {e}")
         return JSONResponse(
             content={"error": f"Failed to execute {action_type}"},
-            status_code=HTTP_500_INTERNAL_SERVER_ERROR
+            status_code=HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
 
 @router.get("/admin", response_class=HTMLResponse)
 @rate_limit(requests_per_minute=30)
 @audit_access("view", "admin_panel")
 async def admin_panel(
-    request: Request,
-    current_user: dict | None = Depends(get_current_user_optional)
+    request: Request, current_user: dict | None = Depends(get_current_user_optional)
 ):
     """Ultimate admin panel with comprehensive management features."""
     if not templates:
-        return HTMLResponse(
-            content=get_fallback_admin_panel(),
-            status_code=HTTP_200_OK
-        )
+        return HTMLResponse(content=get_fallback_admin_panel(), status_code=HTTP_200_OK)
 
     try:
         return templates.TemplateResponse(
@@ -161,29 +157,26 @@ async def admin_panel(
             {
                 "request": request,
                 "current_user": current_user,
-                "title": "PlexiChat Ultimate Admin Panel"
-            }
+                "title": "PlexiChat Ultimate Admin Panel",
+            },
         )
     except Exception as e:
         logger.error(f"Admin panel error: {e}")
         raise HTTPException(
             status_code=HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Admin panel loading error"
+            detail="Admin panel loading error",
         )
+
 
 @router.get("/settings", response_class=HTMLResponse)
 @rate_limit(requests_per_minute=30)
 @audit_access("view", "settings_dashboard")
 async def settings_dashboard(
-    request: Request,
-    current_user: dict | None = Depends(get_current_user_optional)
+    request: Request, current_user: dict | None = Depends(get_current_user_optional)
 ):
     """Comprehensive settings dashboard."""
     if not templates:
-        return HTMLResponse(
-            content=get_fallback_settings(),
-            status_code=HTTP_200_OK
-        )
+        return HTMLResponse(content=get_fallback_settings(), status_code=HTTP_200_OK)
 
     try:
         return templates.TemplateResponse(
@@ -191,28 +184,25 @@ async def settings_dashboard(
             {
                 "request": request,
                 "current_user": current_user,
-                "title": "PlexiChat Settings Dashboard"
-            }
+                "title": "PlexiChat Settings Dashboard",
+            },
         )
     except Exception as e:
         logger.error(f"Settings dashboard error: {e}")
         raise HTTPException(
             status_code=HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Settings dashboard loading error"
+            detail="Settings dashboard loading error",
         )
+
 
 @router.get("/docs", response_class=HTMLResponse)
 @rate_limit(requests_per_minute=60)
 async def enhanced_documentation(
-    request: Request,
-    current_user: dict | None = Depends(get_current_user_optional)
+    request: Request, current_user: dict | None = Depends(get_current_user_optional)
 ):
     """Enhanced documentation with comprehensive guides."""
     if not templates:
-        return HTMLResponse(
-            content=get_fallback_docs(),
-            status_code=HTTP_200_OK
-        )
+        return HTMLResponse(content=get_fallback_docs(), status_code=HTTP_200_OK)
 
     try:
         return templates.TemplateResponse(
@@ -220,50 +210,43 @@ async def enhanced_documentation(
             {
                 "request": request,
                 "current_user": current_user,
-                "title": "PlexiChat Enhanced Documentation"
-            }
+                "title": "PlexiChat Enhanced Documentation",
+            },
         )
     except Exception as e:
         logger.error(f"Documentation error: {e}")
         raise HTTPException(
             status_code=HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Documentation loading error"
+            detail="Documentation loading error",
         )
+
 
 async def get_system_stats() -> dict[str, Any]:
     """Get comprehensive system statistics."""
     return {
-        "users": {
-            "total": 1234,
-            "online": 892,
-            "new_today": 23,
-            "banned": 12
-        },
+        "users": {"total": 1234, "online": 892, "new_today": 23, "banned": 12},
         "messages": {
             "total": 45678,
             "today": 1234,
             "this_week": 8567,
-            "this_month": 45678
+            "this_month": 45678,
         },
         "system": {
             "uptime": "99.9%",
             "cpu_usage": 45,
             "memory_usage": 62,
             "storage_usage": 38,
-            "network_speed": 25
+            "network_speed": 25,
         },
         "security": {
             "score": "A+",
             "threats_blocked": 0,
             "failed_logins": 3,
-            "ssl_expires_days": 45
+            "ssl_expires_days": 45,
         },
-        "files": {
-            "total_count": 1567,
-            "total_size": "2.4 GB",
-            "downloads": 8234
-        }
+        "files": {"total_count": 1567, "total_size": "2.4 GB", "downloads": 8234},
     }
+
 
 async def get_activity_data(limit: int = 50) -> dict[str, Any]:
     """Get recent activity data."""
@@ -274,7 +257,7 @@ async def get_activity_data(limit: int = 50) -> dict[str, Any]:
             "user": "John Doe",
             "message": "joined the server",
             "timestamp": "2 minutes ago",
-            "icon": "fas fa-user"
+            "icon": "fas fa-user",
         },
         {
             "id": 2,
@@ -282,7 +265,7 @@ async def get_activity_data(limit: int = 50) -> dict[str, Any]:
             "user": "Sarah Smith",
             "message": "sent a message",
             "timestamp": "5 minutes ago",
-            "icon": "fas fa-message"
+            "icon": "fas fa-message",
         },
         {
             "id": 3,
@@ -290,7 +273,7 @@ async def get_activity_data(limit: int = 50) -> dict[str, Any]:
             "user": "Mike Johnson",
             "message": "uploaded a file",
             "timestamp": "10 minutes ago",
-            "icon": "fas fa-file"
+            "icon": "fas fa-file",
         },
         {
             "id": 4,
@@ -298,14 +281,12 @@ async def get_activity_data(limit: int = 50) -> dict[str, Any]:
             "user": "System",
             "message": "completed security scan",
             "timestamp": "15 minutes ago",
-            "icon": "fas fa-shield"
-        }
+            "icon": "fas fa-shield",
+        },
     ]
 
-    return {
-        "activities": activities[:limit],
-        "total_count": len(activities)
-    }
+    return {"activities": activities[:limit], "total_count": len(activities)}
+
 
 async def get_security_status() -> dict[str, Any]:
     """Get security status and alerts."""
@@ -316,29 +297,32 @@ async def get_security_status() -> dict[str, Any]:
             {
                 "type": "success",
                 "message": "All systems secure - No threats detected",
-                "icon": "fas fa-check-circle"
+                "icon": "fas fa-check-circle",
             },
             {
                 "type": "info",
                 "message": "SSL certificate expires in 45 days",
-                "icon": "fas fa-info-circle"
+                "icon": "fas fa-info-circle",
             },
             {
                 "type": "warning",
                 "message": "3 failed login attempts from IP 192.168.1.100",
-                "icon": "fas fa-exclamation-triangle"
-            }
+                "icon": "fas fa-exclamation-triangle",
+            },
         ],
         "metrics": {
             "threats_blocked": 0,
             "failed_logins": 3,
             "ssl_status": "valid",
             "firewall_status": "active",
-            "encryption_status": "enabled"
-        }
+            "encryption_status": "enabled",
+        },
     }
 
-async def handle_dashboard_action(action_type: str, data: dict, user: dict | None) -> dict[str, Any]:
+
+async def handle_dashboard_action(
+    action_type: str, data: dict, user: dict | None
+) -> dict[str, Any]:
     """Handle various dashboard actions."""
     actions = {
         "newMessage": handle_new_message,
@@ -346,7 +330,7 @@ async def handle_dashboard_action(action_type: str, data: dict, user: dict | Non
         "uploadFile": handle_upload_file,
         "systemBackup": handle_system_backup,
         "securityScan": handle_security_scan,
-        "aiAssistant": handle_ai_assistant
+        "aiAssistant": handle_ai_assistant,
     }
 
     if action_type not in actions:
@@ -354,37 +338,38 @@ async def handle_dashboard_action(action_type: str, data: dict, user: dict | Non
 
     return await actions[action_type](data, user)
 
+
 async def handle_new_message(data: dict, user: dict | None) -> dict[str, Any]:
     """Handle new message creation."""
     return {
         "success": True,
         "message": "Message sent successfully",
-        "action": "newMessage"
+        "action": "newMessage",
     }
+
 
 async def handle_add_user(data: dict, user: dict | None) -> dict[str, Any]:
     """Handle user addition."""
-    return {
-        "success": True,
-        "message": "User added successfully",
-        "action": "addUser"
-    }
+    return {"success": True, "message": "User added successfully", "action": "addUser"}
+
 
 async def handle_upload_file(data: dict, user: dict | None) -> dict[str, Any]:
     """Handle file upload."""
     return {
         "success": True,
         "message": "File uploaded successfully",
-        "action": "uploadFile"
+        "action": "uploadFile",
     }
+
 
 async def handle_system_backup(data: dict, user: dict | None) -> dict[str, Any]:
     """Handle system backup."""
     return {
         "success": True,
         "message": "Backup initiated successfully",
-        "action": "systemBackup"
+        "action": "systemBackup",
     }
+
 
 async def handle_security_scan(data: dict, user: dict | None) -> dict[str, Any]:
     """Handle security scan."""
@@ -392,12 +377,9 @@ async def handle_security_scan(data: dict, user: dict | None) -> dict[str, Any]:
         "success": True,
         "message": "Security scan completed",
         "action": "securityScan",
-        "results": {
-            "threats_found": 0,
-            "vulnerabilities": 0,
-            "score": "A+"
-        }
+        "results": {"threats_found": 0, "vulnerabilities": 0, "score": "A+"},
     }
+
 
 async def handle_ai_assistant(data: dict, user: dict | None) -> dict[str, Any]:
     """Handle AI assistant interaction."""
@@ -405,8 +387,9 @@ async def handle_ai_assistant(data: dict, user: dict | None) -> dict[str, Any]:
         "success": True,
         "message": "AI assistant response",
         "action": "aiAssistant",
-        "response": "I'm here to help! What would you like to know about PlexiChat?"
+        "response": "I'm here to help! What would you like to know about PlexiChat?",
     }
+
 
 def get_fallback_dashboard() -> str:
     """Fallback dashboard HTML when templates are not available."""
@@ -509,6 +492,7 @@ def get_fallback_dashboard() -> str:
     </html>
     """
 
+
 def get_fallback_admin_panel() -> str:
     """Fallback admin panel HTML when templates are not available."""
     return """
@@ -591,6 +575,7 @@ def get_fallback_admin_panel() -> str:
     </html>
     """
 
+
 def get_fallback_settings() -> str:
     """Fallback settings HTML when templates are not available."""
     return """
@@ -655,6 +640,7 @@ def get_fallback_settings() -> str:
     </body>
     </html>
     """
+
 
 def get_fallback_docs() -> str:
     """Fallback documentation HTML when templates are not available."""

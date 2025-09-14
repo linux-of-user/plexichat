@@ -19,10 +19,16 @@ task_queue_manager = None
 microservices_orchestrator = None
 service_registry = None
 distributed_cache = None
+
+
 class TaskPriority:
     NORMAL = "normal"
+
+
 class CacheNode:
-    def __init__(self, **kwargs): pass
+    def __init__(self, **kwargs):
+        pass
+
 
 # from ...features.clustering.service_mesh.mesh_manager import service_mesh_manager
 # from ..containerization.orchestrator import container_orchestrator
@@ -48,6 +54,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ScalabilityMetrics:
     """Scalability metrics and KPIs."""
+
     requests_per_second: float = 0.0
     average_response_time_ms: float = 0.0
     cache_hit_rate_percent: float = 0.0
@@ -76,6 +83,7 @@ class ScalabilityCoordinator:
     9. Application Load Balancer (ALB)
     10. Global Server Load Balancing (GSLB)
     """
+
     def __init__(self):
         self.initialized = False
         self.running = False
@@ -199,14 +207,19 @@ class ScalabilityCoordinator:
                 return
 
             # Check CPU and memory thresholds
-            if (self.metrics.cpu_utilization_percent > self.config["cpu_threshold"] or
-                self.metrics.memory_utilization_percent > self.config["memory_threshold"]):
+            if (
+                self.metrics.cpu_utilization_percent > self.config["cpu_threshold"]
+                or self.metrics.memory_utilization_percent
+                > self.config["memory_threshold"]
+            ):
 
                 logger.info("High resource utilization detected, considering scale-up")
                 await self._scale_up()
 
-            elif (self.metrics.cpu_utilization_percent < 30 and
-                self.metrics.memory_utilization_percent < 40):
+            elif (
+                self.metrics.cpu_utilization_percent < 30
+                and self.metrics.memory_utilization_percent < 40
+            ):
 
                 logger.info("Low resource utilization detected, considering scale-down")
                 await self._scale_down()
@@ -234,6 +247,7 @@ class ScalabilityCoordinator:
 
     def _register_default_task_handlers(self):
         """Register default task handlers."""
+
         async def email_notification_handler(payload: dict[str, Any]):
             """Handle email notification tasks."""
             logger.info(
@@ -283,7 +297,9 @@ class ScalabilityCoordinator:
                 return False
 
             cache_node = CacheNode(
-                node_id=node_config.get("node_id", f"cache_node_{len(self.distributed_cache.nodes)}"),
+                node_id=node_config.get(
+                    "node_id", f"cache_node_{len(self.distributed_cache.nodes)}"
+                ),
                 host=node_config.get("host", "localhost"),
                 port=node_config.get("port", 6379),
                 capacity_mb=node_config.get("capacity_mb", 1024),
@@ -304,14 +320,19 @@ class ScalabilityCoordinator:
             return False
 
     async def submit_task(
-        self, task_type: str, payload: dict[str, Any], priority: TaskPriority = TaskPriority.NORMAL
+        self,
+        task_type: str,
+        payload: dict[str, Any],
+        priority: TaskPriority = TaskPriority.NORMAL,
     ) -> str | None:
         """Submit a task to the task queue."""
         try:
             if not self.config["enable_task_queues"] or not self.task_queue_manager:
                 return None
 
-            task_id = await self.task_queue_manager.submit_task(task_type, payload, priority)
+            task_id = await self.task_queue_manager.submit_task(
+                task_type, payload, priority
+            )
             logger.info(f"Task {task_id} submitted with type {task_type}")
             return task_id
 

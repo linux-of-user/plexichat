@@ -53,7 +53,11 @@ except ImportError:
     PluginResult = dict
 
 try:
-    from src.plexichat.shared.exceptions import PluginError, SecurityError, ValidationError
+    from src.plexichat.shared.exceptions import (
+        PluginError,
+        SecurityError,
+        ValidationError,
+    )
 except ImportError:
     # Create basic exception classes
     class PluginError(Exception):

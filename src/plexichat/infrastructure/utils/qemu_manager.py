@@ -3,9 +3,9 @@
 import asyncio
 import json
 import os
+from pathlib import Path
 import subprocess
 import typing as t
-from pathlib import Path
 
 
 class QemuManager:
@@ -58,15 +58,24 @@ class QemuManager:
             qemu_cmd.extend(["-cpu", config.get("cpu", "cortex-a72")])
 
         # Add common options
-        qemu_cmd.extend([
-            "-m", config["memory"],
-            "-smp", str(config["cpus"]),
-            "-drive", f"file={config['disk']},format=raw",
-            "-netdev", config["net"],
-            "-device", config["device"],
-            "-boot", config["boot"],
-            "-cdrom", config["cdrom"]
-        ])
+        qemu_cmd.extend(
+            [
+                "-m",
+                config["memory"],
+                "-smp",
+                str(config["cpus"]),
+                "-drive",
+                f"file={config['disk']},format=raw",
+                "-netdev",
+                config["net"],
+                "-device",
+                config["device"],
+                "-boot",
+                config["boot"],
+                "-cdrom",
+                config["cdrom"],
+            ]
+        )
 
         # Enable KVM if on Linux
         if os.name != "nt":
@@ -74,15 +83,12 @@ class QemuManager:
 
         # Run QEMU process
         process = subprocess.Popen(
-            qemu_cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
+            qemu_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
 
         # Generate VM ID from PID
         vm_id = f"vm-{process.pid}"
-        
+
         # For now, just wait a bit and return ID
         # In production, this would monitor the process
         try:

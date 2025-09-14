@@ -13,6 +13,7 @@ from fastapi.templating import Jinja2Templates
 
 try:
     from plexichat.core.config_manager import get_app_version
+
     PLEXICHAT_VERSION = get_app_version()
 except ImportError:
     PLEXICHAT_VERSION = "2.0.0"
@@ -21,7 +22,7 @@ from plexichat.core.logging import get_logger
 from plexichat.core.security.security_decorators import audit_access
 
 # Initialize logging
-logger = get_logger('plexichat.interfaces.web.routers.webui')
+logger = get_logger("plexichat.interfaces.web.routers.webui")
 
 # Create router
 router = APIRouter(prefix="/ui", tags=["webui"])
@@ -31,6 +32,7 @@ templates_path = Path(__file__).parent.parent / "templates"
 templates = None
 if templates_path.exists():
     templates = Jinja2Templates(directory=str(templates_path))
+
 
 @router.get("/", response_class=HTMLResponse)
 @rate_limit(requests_per_minute=60)
@@ -129,12 +131,13 @@ async def webui_home(request: Request):
             {
                 "request": request,
                 "version": PLEXICHAT_VERSION,
-                "title": "PlexiChat WebUI"
-            }
+                "title": "PlexiChat WebUI",
+            },
         )
     except Exception as e:
         logger.warning(f"Template error: {e}")
         raise HTTPException(status_code=500, detail="WebUI template error")
+
 
 @router.get("/login", response_class=HTMLResponse)
 @rate_limit(requests_per_minute=30)
@@ -200,9 +203,12 @@ async def webui_login(request: Request):
     """
     return HTMLResponse(content=html_content)
 
+
 @router.get("/dashboard", response_class=HTMLResponse)
 @rate_limit(action="webui_dashboard", limit=60)
-async def webui_dashboard(request: Request, current_user: dict = Depends(get_current_user)):
+async def webui_dashboard(
+    request: Request, current_user: dict = Depends(get_current_user)
+):
     """Authenticated user dashboard."""
     html_content = """
     <!DOCTYPE html>
@@ -397,6 +403,7 @@ async def webui_dashboard(request: Request, current_user: dict = Depends(get_cur
     </html>
     """
     return HTMLResponse(content=html_content)
+
 
 # Initialize enhanced security and logging
 logger.info("Enhanced security and logging initialized for webui")

@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class OllamaConfig(ProviderConfig):
     """Ollama-specific configuration."""
+
     host: str = "localhost"
     port: int = 11434
 
@@ -65,7 +66,9 @@ class OllamaProvider(BaseAIProvider):
             return
 
         try:
-            async with self.session.get(f"{self.config.get_base_url()}/api/tags") as response:
+            async with self.session.get(
+                f"{self.config.get_base_url()}/api/tags"
+            ) as response:
                 if response.status == 200:
                     data = await response.json()
                     models_data = data.get("models", [])
@@ -75,11 +78,14 @@ class OllamaProvider(BaseAIProvider):
                             id=model_data["name"],
                             name=model_data.get("name", model_data["name"]),
                             provider=AIProvider.OLLAMA,
-                            capabilities=[ModelCapability.CHAT, ModelCapability.TEXT_GENERATION],
+                            capabilities=[
+                                ModelCapability.CHAT,
+                                ModelCapability.TEXT_GENERATION,
+                            ],
                             max_tokens=4096,  # Default for most Ollama models
                             cost_per_token=0.0,  # Local models are free
                             status=ModelStatus.AVAILABLE,
-                            description=f"Ollama model: {model_data['name']}"
+                            description=f"Ollama model: {model_data['name']}",
                         )
                         self.models[model.id] = model
 
@@ -92,7 +98,9 @@ class OllamaProvider(BaseAIProvider):
             return False
 
         try:
-            async with self.session.get(f"{self.config.get_base_url()}/api/tags") as response:
+            async with self.session.get(
+                f"{self.config.get_base_url()}/api/tags"
+            ) as response:
                 return response.status == 200
         except Exception as e:
             logger.error(f"Ollama connection test failed: {e}")
@@ -115,7 +123,7 @@ class OllamaProvider(BaseAIProvider):
                 model_id=request.model_id,
                 provider=AIProvider.OLLAMA.value,
                 status="error",
-                error="Ollama session not initialized"
+                error="Ollama session not initialized",
             )
 
         try:
@@ -125,9 +133,17 @@ class OllamaProvider(BaseAIProvider):
                 "prompt": request.prompt,
                 "stream": False,
                 "options": {
-                    "temperature": request.parameters.get("temperature", 0.7) if request.parameters else 0.7,
-                    "num_predict": request.parameters.get("max_tokens", 1000) if request.parameters else 1000
-                }
+                    "temperature": (
+                        request.parameters.get("temperature", 0.7)
+                        if request.parameters
+                        else 0.7
+                    ),
+                    "num_predict": (
+                        request.parameters.get("max_tokens", 1000)
+                        if request.parameters
+                        else 1000
+                    ),
+                },
             }
 
             if request.context:
@@ -135,8 +151,7 @@ class OllamaProvider(BaseAIProvider):
 
             # Make the API call
             async with self.session.post(
-                f"{self.config.get_base_url()}/api/generate",
-                json=payload
+                f"{self.config.get_base_url()}/api/generate", json=payload
             ) as response:
 
                 if response.status == 200:
@@ -150,12 +165,12 @@ class OllamaProvider(BaseAIProvider):
                         usage={
                             "prompt_eval_count": data.get("prompt_eval_count", 0),
                             "eval_count": data.get("eval_count", 0),
-                            "total_duration": data.get("total_duration", 0)
+                            "total_duration": data.get("total_duration", 0),
                         },
                         metadata={
                             "model": data.get("model", request.model_id),
-                            "done": data.get("done", True)
-                        }
+                            "done": data.get("done", True),
+                        },
                     )
                 else:
                     error_text = await response.text()
@@ -165,7 +180,7 @@ class OllamaProvider(BaseAIProvider):
                         model_id=request.model_id,
                         provider=AIProvider.OLLAMA.value,
                         status="error",
-                        error=f"HTTP {response.status}: {error_text}"
+                        error=f"HTTP {response.status}: {error_text}",
                     )
 
         except Exception as e:
@@ -176,7 +191,7 @@ class OllamaProvider(BaseAIProvider):
                 model_id=request.model_id,
                 provider=AIProvider.OLLAMA.value,
                 status="error",
-                error=str(e)
+                error=str(e),
             )
 
     async def close(self) -> None:
@@ -184,5 +199,3 @@ class OllamaProvider(BaseAIProvider):
         if self.session:
             await self.session.close()
             self.session = None
-
-

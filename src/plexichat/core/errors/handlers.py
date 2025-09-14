@@ -55,8 +55,7 @@ async def not_found_handler(request: Request, exc: HTTPException):
     return JSONResponse(
         status_code=404,
         content=create_error_response(
-            PlexiChatErrorCode.FILE_NOT_FOUND,
-            details={"path": str(request.url.path)}
+            PlexiChatErrorCode.FILE_NOT_FOUND, details={"path": str(request.url.path)}
         ),
     )
 

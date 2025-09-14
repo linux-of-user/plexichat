@@ -59,7 +59,9 @@ class BaseMiddleware(ABC):
 
     @abstractmethod
     async def process(
-        self, context: MiddlewareContext, next_middleware: Callable[[MiddlewareContext], Awaitable[Any]]
+        self,
+        context: MiddlewareContext,
+        next_middleware: Callable[[MiddlewareContext], Awaitable[Any]],
     ) -> Any:
         """Process middleware."""
         pass
@@ -84,7 +86,9 @@ class AuthenticationMiddleware(BaseMiddleware):
         super().__init__("authentication", priority)
 
     async def process(
-        self, context: MiddlewareContext, next_middleware: Callable[[MiddlewareContext], Awaitable[Any]]
+        self,
+        context: MiddlewareContext,
+        next_middleware: Callable[[MiddlewareContext], Awaitable[Any]],
     ) -> Any:
         """Process authentication."""
         try:
@@ -129,7 +133,9 @@ class RateLimitMiddleware(BaseMiddleware):
         self.rate_limit_config = {"requests_per_minute": 60}
 
     async def process(
-        self, context: MiddlewareContext, next_middleware: Callable[[MiddlewareContext], Awaitable[Any]]
+        self,
+        context: MiddlewareContext,
+        next_middleware: Callable[[MiddlewareContext], Awaitable[Any]],
     ) -> Any:
         """Process rate limiting."""
         try:
@@ -146,7 +152,10 @@ class RateLimitMiddleware(BaseMiddleware):
             ]
 
             # Check rate limit
-            if len(self.rate_limits[client_id]) >= self.rate_limit_config["requests_per_minute"]:
+            if (
+                len(self.rate_limits[client_id])
+                >= self.rate_limit_config["requests_per_minute"]
+            ):
                 raise Exception("Rate limit exceeded")
 
             self.rate_limits[client_id].append(current_time)
@@ -166,7 +175,9 @@ class ValidationMiddleware(BaseMiddleware):
         super().__init__("validation", priority)
 
     async def process(
-        self, context: MiddlewareContext, next_middleware: Callable[[MiddlewareContext], Awaitable[Any]]
+        self,
+        context: MiddlewareContext,
+        next_middleware: Callable[[MiddlewareContext], Awaitable[Any]],
     ) -> Any:
         """Process data validation."""
         try:
@@ -189,7 +200,9 @@ class LoggingMiddleware(BaseMiddleware):
         super().__init__("logging", priority)
 
     async def process(
-        self, context: MiddlewareContext, next_middleware: Callable[[MiddlewareContext], Awaitable[Any]]
+        self,
+        context: MiddlewareContext,
+        next_middleware: Callable[[MiddlewareContext], Awaitable[Any]],
     ) -> Any:
         """Process logging."""
         try:
@@ -219,12 +232,16 @@ class LoggingMiddleware(BaseMiddleware):
 class PerformanceMiddleware(BaseMiddleware):
     """Performance tracking middleware."""
 
-    def __init__(self, performance_logger: logging.Logger | None = None, priority: int = 50) -> None:
+    def __init__(
+        self, performance_logger: logging.Logger | None = None, priority: int = 50
+    ) -> None:
         super().__init__("performance", priority)
         self.performance_logger = performance_logger or logger
 
     async def process(
-        self, context: MiddlewareContext, next_middleware: Callable[[MiddlewareContext], Awaitable[Any]]
+        self,
+        context: MiddlewareContext,
+        next_middleware: Callable[[MiddlewareContext], Awaitable[Any]],
     ) -> Any:
         """Process performance tracking."""
         try:
@@ -237,12 +254,12 @@ class PerformanceMiddleware(BaseMiddleware):
             duration = time.perf_counter() - start_time
 
             try:
-                if hasattr(self.performance_logger, 'record_metric'):
+                if hasattr(self.performance_logger, "record_metric"):
                     self.performance_logger.record_metric(
                         f"{context.middleware_type}_duration", duration, "seconds"
                     )
 
-                if hasattr(self.performance_logger, 'increment_counter'):
+                if hasattr(self.performance_logger, "increment_counter"):
                     self.performance_logger.increment_counter(
                         f"{context.middleware_type}_requests", 1, "count"
                     )
@@ -253,7 +270,7 @@ class PerformanceMiddleware(BaseMiddleware):
                     properties={
                         "middleware_type": context.middleware_type,
                         "duration": duration,
-                    }
+                    },
                 )
 
             except Exception as tracking_error:
@@ -265,7 +282,7 @@ class PerformanceMiddleware(BaseMiddleware):
             duration = time.perf_counter() - context.start_time
 
             try:
-                if hasattr(self.performance_logger, 'increment_counter'):
+                if hasattr(self.performance_logger, "increment_counter"):
                     self.performance_logger.increment_counter(
                         f"{context.middleware_type}_errors", 1, "count"
                     )
@@ -276,7 +293,7 @@ class PerformanceMiddleware(BaseMiddleware):
                     properties={
                         "middleware_type": context.middleware_type,
                         "error": str(e),
-                    }
+                    },
                 )
 
             except Exception as tracking_error:
@@ -302,7 +319,9 @@ class MiddlewareManager:
             "failed_requests": 0,
         }
 
-    def register_middleware(self, middleware_type: str, middleware: BaseMiddleware) -> None:
+    def register_middleware(
+        self, middleware_type: str, middleware: BaseMiddleware
+    ) -> None:
         """Register middleware for a specific type."""
         try:
             if middleware_type not in self.middleware_stacks:
@@ -341,11 +360,7 @@ class MiddlewareManager:
             return False
 
     async def process(
-        self,
-        middleware_type: str,
-        request_id: str,
-        data: dict[str, Any],
-        **kwargs: Any
+        self, middleware_type: str, request_id: str, data: dict[str, Any], **kwargs: Any
     ) -> Any:
         """Process request through middleware stack."""
         self.stats["total_requests"] += 1
@@ -357,7 +372,7 @@ class MiddlewareManager:
                 middleware_type=middleware_type,
                 data=data,
                 metadata=kwargs,
-                start_time=time.time()
+                start_time=time.time(),
             )
 
             # Get middleware stack
@@ -385,7 +400,7 @@ class MiddlewareManager:
         self,
         context: MiddlewareContext,
         middleware_stack: list[BaseMiddleware],
-        index: int
+        index: int,
     ) -> Any:
         """Execute middleware stack recursively."""
         try:

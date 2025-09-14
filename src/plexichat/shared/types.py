@@ -32,9 +32,10 @@ NodeId = str
 EventId = str
 
 # Type variables
-T = TypeVar('T')
-K = TypeVar('K')
-V = TypeVar('V')
+T = TypeVar("T")
+K = TypeVar("K")
+V = TypeVar("V")
+
 
 # Protocol definitions
 @runtime_checkable
@@ -46,7 +47,7 @@ class Serializable(Protocol):
         ...
 
     @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> 'Serializable':
+    def from_dict(cls, data: dict[str, Any]) -> "Serializable":
         """Create object from dictionary."""
         ...
 
@@ -131,12 +132,14 @@ class Auditable(Protocol):
 
 # Enhanced Protocol Definitions for Advanced Features
 
+
 @runtime_checkable
 class Encryptable(Protocol):
     """Protocol for objects that can be encrypted."""
 
     def encrypt(self, key: bytes) -> bytes: ...
-    def decrypt(self, encrypted_data: bytes, key: bytes) -> 'Encryptable': ...
+    def decrypt(self, encrypted_data: bytes, key: bytes) -> "Encryptable": ...
+
 
 @runtime_checkable
 class DatabaseEntity(Protocol):
@@ -144,8 +147,9 @@ class DatabaseEntity(Protocol):
 
     def to_db_dict(self) -> dict[str, Any]: ...
     @classmethod
-    def from_db_dict(cls, data: dict[str, Any]) -> 'DatabaseEntity': ...
+    def from_db_dict(cls, data: dict[str, Any]) -> "DatabaseEntity": ...
     def primary_key(self) -> str: ...
+
 
 @runtime_checkable
 class PluginInterface(Protocol):
@@ -156,27 +160,38 @@ class PluginInterface(Protocol):
     def cleanup(self) -> Awaitable[None]: ...
     def health_check(self) -> Awaitable[bool]: ...
 
+
 @runtime_checkable
 class AIModelInterface(Protocol):
     """Protocol for AI model interfaces."""
 
     def predict(self, input_data: Any) -> Awaitable[dict[str, Any]]: ...
     def train(self, training_data: list[dict[str, Any]]) -> Awaitable[bool]: ...
-    def evaluate(self, test_data: list[dict[str, Any]]) -> Awaitable[dict[str, float]]: ...
+    def evaluate(
+        self, test_data: list[dict[str, Any]]
+    ) -> Awaitable[dict[str, float]]: ...
+
 
 @runtime_checkable
 class SecurityProvider(Protocol):
     """Protocol for security providers."""
 
     def authenticate(self, credentials: JSONObject) -> Awaitable[UserId | None]: ...
-    def authorize(self, user_id: UserId, resource: str, action: str) -> Awaitable[bool]: ...
+    def authorize(
+        self, user_id: UserId, resource: str, action: str
+    ) -> Awaitable[bool]: ...
     def encrypt_data(self, data: bytes, context: JSONObject) -> Awaitable[bytes]: ...
-    def decrypt_data(self, encrypted_data: bytes, context: JSONObject) -> Awaitable[bytes]: ...
+    def decrypt_data(
+        self, encrypted_data: bytes, context: JSONObject
+    ) -> Awaitable[bytes]: ...
+
 
 # Enhanced Enum Definitions
 
+
 class SecurityLevel(Enum):
     """Enhanced security levels with quantum readiness."""
+
     BASIC = "basic"
     STANDARD = "standard"
     HIGH = "high"
@@ -184,8 +199,10 @@ class SecurityLevel(Enum):
     QUANTUM = "quantum"
     ZERO_TRUST = "zero_trust"
 
+
 class NodeStatus(Enum):
     """Comprehensive node status enumeration."""
+
     INITIALIZING = "initializing"
     HEALTHY = "healthy"
     DEGRADED = "degraded"
@@ -195,8 +212,10 @@ class NodeStatus(Enum):
     OFFLINE = "offline"
     DECOMMISSIONED = "decommissioned"
 
+
 class TaskPriority(IntEnum):
     """Task priority levels with numeric values."""
+
     LOWEST = 1
     LOW = 2
     NORMAL = 3
@@ -205,8 +224,10 @@ class TaskPriority(IntEnum):
     CRITICAL = 6
     EMERGENCY = 7
 
+
 class EventSeverity(Enum):
     """Event severity levels for monitoring and alerting."""
+
     DEBUG = "debug"
     INFO = "info"
     WARNING = "warning"
@@ -214,8 +235,10 @@ class EventSeverity(Enum):
     CRITICAL = "critical"
     FATAL = "fatal"
 
+
 class EncryptionAlgorithm(Enum):
     """Supported encryption algorithms."""
+
     AES_256_GCM = "aes_256_gcm"
     CHACHA20_POLY1305 = "chacha20_poly1305"
     RSA_4096 = "rsa_4096"
@@ -223,8 +246,10 @@ class EncryptionAlgorithm(Enum):
     QUANTUM_RESISTANT = "quantum_resistant"
     POST_QUANTUM = "post_quantum"
 
+
 class DatabaseEngine(Enum):
     """Supported database engines."""
+
     POSTGRESQL = "postgresql"
     MYSQL = "mysql"
     SQLITE = "sqlite"
@@ -233,8 +258,10 @@ class DatabaseEngine(Enum):
     CASSANDRA = "cassandra"
     ELASTICSEARCH = "elasticsearch"
 
+
 class MessageType(Enum):
     """Enhanced message types for communication."""
+
     TEXT = "text"
     IMAGE = "image"
     VIDEO = "video"
@@ -246,8 +273,10 @@ class MessageType(Enum):
     AI_GENERATED = "ai_generated"
     BLOCKCHAIN_VERIFIED = "blockchain_verified"
 
+
 class PermissionLevel(IntFlag):
     """Permission levels using flags for combination."""
+
     NONE = 0
     READ = 1
     WRITE = 2
@@ -257,10 +286,13 @@ class PermissionLevel(IntFlag):
     OWNER = 32
     FULL = READ | WRITE | EXECUTE | DELETE | ADMIN | OWNER
 
+
 # Advanced TypedDict definitions for structured data
+
 
 class UserProfileData(TypedDict):
     """Typed dictionary for user profile data."""
+
     user_id: UserId
     username: str
     email: str
@@ -275,8 +307,10 @@ class UserProfileData(TypedDict):
     security_settings: JSONObject
     verification_status: dict[str, bool]
 
+
 class MessageData(TypedDict):
     """Typed dictionary for message data."""
+
     message_id: MessageId
     channel_id: ChannelId
     user_id: UserId
@@ -289,42 +323,43 @@ class MessageData(TypedDict):
     metadata: JSONObject
     encryption_info: JSONObject | None
 
+
 # Export all types
 __all__ = [
     # Basic types
-    'JSON',
-    'JSONObject',
-    'JSONArray',
-    'ConfigDict',
+    "JSON",
+    "JSONObject",
+    "JSONArray",
+    "ConfigDict",
     # ID types
-    'UserId',
-    'MessageId',
-    'ChannelId',
-    'NodeId',
-    'EventId',
+    "UserId",
+    "MessageId",
+    "ChannelId",
+    "NodeId",
+    "EventId",
     # Protocols
-    'Serializable',
-    'Configurable',
-    'Lifecycle',
-    'Healthcheck',
-    'Cacheable',
-    'Validatable',
-    'Auditable',
-    'Encryptable',
-    'DatabaseEntity',
-    'PluginInterface',
-    'AIModelInterface',
-    'SecurityProvider',
+    "Serializable",
+    "Configurable",
+    "Lifecycle",
+    "Healthcheck",
+    "Cacheable",
+    "Validatable",
+    "Auditable",
+    "Encryptable",
+    "DatabaseEntity",
+    "PluginInterface",
+    "AIModelInterface",
+    "SecurityProvider",
     # Enums
-    'SecurityLevel',
-    'NodeStatus',
-    'TaskPriority',
-    'EventSeverity',
-    'EncryptionAlgorithm',
-    'DatabaseEngine',
-    'MessageType',
-    'PermissionLevel',
+    "SecurityLevel",
+    "NodeStatus",
+    "TaskPriority",
+    "EventSeverity",
+    "EncryptionAlgorithm",
+    "DatabaseEngine",
+    "MessageType",
+    "PermissionLevel",
     # TypedDicts
-    'UserProfileData',
-    'MessageData',
+    "UserProfileData",
+    "MessageData",
 ]

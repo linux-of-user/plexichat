@@ -35,12 +35,14 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/ws", tags=["WebSocket Messaging"])
 
 
-async def get_websocket_user(websocket: WebSocket, token: str | None = None) -> User | None:
+async def get_websocket_user(
+    websocket: WebSocket, token: str | None = None
+) -> User | None:
     """Get user from WebSocket connection token."""
     try:
         if not token:
             # Try to get token from query parameters
-            token = websocket.query_params.get('token')
+            token = websocket.query_params.get("token")
 
         if not token:
             await websocket.close(code=4001, reason="Authentication token required")
@@ -63,7 +65,11 @@ async def get_websocket_user(websocket: WebSocket, token: str | None = None) -> 
         # Build a lightweight user-like object from payload
         user_id = payload.get("user_id") or payload.get("sub") or payload.get("id")
         username = payload.get("username") or payload.get("name") or str(user_id)
-        permissions = set(payload.get("permissions", [])) if payload.get("permissions") is not None else set()
+        permissions = (
+            set(payload.get("permissions", []))
+            if payload.get("permissions") is not None
+            else set()
+        )
 
         # Create a simple user-like object with required attributes.
         # We avoid depending on constructor signature of User and instead return a
@@ -135,17 +141,23 @@ async def messaging_websocket(websocket: WebSocket):
             except WebSocketDisconnect:
                 break
             except Exception as e:
-                logger.error(f"Error handling WebSocket message for user {getattr(user, 'id', 'unknown')}: {e}")
+                logger.error(
+                    f"Error handling WebSocket message for user {getattr(user, 'id', 'unknown')}: {e}"
+                )
                 # Send error to client but continue connection
                 try:
-                    await websocket.send_text('{"type": "error", "data": {"message": "Message processing error"}}')
+                    await websocket.send_text(
+                        '{"type": "error", "data": {"message": "Message processing error"}}'
+                    )
                 except Exception:
                     break  # Connection is broken
 
     except WebSocketDisconnect:
         pass
     except Exception as e:
-        logger.error(f"WebSocket connection error for user {getattr(user, 'id', 'unknown')}: {e}")
+        logger.error(
+            f"WebSocket connection error for user {getattr(user, 'id', 'unknown')}: {e}"
+        )
     finally:
         # Disconnect user
         try:
@@ -183,16 +195,22 @@ async def channel_messaging_websocket(websocket: WebSocket, channel_id: int):
             except WebSocketDisconnect:
                 break
             except Exception as e:
-                logger.error(f"Error handling channel WebSocket message for user {getattr(user, 'id', 'unknown')}: {e}")
+                logger.error(
+                    f"Error handling channel WebSocket message for user {getattr(user, 'id', 'unknown')}: {e}"
+                )
                 try:
-                    await websocket.send_text('{"type": "error", "data": {"message": "Message processing error"}}')
+                    await websocket.send_text(
+                        '{"type": "error", "data": {"message": "Message processing error"}}'
+                    )
                 except Exception:
                     break
 
     except WebSocketDisconnect:
         pass
     except Exception as e:
-        logger.error(f"Channel WebSocket connection error for user {getattr(user, 'id', 'unknown')}: {e}")
+        logger.error(
+            f"Channel WebSocket connection error for user {getattr(user, 'id', 'unknown')}: {e}"
+        )
     finally:
         try:
             await messaging_websocket_manager.disconnect(websocket)
@@ -228,16 +246,22 @@ async def guild_messaging_websocket(websocket: WebSocket, guild_id: int):
             except WebSocketDisconnect:
                 break
             except Exception as e:
-                logger.error(f"Error handling guild WebSocket message for user {getattr(user, 'id', 'unknown')}: {e}")
+                logger.error(
+                    f"Error handling guild WebSocket message for user {getattr(user, 'id', 'unknown')}: {e}"
+                )
                 try:
-                    await websocket.send_text('{"type": "error", "data": {"message": "Message processing error"}}')
+                    await websocket.send_text(
+                        '{"type": "error", "data": {"message": "Message processing error"}}'
+                    )
                 except Exception:
                     break
 
     except WebSocketDisconnect:
         pass
     except Exception as e:
-        logger.error(f"Guild WebSocket connection error for user {getattr(user, 'id', 'unknown')}: {e}")
+        logger.error(
+            f"Guild WebSocket connection error for user {getattr(user, 'id', 'unknown')}: {e}"
+        )
     finally:
         try:
             await messaging_websocket_manager.disconnect(websocket)
@@ -246,29 +270,27 @@ async def guild_messaging_websocket(websocket: WebSocket, guild_id: int):
 
 
 @router.get("/messaging/stats")
-async def get_messaging_stats(current_user: User = Depends(get_auth_adapter().get_current_user)):
+async def get_messaging_stats(
+    current_user: User = Depends(get_auth_adapter().get_current_user),
+):
     """
     Get real-time messaging statistics.
     Requires admin access.
     """
-    if not getattr(current_user, 'is_admin', False):
+    if not getattr(current_user, "is_admin", False):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
         )
 
     try:
         stats = await messaging_websocket_manager.get_connection_stats()
-        return JSONResponse(content={
-            "success": True,
-            "data": stats
-        })
+        return JSONResponse(content={"success": True, "data": stats})
 
     except Exception as e:
         logger.error(f"Error getting messaging stats: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get messaging statistics"
+            detail="Failed to get messaging statistics",
         )
 
 
@@ -277,41 +299,52 @@ async def broadcast_admin_message(
     message: str,
     channel_id: int | None = None,
     guild_id: int | None = None,
-    current_user: User = Depends(get_auth_adapter().get_current_user)
+    current_user: User = Depends(get_auth_adapter().get_current_user),
 ):
     """
     Broadcast an admin message to all connected users or specific channel/guild.
     Requires admin access.
     """
-    if not getattr(current_user, 'is_admin', False):
+    if not getattr(current_user, "is_admin", False):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
         )
 
     try:
         # Create admin message
         admin_message = {
-            'type': 'admin_broadcast',
-            'data': {
-                'message': message,
-                'sender': getattr(current_user, "username", str(getattr(current_user, "user_id", ""))),
-                'timestamp': datetime.now().isoformat(),
-                'channel_id': channel_id,
-                'guild_id': guild_id
-            }
+            "type": "admin_broadcast",
+            "data": {
+                "message": message,
+                "sender": getattr(
+                    current_user, "username", str(getattr(current_user, "user_id", ""))
+                ),
+                "timestamp": datetime.now().isoformat(),
+                "channel_id": channel_id,
+                "guild_id": guild_id,
+            },
         }
 
         # Determine target websockets
         target_websockets = set()
 
-        if channel_id and channel_id in getattr(messaging_websocket_manager, "channel_subscriptions", {}):
-            target_websockets.update(messaging_websocket_manager.channel_subscriptions[channel_id])
-        elif guild_id and guild_id in getattr(messaging_websocket_manager, "guild_subscriptions", {}):
-            target_websockets.update(messaging_websocket_manager.guild_subscriptions[guild_id])
+        if channel_id and channel_id in getattr(
+            messaging_websocket_manager, "channel_subscriptions", {}
+        ):
+            target_websockets.update(
+                messaging_websocket_manager.channel_subscriptions[channel_id]
+            )
+        elif guild_id and guild_id in getattr(
+            messaging_websocket_manager, "guild_subscriptions", {}
+        ):
+            target_websockets.update(
+                messaging_websocket_manager.guild_subscriptions[guild_id]
+            )
         else:
             # Broadcast to all connected users
-            for websockets in getattr(messaging_websocket_manager, "active_connections", {}).values():
+            for websockets in getattr(
+                messaging_websocket_manager, "active_connections", {}
+            ).values():
                 target_websockets.update(websockets)
 
         # Send to all target websockets
@@ -324,20 +357,22 @@ async def broadcast_admin_message(
                 # Skip failed connections
                 continue
 
-        return JSONResponse(content={
-            "success": True,
-            "message": f"Broadcast sent to {sent_count} connections",
-            "data": {
-                "sent_count": sent_count,
-                "total_targets": len(target_websockets)
+        return JSONResponse(
+            content={
+                "success": True,
+                "message": f"Broadcast sent to {sent_count} connections",
+                "data": {
+                    "sent_count": sent_count,
+                    "total_targets": len(target_websockets),
+                },
             }
-        })
+        )
 
     except Exception as e:
         logger.error(f"Error broadcasting admin message: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to broadcast message"
+            detail="Failed to broadcast message",
         )
 
 
@@ -348,13 +383,15 @@ async def websocket_health_check():
     try:
         stats = await messaging_websocket_manager.get_connection_stats()
 
-        return JSONResponse(content={
-            "status": "healthy",
-            "service": "WebSocket Messaging",
-            "connections": stats.get('total_connections', 0),
-            "active_users": stats.get('active_users', 0),
-            "timestamp": datetime.now().isoformat()
-        })
+        return JSONResponse(
+            content={
+                "status": "healthy",
+                "service": "WebSocket Messaging",
+                "connections": stats.get("total_connections", 0),
+                "active_users": stats.get("active_users", 0),
+                "timestamp": datetime.now().isoformat(),
+            }
+        )
 
     except Exception as e:
         logger.error(f"WebSocket health check failed: {e}")
@@ -364,6 +401,6 @@ async def websocket_health_check():
                 "status": "unhealthy",
                 "service": "WebSocket Messaging",
                 "error": str(e),
-                "timestamp": datetime.now().isoformat()
-            }
+                "timestamp": datetime.now().isoformat(),
+            },
         )

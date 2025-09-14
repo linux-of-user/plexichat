@@ -6,8 +6,10 @@ from pydantic import BaseModel
 
 router = APIRouter(prefix="/realtime", tags=["Real-time"])
 
+
 class ConnectionManager:
     """Manages WebSocket connections."""
+
     def __init__(self):
         self.active_connections: dict[str, WebSocket] = {}
         self.user_connections: dict[str, set[str]] = {}
@@ -41,13 +43,17 @@ class ConnectionManager:
         for connection in self.active_connections.values():
             await connection.send_text(message)
 
+
 manager = ConnectionManager()
+
 
 class MessageEvent(BaseModel):
     """Model for a message event."""
+
     type: str
     data: dict
     timestamp: float = time.time()
+
 
 @router.websocket("/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: str):
@@ -60,6 +66,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
             await manager.send_to_user(message.json(), user_id)
     except WebSocketDisconnect:
         manager.disconnect(connection_id, user_id)
+
 
 @router.get("/status")
 async def realtime_status():

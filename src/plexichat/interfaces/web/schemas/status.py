@@ -6,6 +6,7 @@ from fastapi import APIRouter
 # Import models from the correct location
 try:
     from plexichat.shared.models import Message, User
+
     models_available = True
 except ImportError:
     User = None
@@ -14,11 +15,14 @@ except ImportError:
 
 router = APIRouter()
 
+
 @router.get("/", summary="Service status and metrics")
 def get_status() -> dict[str, Any]:
     """Get service status and metrics."""
     # Calculate uptime from a reference point
-    uptime_seconds = (datetime.now(UTC) - datetime(2025, 1, 1, tzinfo=UTC)).total_seconds()
+    uptime_seconds = (
+        datetime.now(UTC) - datetime(2025, 1, 1, tzinfo=UTC)
+    ).total_seconds()
 
     status_info = {
         "status": "ok",
@@ -26,7 +30,7 @@ def get_status() -> dict[str, Any]:
         "total_users": 0,  # Would be populated from actual database
         "total_messages": 0,  # Would be populated from actual database
         "server_time": datetime.now(UTC).isoformat(),
-        "models_available": models_available
+        "models_available": models_available,
     }
 
     if not models_available:

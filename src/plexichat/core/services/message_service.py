@@ -2,6 +2,7 @@
 This module centralizes message validation, formatting, and persistence hooks
 so features stay consistent across interfaces. No features are removed.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -14,6 +15,7 @@ from plexichat.infrastructure.utils.compilation import optimizer
 from .message_checksum import calculate_checksum
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class Message:
@@ -30,11 +32,10 @@ class Message:
             None, lambda: calculate_checksum(self.content)
         )
 
+
 # Register the checksum function for compilation (Cython)
 optimizer.register_function(
-    "plexichat.core.services.message_service",
-    "calculate_checksum",
-    compiler="cython"
+    "plexichat.core.services.message_service", "calculate_checksum", compiler="cython"
 )
 
 
@@ -55,7 +56,13 @@ class MessageService:
         channel = data.get("channel")
         message_type = data.get("type", "text")
         flags = data.get("flags", []) or []
-        msg = Message(content=content, sender=sender, channel=channel, message_type=message_type, flags=flags)
+        msg = Message(
+            content=content,
+            sender=sender,
+            channel=channel,
+            message_type=message_type,
+            flags=flags,
+        )
         result = {
             "content": msg.content,
             "sender": msg.sender,
@@ -73,7 +80,9 @@ class MessageService:
         # Hook for persistence; safe no-op default to avoid feature loss
         try:
             # e.g., await message_repository.save(formatted)
-            logger.debug("Persisting message (noop hook): %s", formatted.get("checksum"))
+            logger.debug(
+                "Persisting message (noop hook): %s", formatted.get("checksum")
+            )
         except Exception as e:
             logger.warning("Message persistence hook failed: %s", e)
 

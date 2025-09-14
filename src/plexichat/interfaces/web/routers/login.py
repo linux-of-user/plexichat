@@ -46,10 +46,12 @@ from plexichat.core.authentication import AuthResult, get_auth_manager
 try:
     from plexichat.core.config import settings
 except ImportError:
+
     class MockSettings:
         JWT_SECRET = "mock-secret"
         JWT_ALGORITHM = "HS256"
         ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
     settings = MockSettings()
 
 # Model imports
@@ -62,7 +64,10 @@ router = APIRouter(prefix="/login", tags=["login"])
 
 # Initialize EXISTING performance systems
 performance_logger = get_performance_logger() if get_performance_logger else None
-optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
+optimization_engine = (
+    PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
+)
+
 
 # Pydantic models
 class LoginResponse(BaseModel):
@@ -70,6 +75,7 @@ class LoginResponse(BaseModel):
     token_type: str = "bearer"
     expires_in: int
     user: dict[str, Any]
+
 
 class LoginService:
     """Service class for login operations using the UnifiedAuthManager and EXISTING database abstraction layer."""
@@ -81,15 +87,27 @@ class LoginService:
         # Use global auth manager
         self.auth_manager = get_auth_manager()
 
-    @async_track_performance("user_authentication") if async_track_performance else (lambda f: f)
-    async def authenticate_user(self, username: str, password: str, ip_address: str | None = None, user_agent: str | None = None) -> AuthResult | None:
+    @(
+        async_track_performance("user_authentication")
+        if async_track_performance
+        else (lambda f: f)
+    )
+    async def authenticate_user(
+        self,
+        username: str,
+        password: str,
+        ip_address: str | None = None,
+        user_agent: str | None = None,
+    ) -> AuthResult | None:
         """
         Authenticate user using UnifiedAuthManager.
         Returns AuthResult on success/failure.
         """
         try:
             # Delegate authentication to the unified auth manager which integrates with the SecuritySystem
-            auth_result: AuthResult = await self.auth_manager.authenticate_user(username, password, ip_address=ip_address, user_agent=user_agent)
+            auth_result: AuthResult = await self.auth_manager.authenticate_user(
+                username, password, ip_address=ip_address, user_agent=user_agent
+            )
 
             # If authentication succeeded, return the AuthResult directly
             if auth_result and getattr(auth_result, "success", False):
@@ -99,7 +117,9 @@ class LoginService:
                         await self.update_last_login(int(auth_result.user_id))
                 except Exception as e:
                     # Log but don't fail authentication because of last-login update issues
-                    logger.debug(f"Failed to update last login for user {auth_result.user_id}: {e}")
+                    logger.debug(
+                        f"Failed to update last login for user {auth_result.user_id}: {e}"
+                    )
 
                 return auth_result
 
@@ -109,7 +129,11 @@ class LoginService:
             logger.error(f"Error authenticating user via UnifiedAuthManager: {e}")
             return None
 
-    @async_track_performance("last_login_update") if async_track_performance else (lambda f: f)
+    @(
+        async_track_performance("last_login_update")
+        if async_track_performance
+        else (lambda f: f)
+    )
     async def update_last_login(self, user_id: int):
         """Update user's last login timestamp in the database if available."""
         if self.db_manager:
@@ -122,8 +146,10 @@ class LoginService:
             except Exception as e:
                 logger.error(f"Error updating last login: {e}")
 
+
 # Initialize service
 login_service = LoginService()
+
 
 @router.get("/")
 async def login_page(request: Request):
@@ -289,11 +315,10 @@ async def login_page(request: Request):
 
     return HTMLResponse(content=html_content)
 
+
 @router.post("/")
 async def authenticate(
-    request: Request,
-    username: str = Form(...),
-    password: str = Form(...)
+    request: Request, username: str = Form(...), password: str = Form(...)
 ):
     """Authenticate user and return access token with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
@@ -305,7 +330,12 @@ async def authenticate(
 
     try:
         # Authenticate user using unified auth manager via service
-        auth_result = await login_service.authenticate_user(username, password, ip_address=client_ip, user_agent=request.headers.get("user-agent", ""))
+        auth_result = await login_service.authenticate_user(
+            username,
+            password,
+            ip_address=client_ip,
+            user_agent=request.headers.get("user-agent", ""),
+        )
 
         if not auth_result or not getattr(auth_result, "success", False):
             # Performance tracking for failed login
@@ -314,11 +344,13 @@ async def authenticate(
 
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect username or password"
+                detail="Incorrect username or password",
             )
 
         # Use the token returned by the UnifiedAuthManager if present, otherwise create one
-        access_token_expires = timedelta(minutes=getattr(settings, 'ACCESS_TOKEN_EXPIRE_MINUTES', 30))
+        access_token_expires = timedelta(
+            minutes=getattr(settings, "ACCESS_TOKEN_EXPIRE_MINUTES", 30)
+        )
 
         access_token = getattr(auth_result, "token", None)
         if not access_token:
@@ -327,7 +359,7 @@ async def authenticate(
                 access_token = login_service.auth_manager.create_access_token(
                     str(auth_result.user_id),
                     getattr(auth_result, "permissions", set()),
-                    expires_delta=access_token_expires
+                    expires_delta=access_token_expires,
                 )
             except Exception as e:
                 logger.error(f"Failed to create access token: {e}")
@@ -342,7 +374,7 @@ async def authenticate(
             "id": auth_result.user_id,
             "username": None,
             "email": None,
-            "is_active": True
+            "is_active": True,
         }
         try:
             if database_manager and auth_result.user_id:
@@ -372,7 +404,7 @@ async def authenticate(
             access_token=access_token,
             token_type="bearer",
             expires_in=int(access_token_expires.total_seconds()),
-            user=user_info
+            user=user_info,
         )
 
     except HTTPException:
@@ -381,13 +413,13 @@ async def authenticate(
         logger.error(f"Unexpected error during login: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Internal server error"
+            detail="Internal server error",
         )
+
 
 @router.post("/logout")
 async def logout(
-    request: Request,
-    current_user: dict[str, Any] = Depends(get_current_user)
+    request: Request, current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """Logout user (token invalidation would be handled by client)."""
     client_ip = request.client.host if request.client else "unknown"
@@ -399,10 +431,10 @@ async def logout(
 
     return {"message": "Successfully logged out"}
 
+
 @router.get("/status")
 async def login_status(
-    request: Request,
-    current_user: dict[str, Any] = Depends(get_current_user)
+    request: Request, current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """Check current login status."""
     client_ip = request.client.host if request.client else "unknown"
@@ -419,6 +451,6 @@ async def login_status(
         "user": {
             "id": current_user.get("id"),
             "username": current_user.get("username"),
-            "is_admin": current_user.get("is_admin", False)
-        }
+            "is_admin": current_user.get("is_admin", False),
+        },
     }

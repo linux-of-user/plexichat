@@ -9,6 +9,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
 class FallbackManager:
     """Manages fallback implementations for core systems."""
 
@@ -42,11 +43,11 @@ class FallbackManager:
         logger.debug(f"Cache fallback: {key} stored in memory")
         if value is not None:
             # Simple in-memory cache simulation
-            if not hasattr(self, '_mem_cache'):
+            if not hasattr(self, "_mem_cache"):
                 self._mem_cache: dict[str, Any] = {}
             self._mem_cache[key] = value
             return value
-        return getattr(self, '_mem_cache', {}).get(key)
+        return getattr(self, "_mem_cache", {}).get(key)
 
     def _monitoring_fallback(self, metric: str, value: Any) -> None:
         logger.info(f"Monitoring fallback: {metric} = {value}")
@@ -75,12 +76,15 @@ class FallbackManager:
         logger.warning(f"Migrations fallback: {migration_name} skipped")
         return False
 
+
 # Global fallback manager instance
 fallback_manager = FallbackManager()
+
 
 def get_fallback_manager() -> FallbackManager:
     """Get the global fallback manager."""
     return fallback_manager
+
 
 def apply_fallback(system: str, *args: Any, **kwargs: Any) -> Any:
     """Apply fallback for a system."""
@@ -91,6 +95,7 @@ def apply_fallback(system: str, *args: Any, **kwargs: Any) -> Any:
     logger.error(f"No fallback available for system: {system}")
     return None
 
+
 # Export for imports
 __all__ = [
     "FallbackManager",
@@ -99,6 +104,7 @@ __all__ = [
     "get_fallback_manager",
 ]
 
+
 def get_module_version(module_name: str = "unknown") -> str:
     """
     Get version information for a module using fallback mechanism.
@@ -106,5 +112,6 @@ def get_module_version(module_name: str = "unknown") -> str:
     """
     logger.info(f"Fallback module version for {module_name}")
     return "1.0.0-fallback"
+
 
 __all__.append("get_module_version")

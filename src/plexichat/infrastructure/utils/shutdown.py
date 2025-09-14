@@ -11,42 +11,50 @@ import time
 
 try:
     import psutil
+
     PSUTIL_AVAILABLE = True
 except ImportError:
     PSUTIL_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
+
 # Colors for output
 class Colors:
-    GREEN = '\033[92m'
-    RED = '\033[91m'
-    YELLOW = '\033[93m'
-    BLUE = '\033[94m'
-    CYAN = '\033[96m'
-    WHITE = '\033[97m'
-    BOLD = '\033[1m'
-    END = '\033[0m'
+    GREEN = "\033[92m"
+    RED = "\033[91m"
+    YELLOW = "\033[93m"
+    BLUE = "\033[94m"
+    CYAN = "\033[96m"
+    WHITE = "\033[97m"
+    BOLD = "\033[1m"
+    END = "\033[0m"
+
 
 def print_colored(text: str, color: str = Colors.WHITE):
     """Print colored text."""
     logger.info(f"{color}{text}{Colors.END}")
 
+
 def print_success(text: str):
     """Print success message."""
     print_colored(f" {text}", Colors.GREEN)
+
 
 def print_error(text: str):
     """Print error message."""
     print_colored(f" {text}", Colors.RED)
 
+
 def print_warning(text: str):
     """Print warning message."""
     print_colored(f"  {text}", Colors.YELLOW)
 
+
 def print_info(text: str):
     """Print info message."""
     print_colored(f"  {text}", Colors.BLUE)
+
 
 def print_header(text: str):
     """Print section header."""
@@ -54,8 +62,10 @@ def print_header(text: str):
     print_colored(f"{text.center(50)}", Colors.BOLD + Colors.CYAN)
     print_colored(f"{'='*50}", Colors.CYAN)
 
+
 class CleanShutdown:
     """Clean shutdown manager for PlexiChat."""
+
     def __init__(self):
         self.processes_found = []
         self.ports_to_check = [8000, 8001, 8080, 3000]  # Common ports
@@ -71,23 +81,28 @@ class CleanShutdown:
         processes = []
 
         # Look for processes by name patterns
-        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        for proc in psutil.process_iter(["pid", "name", "cmdline"]):
             try:
-                cmdline = ' '.join(proc.info['cmdline'] or [])
+                cmdline = " ".join(proc.info["cmdline"] or [])
 
                 # Check if this is our process
-                if any(pattern in cmdline.lower() for pattern in [
-                    'app.main:app',
-                    'enhanced_launch.py',
-                    'run.py',
-                    'chatapi'
-                ]):
-                    processes.append({
-                        'pid': proc.info['pid'],
-                        'name': proc.info['name'],
-                        'cmdline': cmdline,
-                        'process': proc
-                    })
+                if any(
+                    pattern in cmdline.lower()
+                    for pattern in [
+                        "app.main:app",
+                        "enhanced_launch.py",
+                        "run.py",
+                        "chatapi",
+                    ]
+                ):
+                    processes.append(
+                        {
+                            "pid": proc.info["pid"],
+                            "name": proc.info["name"],
+                            "cmdline": cmdline,
+                            "process": proc,
+                        }
+                    )
 
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 continue
@@ -99,17 +114,19 @@ class CleanShutdown:
                     if conn.laddr.port == port and conn.status == psutil.CONN_LISTEN:
                         try:
                             proc = psutil.Process(conn.pid)
-                            cmdline = ' '.join(proc.cmdline())
+                            cmdline = " ".join(proc.cmdline())
 
                             # Add if not already found
-                            if not any(p['pid'] == conn.pid for p in processes):
-                                processes.append({
-                                    'pid': conn.pid,
-                                    'name': proc.name(),
-                                    'cmdline': cmdline,
-                                    'process': proc,
-                                    'port': port
-                                })
+                            if not any(p["pid"] == conn.pid for p in processes):
+                                processes.append(
+                                    {
+                                        "pid": conn.pid,
+                                        "name": proc.name(),
+                                        "cmdline": cmdline,
+                                        "process": proc,
+                                        "port": port,
+                                    }
+                                )
                         except (psutil.NoSuchProcess, psutil.AccessDenied):
                             continue
             except Exception:
@@ -127,17 +144,20 @@ class CleanShutdown:
         print_info(f"Found {len(self.processes_found)} Enhanced Chat API processes:")
 
         for i, proc_info in enumerate(self.processes_found, 1):
-            port_info = f" (Port: {proc_info['port']})" if 'port' in proc_info else ""
-            print_colored(f"  {i}. PID {proc_info['pid']}: {proc_info['name']}{port_info}", Colors.YELLOW)
+            port_info = f" (Port: {proc_info['port']})" if "port" in proc_info else ""
+            print_colored(
+                f"  {i}. PID {proc_info['pid']}: {proc_info['name']}{port_info}",
+                Colors.YELLOW,
+            )
             print_colored(f"     Command: {proc_info['cmdline'][:80]}...", Colors.WHITE)
 
     def shutdown_process(self, proc_info, timeout=10):
         """Shutdown a single process gracefully."""
-        pid = proc_info['pid']
-        name = proc_info['name']
+        pid = proc_info["pid"]
+        name = proc_info["name"]
 
         try:
-            process = proc_info['process']
+            process = proc_info["process"]
 
             print_info(f"Shutting down {name} (PID: {pid})...")
 
@@ -151,7 +171,9 @@ class CleanShutdown:
                     print_success(f"Process {pid} terminated gracefully")
                     return True
                 except psutil.TimeoutExpired:
-                    print_warning(f"Process {pid} didn't respond to SIGTERM, force killing...")
+                    print_warning(
+                        f"Process {pid} didn't respond to SIGTERM, force killing..."
+                    )
 
                     # Force kill
                     try:
@@ -259,7 +281,7 @@ class CleanShutdown:
         # Ask for confirmation if interactive
         if interactive and not force:
             response = input("\nProceed with shutdown? (y/N): ").strip().lower()
-            if response not in ['y', 'yes']:
+            if response not in ["y", "yes"]:
                 print_info("Shutdown cancelled")
                 return False
 
@@ -283,16 +305,20 @@ class CleanShutdown:
 
         return success
 
+
 def main():
     """Main entry point for the shutdown script."""
     parser = argparse.ArgumentParser(description="Clean shutdown for PlexiChat")
     parser.add_argument("--force", action="store_true", help="Force kill processes")
-    parser.add_argument("--non-interactive", action="store_true", help="Run without user interaction")
+    parser.add_argument(
+        "--non-interactive", action="store_true", help="Run without user interaction"
+    )
 
     args = parser.parse_args()
 
     shutdown_manager = CleanShutdown()
     return shutdown_manager.run(force=args.force, interactive=not args.non_interactive)
+
 
 if __name__ == "__main__":
     success = main()

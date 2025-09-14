@@ -26,9 +26,9 @@ class AICommandLineInterface:
         while True:
             try:
                 command = input("ai> ").strip()
-                if command.lower() in ['exit', 'quit']:
+                if command.lower() in ["exit", "quit"]:
                     break
-                elif command.lower() == 'help':
+                elif command.lower() == "help":
                     self._show_help()
                 elif command:
                     await self._process_command(command)
@@ -55,12 +55,12 @@ Available Commands:
         parts = command.split()
         cmd = parts[0].lower()
 
-        if cmd == 'status':
+        if cmd == "status":
             await self._show_status()
-        elif cmd == 'models':
+        elif cmd == "models":
             await self._list_models()
-        elif cmd == 'test' and len(parts) > 1:
-            text = ' '.join(parts[1:])
+        elif cmd == "test" and len(parts) > 1:
+            text = " ".join(parts[1:])
             await self._test_ai(text)
         else:
             print(f"Unknown command: {cmd}")
@@ -80,11 +80,7 @@ Available Commands:
         """List available AI models."""
         try:
             # This would normally get models from the AI coordinator
-            models = [
-                "gpt-4",
-                "gpt-3.5-turbo",
-                "claude-3-sonnet"
-            ]
+            models = ["gpt-4", "gpt-3.5-turbo", "claude-3-sonnet"]
             print("Available Models:")
             for model in models:
                 print(f"  - {model}")

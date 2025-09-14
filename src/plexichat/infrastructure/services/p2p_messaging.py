@@ -17,9 +17,11 @@ from cryptography.fernet import Fernet
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class P2PMessage:
     """Peer-to-peer message structure."""
+
     id: str
     sender_id: int
     recipient_id: int
@@ -46,6 +48,7 @@ class P2PMessage:
 @dataclass
 class PeerConnection:
     """Peer connection information."""
+
     peer_id: int
     connection_id: str
     websocket: Any
@@ -60,6 +63,7 @@ class PeerConnection:
 
 class MessageCache:
     """Secure message cache for offline storage."""
+
     def __init__(self):
         self.cache: dict[str, P2PMessage] = {}
         self.encryption_key = Fernet.generate_key()
@@ -156,6 +160,7 @@ class MessageCache:
 
 class P2PMessagingService:
     """Peer-to-peer messaging service with database fallback."""
+
     def __init__(self):
         self.peers: dict[int, PeerConnection] = {}
         self.message_cache = MessageCache()

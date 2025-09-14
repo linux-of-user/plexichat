@@ -35,7 +35,9 @@ from typing import Any, Callable, Dict, List, Optional, Set, Union
 # ======================================================================
 try:
     from src.plexichat.core.plugins.sdk_generator import PluginSDKGenerator
-    from src.plexichat.core.plugins.sdk_generator import sdk_generator as core_sdk_generator
+    from src.plexichat.core.plugins.sdk_generator import (
+        sdk_generator as core_sdk_generator,
+    )
 except Exception:
     core_sdk_generator = None
     PluginSDKGenerator = None
@@ -79,7 +81,11 @@ except ImportError:
     PluginResult = dict
 
 try:
-    from src.plexichat.shared.exceptions import PluginError, SecurityError, ValidationError
+    from src.plexichat.shared.exceptions import (
+        PluginError,
+        SecurityError,
+        ValidationError,
+    )
 except ImportError:
 
     class PluginError(Exception):
@@ -357,7 +363,9 @@ class EnhancedPluginLogger:
     def __init__(self, plugin_name: str):
         self.plugin_name = plugin_name
         try:
-            from src.plexichat.core.logging.unified_logger import get_plugin_logger as _gpl
+            from src.plexichat.core.logging.unified_logger import (
+                get_plugin_logger as _gpl,
+            )
 
             self.logger = _gpl(plugin_name)
         except Exception:
@@ -1083,7 +1091,9 @@ __all__ = ['EnhancedBasePlugin', 'EnhancedPluginConfig', 'EnhancedPluginAPI']
         instance = getattr(module, "plugin")
         # For sandboxed plugins, check against the SDK's EnhancedBasePlugin class
         # since sandboxed plugins inherit from src.plexichat.core.plugins.sdk.EnhancedBasePlugin
-        from src.plexichat.core.pluginssdk import EnhancedBasePlugin as SDK_EnhancedBasePlugin
+        from src.plexichat.core.pluginssdk import (
+            EnhancedBasePlugin as SDK_EnhancedBasePlugin,
+        )
 
         if not isinstance(instance, (EnhancedBasePlugin, SDK_EnhancedBasePlugin)):
             logger.error(f"Plugin {plugin_name} instance type: {type(instance)}")

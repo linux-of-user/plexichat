@@ -15,6 +15,7 @@ router = APIRouter(prefix="/file-management", tags=["file-management"])
 
 class FileInfo(BaseModel):
     """File information model."""
+
     name: str = Field(..., description="File name")
     path: str = Field(..., description="File path")
     size: int = Field(..., description="File size in bytes")
@@ -25,15 +26,18 @@ class FileInfo(BaseModel):
 
 class DirectoryListing(BaseModel):
     """Directory listing model."""
+
     path: str = Field(..., description="Current directory path")
-    files: list[FileInfo] = Field(default_factory=list, description="Files in directory")
+    files: list[FileInfo] = Field(
+        default_factory=list, description="Files in directory"
+    )
     total_files: int = Field(default=0, description="Total number of files")
 
 
 @router.get("/list", response_model=DirectoryListing)
 async def list_directory(
     path: str = Query(".", description="Directory path to list"),
-    show_hidden: bool = Query(False, description="Show hidden files")
+    show_hidden: bool = Query(False, description="Show hidden files"),
 ):
     """List directory contents."""
     try:
@@ -43,25 +47,24 @@ async def list_directory(
         if not str(target_path).startswith(str(Path.cwd())):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied: Path outside allowed directory"
+                detail="Access denied: Path outside allowed directory",
             )
 
         if not target_path.exists():
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Directory not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Directory not found"
             )
 
         if not target_path.is_dir():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Path is not a directory"
+                detail="Path is not a directory",
             )
 
         files = []
         for item in target_path.iterdir():
             # Skip hidden files unless requested
-            if not show_hidden and item.name.startswith('.'):
+            if not show_hidden and item.name.startswith("."):
                 continue
 
             try:
@@ -72,7 +75,7 @@ async def list_directory(
                     size=stat.st_size,
                     type="directory" if item.is_dir() else item.suffix.lower(),
                     modified=str(stat.st_mtime),
-                    is_directory=item.is_dir()
+                    is_directory=item.is_dir(),
                 )
                 files.append(file_info)
             except (OSError, PermissionError):
@@ -85,7 +88,7 @@ async def list_directory(
         return DirectoryListing(
             path=str(target_path.relative_to(Path.cwd())),
             files=files,
-            total_files=len(files)
+            total_files=len(files),
         )
 
     except HTTPException:
@@ -94,7 +97,7 @@ async def list_directory(
         logger.error(f"Error listing directory {path}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to list directory"
+            detail="Failed to list directory",
         )
 
 
@@ -110,20 +113,19 @@ async def create_directory(
         if not str(target_path).startswith(str(Path.cwd())):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied: Path outside allowed directory"
+                detail="Access denied: Path outside allowed directory",
             )
 
         if target_path.exists():
             raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Directory already exists"
+                status_code=status.HTTP_409_CONFLICT, detail="Directory already exists"
             )
 
         target_path.mkdir(parents=True, exist_ok=False)
 
         return JSONResponse(
             content={"success": True, "message": f"Directory created: {path}"},
-            status_code=status.HTTP_201_CREATED
+            status_code=status.HTTP_201_CREATED,
         )
 
     except HTTPException:
@@ -132,7 +134,7 @@ async def create_directory(
         logger.error(f"Error creating directory {path}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create directory"
+            detail="Failed to create directory",
         )
 
 
@@ -148,26 +150,25 @@ async def delete_file_or_directory(
         if not str(target_path).startswith(str(Path.cwd())):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied: Path outside allowed directory"
+                detail="Access denied: Path outside allowed directory",
             )
 
         if not target_path.exists():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="File or directory not found"
+                detail="File or directory not found",
             )
 
         if target_path.is_dir():
             # Remove directory and all contents
             import shutil
+
             shutil.rmtree(target_path)
         else:
             # Remove file
             target_path.unlink()
 
-        return JSONResponse(
-            content={"success": True, "message": f"Deleted: {path}"}
-        )
+        return JSONResponse(content={"success": True, "message": f"Deleted: {path}"})
 
     except HTTPException:
         raise
@@ -175,14 +176,12 @@ async def delete_file_or_directory(
         logger.error(f"Error deleting {path}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete file or directory"
+            detail="Failed to delete file or directory",
         )
 
 
 @router.get("/download")
-async def download_file(
-    path: str = Query(..., description="File path to download")
-):
+async def download_file(path: str = Query(..., description="File path to download")):
     """Download a file."""
     try:
         target_path = Path(path).resolve()
@@ -191,25 +190,24 @@ async def download_file(
         if not str(target_path).startswith(str(Path.cwd())):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied: Path outside allowed directory"
+                detail="Access denied: Path outside allowed directory",
             )
 
         if not target_path.exists():
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="File not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="File not found"
             )
 
         if target_path.is_dir():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cannot download directory"
+                detail="Cannot download directory",
             )
 
         return FileResponse(
             path=str(target_path),
             filename=target_path.name,
-            media_type='application/octet-stream'
+            media_type="application/octet-stream",
         )
 
     except HTTPException:
@@ -218,7 +216,7 @@ async def download_file(
         logger.error(f"Error downloading file {path}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to download file"
+            detail="Failed to download file",
         )
 
 
@@ -234,13 +232,12 @@ async def get_file_info(
         if not str(target_path).startswith(str(Path.cwd())):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Access denied: Path outside allowed directory"
+                detail="Access denied: Path outside allowed directory",
             )
 
         if not target_path.exists():
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="File not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="File not found"
             )
 
         stat = target_path.stat()
@@ -251,7 +248,7 @@ async def get_file_info(
             size=stat.st_size,
             type="directory" if target_path.is_dir() else target_path.suffix.lower(),
             modified=str(stat.st_mtime),
-            is_directory=target_path.is_dir()
+            is_directory=target_path.is_dir(),
         )
 
         return file_info
@@ -262,7 +259,7 @@ async def get_file_info(
         logger.error(f"Error getting file info for {path}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get file information"
+            detail="Failed to get file information",
         )
 
 

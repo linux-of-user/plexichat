@@ -46,9 +46,11 @@ from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
 try:
     from plexichat.core.config import settings
 except ImportError:
+
     class MockSettings:
         API_VERSION = "1.0.0"
         DEBUG = False
+
     settings = MockSettings()
 
 from plexichat.core.testing import test_framework
@@ -67,6 +69,7 @@ from plexichat.core.security.security_decorators import (
 # Try to initialize logging system if available (optional)
 try:
     from plexichat.core.logging import get_logging_system
+
     logging_system = get_logging_system()
     if logging_system:
         enhanced_logger = logging_system.get_logger(__name__)
@@ -78,7 +81,10 @@ except Exception as e:
     enhanced_logger = None
     logging_system = None
 
-optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
+optimization_engine = (
+    PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
+)
+
 
 # Pydantic models
 class SystemStatus(BaseModel):
@@ -89,12 +95,14 @@ class SystemStatus(BaseModel):
     database_status: str
     performance_score: float | None = None
 
+
 class AnalyticsReport(BaseModel):
     total_users: int
     total_files: int
     total_messages: int
     system_uptime: str
     performance_metrics: dict[str, Any]
+
 
 class TestResults(BaseModel):
     total_tests: int
@@ -103,6 +111,7 @@ class TestResults(BaseModel):
     skipped: int
     execution_time: float
     details: list[dict[str, Any]]
+
 
 class SystemService:
     """Service class for system operations using EXISTING database abstraction layer."""
@@ -113,7 +122,11 @@ class SystemService:
         self.performance_logger = performance_logger
         self.optimization_engine = optimization_engine
 
-    @async_track_performance("system_status_check") if async_track_performance else (lambda f: f)
+    @(
+        async_track_performance("system_status_check")
+        if async_track_performance
+        else (lambda f: f)
+    )
     async def get_system_status(self) -> SystemStatus:
         """Get comprehensive system status using EXISTING systems."""
         try:
@@ -131,18 +144,22 @@ class SystemService:
             performance_score = None
             if self.optimization_engine:
                 try:
-                    report = self.optimization_engine.get_comprehensive_performance_report()
-                    performance_score = report.get("performance_summary", {}).get("overall_score", 0)
+                    report = (
+                        self.optimization_engine.get_comprehensive_performance_report()
+                    )
+                    performance_score = report.get("performance_summary", {}).get(
+                        "overall_score", 0
+                    )
                 except Exception:
                     pass
 
             return SystemStatus(
                 status="healthy",
                 timestamp=datetime.now().isoformat(),
-                version=getattr(settings, 'API_VERSION', '1.0.0'),
-                debug_mode=getattr(settings, 'DEBUG', False),
+                version=getattr(settings, "API_VERSION", "1.0.0"),
+                debug_mode=getattr(settings, "DEBUG", False),
                 database_status=db_status,
-                performance_score=performance_score
+                performance_score=performance_score,
             )
 
         except Exception as e:
@@ -150,13 +167,17 @@ class SystemService:
             return SystemStatus(
                 status="error",
                 timestamp=datetime.now().isoformat(),
-                version=getattr(settings, 'API_VERSION', '1.0.0'),
-                debug_mode=getattr(settings, 'DEBUG', False),
+                version=getattr(settings, "API_VERSION", "1.0.0"),
+                debug_mode=getattr(settings, "DEBUG", False),
                 database_status="error",
-                performance_score=None
+                performance_score=None,
             )
 
-    @async_track_performance("analytics_report") if async_track_performance else (lambda f: f)
+    @(
+        async_track_performance("analytics_report")
+        if async_track_performance
+        else (lambda f: f)
+    )
     async def get_analytics_report(self) -> AnalyticsReport:
         """Get analytics report using EXISTING database abstraction layer."""
         try:
@@ -168,15 +189,21 @@ class SystemService:
                 # Use EXISTING database manager for analytics
                 try:
                     # Get user count
-                    result = await self.db_manager.execute_query("SELECT COUNT(*) FROM users", {})
+                    result = await self.db_manager.execute_query(
+                        "SELECT COUNT(*) FROM users", {}
+                    )
                     total_users = result[0][0] if result else 0
 
                     # Get file count
-                    result = await self.db_manager.execute_query("SELECT COUNT(*) FROM files", {})
+                    result = await self.db_manager.execute_query(
+                        "SELECT COUNT(*) FROM files", {}
+                    )
                     total_files = result[0][0] if result else 0
 
                     # Get message count
-                    result = await self.db_manager.execute_query("SELECT COUNT(*) FROM messages", {})
+                    result = await self.db_manager.execute_query(
+                        "SELECT COUNT(*) FROM messages", {}
+                    )
                     total_messages = result[0][0] if result else 0
 
                 except Exception as e:
@@ -186,7 +213,9 @@ class SystemService:
             performance_metrics = {}
             if self.optimization_engine:
                 try:
-                    report = self.optimization_engine.get_comprehensive_performance_report()
+                    report = (
+                        self.optimization_engine.get_comprehensive_performance_report()
+                    )
                     performance_metrics = report.get("performance_summary", {})
                 except Exception:
                     pass
@@ -196,7 +225,7 @@ class SystemService:
                 total_files=total_files,
                 total_messages=total_messages,
                 system_uptime="N/A",  # Would need system start time tracking
-                performance_metrics=performance_metrics
+                performance_metrics=performance_metrics,
             )
 
         except Exception as e:
@@ -206,10 +235,14 @@ class SystemService:
                 total_files=0,
                 total_messages=0,
                 system_uptime="N/A",
-                performance_metrics={}
+                performance_metrics={},
             )
 
-    @async_track_performance("system_tests") if async_track_performance else (lambda f: f)
+    @(
+        async_track_performance("system_tests")
+        if async_track_performance
+        else (lambda f: f)
+    )
     async def run_system_tests(self) -> TestResults:
         """Run system tests using EXISTING test framework."""
         try:
@@ -223,7 +256,7 @@ class SystemService:
                     failed=results.get("failed", 0),
                     skipped=results.get("skipped", 0),
                     execution_time=results.get("execution_time", 0.0),
-                    details=results.get("details", [])
+                    details=results.get("details", []),
                 )
             else:
                 # Mock test results
@@ -234,11 +267,20 @@ class SystemService:
                     skipped=1,
                     execution_time=5.2,
                     details=[
-                        {"name": "database_connection", "status": "passed", "duration": 0.5},
+                        {
+                            "name": "database_connection",
+                            "status": "passed",
+                            "duration": 0.5,
+                        },
                         {"name": "api_endpoints", "status": "passed", "duration": 2.1},
-                        {"name": "authentication", "status": "failed", "duration": 1.0, "error": "Mock error"},
-                        {"name": "file_upload", "status": "skipped", "duration": 0.0}
-                    ]
+                        {
+                            "name": "authentication",
+                            "status": "failed",
+                            "duration": 1.0,
+                            "error": "Mock error",
+                        },
+                        {"name": "file_upload", "status": "skipped", "duration": 0.0},
+                    ],
                 )
 
         except Exception as e:
@@ -249,30 +291,31 @@ class SystemService:
                 failed=1,
                 skipped=0,
                 execution_time=0.0,
-                details=[{"name": "test_execution", "status": "failed", "error": str(e)}]
+                details=[
+                    {"name": "test_execution", "status": "failed", "error": str(e)}
+                ],
             )
+
 
 # Initialize service
 system_service = SystemService()
 
-@router.get(
-    "/status",
-    response_model=SystemStatus,
-    summary="Get system status"
-)
+
+@router.get("/status", response_model=SystemStatus, summary="Get system status")
 @secure_endpoint(
     auth_required=True,
     permission=RequiredPermission.READ,
     rate_limit_rpm=60,
-    audit_action="view_system_status"
+    audit_action="view_system_status",
 )
 async def get_system_status(
-    request: Request,
-    current_user: dict[str, Any] = Depends(get_current_user)
+    request: Request, current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """Get comprehensive system status with performance optimization."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"System status requested by user {current_user.get('id')} from {client_ip}")
+    logger.info(
+        f"System status requested by user {current_user.get('id')} from {client_ip}"
+    )
 
     # Performance tracking
     if performance_logger:
@@ -284,24 +327,24 @@ async def get_system_status(
 
     return await system_service.get_system_status()
 
+
 @router.get(
-    "/analytics",
-    response_model=AnalyticsReport,
-    summary="Get analytics report"
+    "/analytics", response_model=AnalyticsReport, summary="Get analytics report"
 )
 @secure_endpoint(
     auth_required=True,
     permission=RequiredPermission.ADMIN,
     rate_limit_rpm=30,
-    audit_action="view_analytics"
+    audit_action="view_analytics",
 )
 async def get_analytics_report(
-    request: Request,
-    current_user: dict[str, Any] = Depends(require_admin)
+    request: Request, current_user: dict[str, Any] = Depends(require_admin)
 ):
     """Get comprehensive analytics report (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"Analytics report requested by admin {current_user.get('username')} from {client_ip}")
+    logger.info(
+        f"Analytics report requested by admin {current_user.get('username')} from {client_ip}"
+    )
 
     # Performance tracking
     if performance_logger:
@@ -312,24 +355,22 @@ async def get_analytics_report(
 
     return await system_service.get_analytics_report()
 
-@router.post(
-    "/tests/run",
-    response_model=TestResults,
-    summary="Run system tests"
-)
+
+@router.post("/tests/run", response_model=TestResults, summary="Run system tests")
 @secure_endpoint(
     auth_required=True,
     permission=RequiredPermission.ADMIN,
     rate_limit_rpm=10,
-    audit_action="run_system_tests"
+    audit_action="run_system_tests",
 )
 async def run_system_tests(
-    request: Request,
-    current_user: dict[str, Any] = Depends(require_admin)
+    request: Request, current_user: dict[str, Any] = Depends(require_admin)
 ):
     """Run comprehensive system tests (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"System tests initiated by admin {current_user.get('username')} from {client_ip}")
+    logger.info(
+        f"System tests initiated by admin {current_user.get('username')} from {client_ip}"
+    )
 
     # Performance tracking
     if performance_logger:
@@ -340,23 +381,22 @@ async def run_system_tests(
 
     return await system_service.run_system_tests()
 
-@router.get(
-    "/performance",
-    summary="Get performance metrics"
-)
+
+@router.get("/performance", summary="Get performance metrics")
 @secure_endpoint(
     auth_required=True,
     permission=RequiredPermission.ADMIN,
     rate_limit_rpm=30,
-    audit_action="view_performance_metrics"
+    audit_action="view_performance_metrics",
 )
 async def get_performance_metrics(
-    request: Request,
-    current_user: dict[str, Any] = Depends(require_admin)
+    request: Request, current_user: dict[str, Any] = Depends(require_admin)
 ):
     """Get detailed performance metrics (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"Performance metrics requested by admin {current_user.get('username')} from {client_ip}")
+    logger.info(
+        f"Performance metrics requested by admin {current_user.get('username')} from {client_ip}"
+    )
 
     # Performance tracking
     if performance_logger:
@@ -372,32 +412,31 @@ async def get_performance_metrics(
         else:
             return {
                 "error": "Performance optimization engine not available",
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
     except Exception as e:
         logger.error(f"Error getting performance metrics: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve performance metrics"
+            detail="Failed to retrieve performance metrics",
         )
 
-@router.post(
-    "/optimize",
-    summary="Trigger system optimization"
-)
+
+@router.post("/optimize", summary="Trigger system optimization")
 @secure_endpoint(
     auth_required=True,
     permission=RequiredPermission.ADMIN,
     rate_limit_rpm=5,
-    audit_action="trigger_optimization"
+    audit_action="trigger_optimization",
 )
 async def trigger_optimization(
-    request: Request,
-    current_user: dict[str, Any] = Depends(require_admin)
+    request: Request, current_user: dict[str, Any] = Depends(require_admin)
 ):
     """Trigger system optimization (admin only)."""
     client_ip = request.client.host if request.client else "unknown"
-    logger.info(f"System optimization triggered by admin {current_user.get('username')} from {client_ip}")
+    logger.info(
+        f"System optimization triggered by admin {current_user.get('username')} from {client_ip}"
+    )
 
     # Performance tracking
     if performance_logger:
@@ -413,23 +452,25 @@ async def trigger_optimization(
 
             return {
                 "message": "System optimization completed",
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
         else:
             return {
                 "message": "Performance optimization engine not available",
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
     except Exception as e:
         logger.error(f"Error during system optimization: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to complete system optimization"
+            detail="Failed to complete system optimization",
         )
+
 
 from plexichat.core.resilience import get_system_resilience
 
 resilience_manager = get_system_resilience()
+
 
 @router.get("/resilience", summary="Get system resilience status")
 async def get_resilience_status():

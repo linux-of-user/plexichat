@@ -12,6 +12,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
 class AICoordinator:
     """Central coordinator for all AI features."""
 
@@ -32,7 +33,7 @@ class AICoordinator:
             "conversation_analyses": 0,
             "intent_recognitions": 0,
             "emotion_detections": 0,
-            "fact_checks": 0
+            "fact_checks": 0,
         }
 
         # Performance metrics
@@ -44,7 +45,7 @@ class AICoordinator:
             "cache_hits": 0,
             "cache_misses": 0,
             "model_switches": 0,
-            "failover_events": 0
+            "failover_events": 0,
         }
 
         # Adaptive AI features
@@ -53,7 +54,7 @@ class AICoordinator:
             "performance_based_routing": True,
             "dynamic_caching": True,
             "load_balancing": True,
-            "quality_monitoring": True
+            "quality_monitoring": True,
         }
 
         # Real-time AI features
@@ -83,10 +84,18 @@ class AICoordinator:
         except Exception as e:
             logger.error(f"AI provider testing failed: {e}")
 
-    async def analyze_text_comprehensive(self, text: str, analysis_types: list[str] | None = None) -> dict[str, Any]:
+    async def analyze_text_comprehensive(
+        self, text: str, analysis_types: list[str] | None = None
+    ) -> dict[str, Any]:
         """Comprehensive text analysis using multiple AI capabilities."""
         if analysis_types is None:
-            analysis_types = ["sentiment", "entities", "keywords", "language", "classification"]
+            analysis_types = [
+                "sentiment",
+                "entities",
+                "keywords",
+                "language",
+                "classification",
+            ]
 
         results = {}
 
@@ -113,7 +122,7 @@ class AICoordinator:
                 "success": True,
                 "analysis": results,
                 "text_length": len(text),
-                "analysis_types": analysis_types
+                "analysis_types": analysis_types,
             }
 
         except Exception as e:
@@ -121,7 +130,9 @@ class AICoordinator:
             logger.error(f"Comprehensive text analysis failed: {e}")
             return {"success": False, "error": str(e)}
 
-    async def smart_content_moderation(self, content: str, context: dict[str, Any] | None = None) -> dict[str, Any]:
+    async def smart_content_moderation(
+        self, content: str, context: dict[str, Any] | None = None
+    ) -> dict[str, Any]:
         """Enhanced content moderation with context awareness."""
         try:
             # Simplified moderation for now
@@ -129,7 +140,7 @@ class AICoordinator:
                 "is_appropriate": True,
                 "confidence": 0.9,
                 "flags": [],
-                "score": 0.1
+                "score": 0.1,
             }
 
             # Simplified analysis
@@ -151,7 +162,7 @@ class AICoordinator:
                 "language": language_result,
                 "context_aware": True,
                 "user_history_considered": bool(user_history),
-                "conversation_context_considered": bool(conversation_context)
+                "conversation_context_considered": bool(conversation_context),
             }
 
         except Exception as e:
@@ -197,23 +208,23 @@ class AICoordinator:
         try:
             # Simplified request processing for now
             return {
-                "request_id": getattr(request, 'id', 'unknown'),
+                "request_id": getattr(request, "id", "unknown"),
                 "content": f"Mock response for: {getattr(request, 'prompt', 'unknown')}",
-                "model_id": getattr(request, 'model_id', 'unknown'),
+                "model_id": getattr(request, "model_id", "unknown"),
                 "provider": "mock",
                 "status": "success",
                 "usage": {"tokens": 100},
-                "metadata": {"processing_time": 0.5}
+                "metadata": {"processing_time": 0.5},
             }
         except Exception as e:
             logger.error(f"Request processing failed: {e}")
             return {
-                "request_id": getattr(request, 'id', 'unknown'),
+                "request_id": getattr(request, "id", "unknown"),
                 "content": "",
-                "model_id": getattr(request, 'model_id', 'unknown'),
+                "model_id": getattr(request, "model_id", "unknown"),
                 "provider": "mock",
                 "status": "error",
-                "error": str(e)
+                "error": str(e),
             }
 
     def get_available_models(self) -> list[Any]:
@@ -237,9 +248,9 @@ class AICoordinator:
                 "auto_moderation": self.auto_moderation_enabled,
                 "auto_translation": self.auto_translation_enabled,
                 "sentiment_tracking": self.sentiment_tracking_enabled,
-                "smart_suggestions": self.smart_suggestions_enabled
+                "smart_suggestions": self.smart_suggestions_enabled,
             },
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
     async def health_check(self) -> dict[str, Any]:

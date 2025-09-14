@@ -49,7 +49,7 @@ HELP_CONTENT = {
             <li>Plugin system for extensibility</li>
         </ul>
         """,
-        "category": "basics"
+        "category": "basics",
     },
     "messaging": {
         "title": "Messaging Guide",
@@ -75,7 +75,7 @@ HELP_CONTENT = {
         <h4>Message History</h4>
         <p>You can scroll up to view previous messages. Use the search function to find specific messages.</p>
         """,
-        "category": "features"
+        "category": "features",
     },
     "files": {
         "title": "File Management",
@@ -99,7 +99,7 @@ HELP_CONTENT = {
         <h4>Security</h4>
         <p>All files are scanned for security threats before upload and storage.</p>
         """,
-        "category": "features"
+        "category": "features",
     },
     "servers": {
         "title": "Server Management",
@@ -122,7 +122,7 @@ HELP_CONTENT = {
             <li><strong>Integrations:</strong> Connect external services</li>
         </ul>
         """,
-        "category": "advanced"
+        "category": "advanced",
     },
     "security": {
         "title": "Security & Privacy",
@@ -145,8 +145,8 @@ HELP_CONTENT = {
         <h4>Reporting</h4>
         <p>Report suspicious activity or violations using the report feature.</p>
         """,
-        "category": "security"
-    }
+        "category": "security",
+    },
 }
 
 KEYBOARD_SHORTCUTS = {
@@ -154,49 +154,49 @@ KEYBOARD_SHORTCUTS = {
         {"keys": ["Ctrl", "K"], "description": "Open command palette"},
         {"keys": ["Ctrl", "/", "?"], "description": "Open help"},
         {"keys": ["Ctrl", "Shift", "A"], "description": "Toggle accessibility mode"},
-        {"keys": ["Esc"], "description": "Close modals or return to previous view"}
+        {"keys": ["Esc"], "description": "Close modals or return to previous view"},
     ],
     "messaging": [
         {"keys": ["Enter"], "description": "Send message"},
         {"keys": ["Shift", "Enter"], "description": "New line in message"},
         {"keys": ["Ctrl", "Enter"], "description": "Send message (alternative)"},
         {"keys": ["↑"], "description": "Edit last message"},
-        {"keys": ["Tab"], "description": "Navigate through mentions"}
+        {"keys": ["Tab"], "description": "Navigate through mentions"},
     ],
     "navigation": [
         {"keys": ["Alt", "↑"], "description": "Previous channel"},
         {"keys": ["Alt", "↓"], "description": "Next channel"},
         {"keys": ["Ctrl", "1-9"], "description": "Switch to server 1-9"},
         {"keys": ["Ctrl", "Shift", "↑"], "description": "Scroll to top"},
-        {"keys": ["Ctrl", "Shift", "↓"], "description": "Scroll to bottom"}
-    ]
+        {"keys": ["Ctrl", "Shift", "↓"], "description": "Scroll to bottom"},
+    ],
 }
 
 FAQ_CONTENT = [
     {
         "question": "How do I reset my password?",
-        "answer": "Click 'Forgot Password' on the login page and follow the instructions sent to your email."
+        "answer": "Click 'Forgot Password' on the login page and follow the instructions sent to your email.",
     },
     {
         "question": "Can I use PlexiChat on mobile devices?",
-        "answer": "Yes, PlexiChat has a responsive web interface that works on all modern mobile browsers."
+        "answer": "Yes, PlexiChat has a responsive web interface that works on all modern mobile browsers.",
     },
     {
         "question": "How do I create a new server?",
-        "answer": "Click the '+' button next to 'Servers' in the left sidebar, then follow the setup wizard."
+        "answer": "Click the '+' button next to 'Servers' in the left sidebar, then follow the setup wizard.",
     },
     {
         "question": "Are my messages private?",
-        "answer": "Messages in private channels are only visible to invited members. Public channels are visible to all server members."
+        "answer": "Messages in private channels are only visible to invited members. Public channels are visible to all server members.",
     },
     {
         "question": "How do I report inappropriate content?",
-        "answer": "Right-click on the message and select 'Report' from the context menu."
+        "answer": "Right-click on the message and select 'Report' from the context menu.",
     },
     {
         "question": "Can I integrate PlexiChat with other tools?",
-        "answer": "Yes, PlexiChat supports webhooks and has a plugin system for integrations."
-    }
+        "answer": "Yes, PlexiChat supports webhooks and has a plugin system for integrations.",
+    },
 ]
 
 TUTORIALS = [
@@ -205,29 +205,53 @@ TUTORIALS = [
         "title": "Welcome to PlexiChat",
         "description": "Learn the basics of using PlexiChat",
         "steps": [
-            {"title": "Explore the Interface", "content": "Take a moment to explore the main interface elements."},
-            {"title": "Join a Server", "content": "Click on a server in the left sidebar to join."},
-            {"title": "Send Your First Message", "content": "Type a message in the input field and press Enter."},
-            {"title": "Customize Your Profile", "content": "Click on your avatar to access profile settings."}
-        ]
+            {
+                "title": "Explore the Interface",
+                "content": "Take a moment to explore the main interface elements.",
+            },
+            {
+                "title": "Join a Server",
+                "content": "Click on a server in the left sidebar to join.",
+            },
+            {
+                "title": "Send Your First Message",
+                "content": "Type a message in the input field and press Enter.",
+            },
+            {
+                "title": "Customize Your Profile",
+                "content": "Click on your avatar to access profile settings.",
+            },
+        ],
     },
     {
         "id": "advanced_messaging",
         "title": "Advanced Messaging",
         "description": "Master advanced messaging features",
         "steps": [
-            {"title": "Use Markdown", "content": "Learn to format your messages with **bold**, *italic*, and `code`."},
-            {"title": "Mention Users", "content": "Type @ followed by a username to mention someone."},
-            {"title": "Share Files", "content": "Click the paperclip icon to upload and share files."},
-            {"title": "Use Emojis", "content": "Add emojis to your messages using the emoji picker."}
-        ]
-    }
+            {
+                "title": "Use Markdown",
+                "content": "Learn to format your messages with **bold**, *italic*, and `code`.",
+            },
+            {
+                "title": "Mention Users",
+                "content": "Type @ followed by a username to mention someone.",
+            },
+            {
+                "title": "Share Files",
+                "content": "Click the paperclip icon to upload and share files.",
+            },
+            {
+                "title": "Use Emojis",
+                "content": "Add emojis to your messages using the emoji picker.",
+            },
+        ],
+    },
 ]
+
 
 @router.get("/", response_class=HTMLResponse)
 async def help_center(
-    request: Request,
-    current_user: dict[str, Any] | None = Depends(get_current_user)
+    request: Request, current_user: dict[str, Any] | None = Depends(get_current_user)
 ):
     """Main help center page with comprehensive help system."""
     if not templates:
@@ -243,18 +267,19 @@ async def help_center(
                 "help_content": HELP_CONTENT,
                 "keyboard_shortcuts": KEYBOARD_SHORTCUTS,
                 "faq": FAQ_CONTENT,
-                "tutorials": TUTORIALS
-            }
+                "tutorials": TUTORIALS,
+            },
         )
     except Exception as e:
         logger.error(f"Help template error: {e}")
         return HTMLResponse(content=get_fallback_help_page())
 
+
 @router.get("/api/search", response_class=JSONResponse)
 async def search_help(
     q: str,
     category: str | None = None,
-    current_user: dict[str, Any] | None = Depends(get_current_user)
+    current_user: dict[str, Any] | None = Depends(get_current_user),
 ):
     """Search help content."""
     try:
@@ -265,38 +290,41 @@ async def search_help(
         for key, content in HELP_CONTENT.items():
             if query in content["title"].lower() or query in content["content"].lower():
                 if not category or content.get("category") == category:
-                    results.append({
-                        "id": key,
-                        "title": content["title"],
-                        "category": content.get("category", "general"),
-                        "type": "article",
-                        "snippet": content["content"][:200] + "..."
-                    })
+                    results.append(
+                        {
+                            "id": key,
+                            "title": content["title"],
+                            "category": content.get("category", "general"),
+                            "type": "article",
+                            "snippet": content["content"][:200] + "...",
+                        }
+                    )
 
         # Search in FAQ
         for faq in FAQ_CONTENT:
             if query in faq["question"].lower() or query in faq["answer"].lower():
-                results.append({
-                    "id": f"faq_{FAQ_CONTENT.index(faq)}",
-                    "title": faq["question"],
-                    "category": "faq",
-                    "type": "faq",
-                    "snippet": faq["answer"][:200] + "..."
-                })
+                results.append(
+                    {
+                        "id": f"faq_{FAQ_CONTENT.index(faq)}",
+                        "title": faq["question"],
+                        "category": "faq",
+                        "type": "faq",
+                        "snippet": faq["answer"][:200] + "...",
+                    }
+                )
 
         return {"results": results, "total": len(results)}
 
     except Exception as e:
         logger.error(f"Search error: {e}")
         return JSONResponse(
-            content={"error": "Search failed", "results": []},
-            status_code=500
+            content={"error": "Search failed", "results": []}, status_code=500
         )
+
 
 @router.get("/api/content/{content_id}", response_class=JSONResponse)
 async def get_help_content(
-    content_id: str,
-    current_user: dict[str, Any] | None = Depends(get_current_user)
+    content_id: str, current_user: dict[str, Any] | None = Depends(get_current_user)
 ):
     """Get specific help content."""
     try:
@@ -313,17 +341,18 @@ async def get_help_content(
         logger.error(f"Content retrieval error: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve content")
 
+
 @router.get("/api/tutorials", response_class=JSONResponse)
 async def get_tutorials(
-    current_user: dict[str, Any] | None = Depends(get_current_user)
+    current_user: dict[str, Any] | None = Depends(get_current_user),
 ):
     """Get available tutorials."""
     return {"tutorials": TUTORIALS}
 
+
 @router.get("/api/tutorial/{tutorial_id}", response_class=JSONResponse)
 async def get_tutorial(
-    tutorial_id: str,
-    current_user: dict[str, Any] | None = Depends(get_current_user)
+    tutorial_id: str, current_user: dict[str, Any] | None = Depends(get_current_user)
 ):
     """Get specific tutorial."""
     try:
@@ -337,12 +366,14 @@ async def get_tutorial(
         logger.error(f"Tutorial retrieval error: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve tutorial")
 
+
 @router.get("/api/keyboard-shortcuts", response_class=JSONResponse)
 async def get_keyboard_shortcuts(
-    current_user: dict[str, Any] | None = Depends(get_current_user)
+    current_user: dict[str, Any] | None = Depends(get_current_user),
 ):
     """Get keyboard shortcuts reference."""
     return {"shortcuts": KEYBOARD_SHORTCUTS}
+
 
 def get_fallback_help_page() -> str:
     """Fallback HTML for help page when templates are not available."""

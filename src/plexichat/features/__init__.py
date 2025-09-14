@@ -22,7 +22,9 @@ class FeatureManager:
         self.enabled_features: dict[str, bool] = {}
         self.feature_configs: dict[str, dict[str, Any]] = {}
 
-    def register_feature(self, name: str, enabled: bool = True, config: dict[str, Any] | None = None):
+    def register_feature(
+        self, name: str, enabled: bool = True, config: dict[str, Any] | None = None
+    ):
         """Register a feature."""
         try:
             self.enabled_features[name] = enabled
@@ -57,6 +59,7 @@ class FeatureManager:
         """Get list of enabled features."""
         return [name for name, enabled in self.enabled_features.items() if enabled]
 
+
 # Global feature manager
 feature_manager = FeatureManager()
 
@@ -66,11 +69,15 @@ def register_core_features():
     """Register core PlexiChat features."""
     try:
         # Backup features
-        feature_manager.register_feature("backup", True, {
-            "automatic_backup": True,
-            "backup_interval": 86400,  # 24 hours
-            "retention_days": 30
-        })
+        feature_manager.register_feature(
+            "backup",
+            True,
+            {
+                "automatic_backup": True,
+                "backup_interval": 86400,  # 24 hours
+                "retention_days": 30,
+            },
+        )
         logger.info("Core features registered successfully")
     except Exception as e:
         logger.error(f"Error registering core features: {e}")
@@ -85,6 +92,7 @@ def backup_enabled() -> bool:
     """Check if backup features are enabled."""
     return feature_manager.is_enabled("backup")
 
+
 # Feature imports (with error handling)
 def import_feature_modules():
     """Import feature modules with error handling."""
@@ -93,6 +101,7 @@ def import_feature_modules():
         if backup_enabled():
             try:
                 from . import backup
+
                 logger.info("Backup module imported successfully")
             except ImportError as e:
                 logger.warning(f"Could not import backup module: {e}")

@@ -11,6 +11,7 @@ try:
     from rich.table import Table
     from rich.text import Text
     from rich.tree import Tree
+
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
@@ -19,20 +20,25 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
 class DashboardMode:
     """Dashboard display modes."""
+
     OVERVIEW = "overview"
     PLUGINS = "plugins"
     PERFORMANCE = "performance"
     SECURITY = "security"
     LOGS = "logs"
 
+
 class InteractiveDashboard:
     """Interactive CLI dashboard with real-time updates."""
 
     def __init__(self):
         if not RICH_AVAILABLE:
-            raise ImportError("The 'rich' library is required for the interactive dashboard.")
+            raise ImportError(
+                "The 'rich' library is required for the interactive dashboard."
+            )
 
         self.console = Console()
         self.current_mode = DashboardMode.OVERVIEW
@@ -41,8 +47,11 @@ class InteractiveDashboard:
         self.last_update = datetime.now()
         self.layout = self._setup_layout()
         self.modes = [
-            DashboardMode.OVERVIEW, DashboardMode.PLUGINS,
-            DashboardMode.PERFORMANCE, DashboardMode.SECURITY, DashboardMode.LOGS
+            DashboardMode.OVERVIEW,
+            DashboardMode.PLUGINS,
+            DashboardMode.PERFORMANCE,
+            DashboardMode.SECURITY,
+            DashboardMode.LOGS,
         ]
         logger.info("Interactive dashboard initialized")
 
@@ -52,7 +61,7 @@ class InteractiveDashboard:
         layout.split(
             Layout(name="header", size=3),
             Layout(name="main", ratio=1),
-            Layout(name="footer", size=1)
+            Layout(name="footer", size=1),
         )
         layout["main"].split_row(Layout(name="side", size=30), Layout(name="body"))
         return layout
@@ -61,7 +70,9 @@ class InteractiveDashboard:
         """Start the interactive dashboard."""
         self.running = True
         try:
-            with Live(self.layout, console=self.console, screen=True, refresh_per_second=4) as live:
+            with Live(
+                self.layout, console=self.console, screen=True, refresh_per_second=4
+            ) as live:
                 while self.running:
                     await self._update_dashboard()
                     await asyncio.sleep(self.refresh_interval)
@@ -93,7 +104,9 @@ class InteractiveDashboard:
         self.last_update = datetime.now()
 
     def _create_header(self) -> Panel:
-        title = Text(f"PlexiChat Dashboard - {self.current_mode.title()}", style="bold blue")
+        title = Text(
+            f"PlexiChat Dashboard - {self.current_mode.title()}", style="bold blue"
+        )
         return Panel(Align.center(title), border_style="green")
 
     def _create_sidebar(self) -> Panel:
@@ -104,26 +117,40 @@ class InteractiveDashboard:
         return Panel(tree, title="Menu", border_style="cyan")
 
     def _create_footer(self) -> Text:
-        return Text(f"Last updated: {self.last_update.strftime('%H:%M:%S')} | Press 'q' to quit.", justify="center", style="dim")
+        return Text(
+            f"Last updated: {self.last_update.strftime('%H:%M:%S')} | Press 'q' to quit.",
+            justify="center",
+            style="dim",
+        )
 
     async def _update_overview(self):
-        self.layout["body"].update(Panel("Overview content goes here.", title="Overview"))
+        self.layout["body"].update(
+            Panel("Overview content goes here.", title="Overview")
+        )
 
     async def _update_plugins(self):
-        self.layout["body"].update(Panel("Plugin management content goes here.", title="Plugins"))
+        self.layout["body"].update(
+            Panel("Plugin management content goes here.", title="Plugins")
+        )
 
     async def _update_performance(self):
-        self.layout["body"].update(Panel("Performance metrics go here.", title="Performance"))
+        self.layout["body"].update(
+            Panel("Performance metrics go here.", title="Performance")
+        )
 
     async def _update_security(self):
-        self.layout["body"].update(Panel("Security status goes here.", title="Security"))
+        self.layout["body"].update(
+            Panel("Security status goes here.", title="Security")
+        )
 
     async def _update_logs(self):
         self.layout["body"].update(Panel("Live logs go here.", title="Logs"))
 
+
 def create_simple_dashboard() -> str:
     """Create a simple text-based dashboard for systems without rich."""
     return "Simple text dashboard (rich library not available)."
+
 
 async def main():
     """Main function to run the dashboard."""
@@ -136,6 +163,7 @@ async def main():
         await dashboard.start()
     except Exception as e:
         print(f"An error occurred: {e}")
+
 
 if __name__ == "__main__":
     try:

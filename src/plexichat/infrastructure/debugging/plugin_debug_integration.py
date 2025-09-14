@@ -21,13 +21,31 @@ class DebugLevel:
     INFO = "info"
     DEBUG = "debug"
     ERROR = "error"
+
+
 class ProfilerType:
     CPU = "cpu"
-def get_debug_manager(): return None
-def debug_context(context): return context
-def log_debug(message, context, level): pass
-def log_error(message, context, level): pass
-def memory_snapshot(): pass
+
+
+def get_debug_manager():
+    return None
+
+
+def debug_context(context):
+    return context
+
+
+def log_debug(message, context, level):
+    pass
+
+
+def log_error(message, context, level):
+    pass
+
+
+def memory_snapshot():
+    pass
+
 
 # from .debug_manager import get_debug_manager, DebugLevel, ProfilerType
 # from .debug_utils import debug_context, log_debug, log_error, memory_snapshot
@@ -37,6 +55,7 @@ logger = logging.getLogger(__name__)
 
 class PluginDebugger:
     """Debug integration for individual plugins."""
+
     def __init__(self, plugin_name: str):
         self.plugin_name = plugin_name
         self.debug_manager = get_debug_manager()
@@ -49,28 +68,31 @@ class PluginDebugger:
         """Start a debug session for this plugin."""
         session_metadata = {
             "plugin_name": self.plugin_name,
-            "session_type": "plugin_debug"
+            "session_type": "plugin_debug",
         }
         if metadata:
             session_metadata.update(metadata)
 
         if self.debug_manager:
             self.session_id = self.debug_manager.create_debug_session(
-                f"Plugin Debug: {self.plugin_name}",
-                session_metadata
+                f"Plugin Debug: {self.plugin_name}", session_metadata
             )
 
             log_debug(
                 f"Debug session started for plugin {self.plugin_name}",
                 {"session_id": self.session_id},
-                DebugLevel.INFO
+                DebugLevel.INFO,
             )
 
         return self.session_id
 
     def end_debug_session(self):
         """End the current debug session."""
-        if self.debug_manager and self.session_id and self.session_id in self.debug_manager.debug_sessions:
+        if (
+            self.debug_manager
+            and self.session_id
+            and self.session_id in self.debug_manager.debug_sessions
+        ):
             self.debug_manager.debug_sessions[self.session_id].end_session()
 
             log_debug(
@@ -78,15 +100,16 @@ class PluginDebugger:
                 {
                     "session_id": self.session_id,
                     "operations": self.operation_count,
-                    "errors": self.error_count
+                    "errors": self.error_count,
                 },
-                DebugLevel.INFO
+                DebugLevel.INFO,
             )
 
             self.session_id = None
 
     def debug_operation(self, operation_name: str, include_profiling: bool = True):
         """Decorator for debugging plugin operations."""
+
         def decorator(func):
             @functools.wraps(func)
             async def async_wrapper(*args, **kwargs):
@@ -107,8 +130,15 @@ class PluginDebugger:
 
         return decorator
 
-    async def _execute_with_debug(self, func, operation_name: str, include_profiling: bool,
-                                is_async: bool, *args, **kwargs):
+    async def _execute_with_debug(
+        self,
+        func,
+        operation_name: str,
+        include_profiling: bool,
+        is_async: bool,
+        *args,
+        **kwargs,
+    ):
         """Execute function with debug tracking (async version)."""
         self.operation_count += 1
         operation_id = f"{self.plugin_name}.{operation_name}.{self.operation_count}"
@@ -118,7 +148,7 @@ class PluginDebugger:
             "plugin_name": self.plugin_name,
             "operation": operation_name,
             "operation_id": operation_id,
-            "session_id": self.session_id
+            "session_id": self.session_id,
         }
 
         if self.debug_manager:
@@ -127,7 +157,7 @@ class PluginDebugger:
                 f"plugin.{self.plugin_name}",
                 f"Operation started: {operation_name}",
                 context,
-                self.session_id
+                self.session_id,
             )
 
         start_time = time.time()
@@ -135,7 +165,9 @@ class PluginDebugger:
         try:
             # Execute with optional profiling
             if include_profiling and self.debug_manager:
-                with self.debug_manager.profile_function(operation_id, ProfilerType.CPU):
+                with self.debug_manager.profile_function(
+                    operation_id, ProfilerType.CPU
+                ):
                     result = await func(*args, **kwargs)
             else:
                 result = await func(*args, **kwargs)
@@ -144,10 +176,7 @@ class PluginDebugger:
 
             # Log successful completion
             success_context = context.copy()
-            success_context.update({
-                "duration": duration,
-                "success": True
-            })
+            success_context.update({"duration": duration, "success": True})
 
             if self.debug_manager:
                 self.debug_manager.log_event(
@@ -155,7 +184,7 @@ class PluginDebugger:
                     f"plugin.{self.plugin_name}",
                     f"Operation completed: {operation_name} ({duration:.4f}s)",
                     success_context,
-                    self.session_id
+                    self.session_id,
                 )
 
             # Track performance
@@ -171,24 +200,24 @@ class PluginDebugger:
 
             # Log error
             error_context = context.copy()
-            error_context.update({
-                "duration": duration,
-                "success": False,
-                "error_count": self.error_count
-            })
+            error_context.update(
+                {
+                    "duration": duration,
+                    "success": False,
+                    "error_count": self.error_count,
+                }
+            )
 
             if self.debug_manager:
                 self.debug_manager.log_error(
-                    f"plugin.{self.plugin_name}",
-                    e,
-                    error_context,
-                    self.session_id
+                    f"plugin.{self.plugin_name}", e, error_context, self.session_id
                 )
 
             raise
 
-    def _execute_with_debug_sync(self, func, operation_name: str, include_profiling: bool,
-                                *args, **kwargs):
+    def _execute_with_debug_sync(
+        self, func, operation_name: str, include_profiling: bool, *args, **kwargs
+    ):
         """Execute function with debug tracking (sync version)."""
         self.operation_count += 1
         operation_id = f"{self.plugin_name}.{operation_name}.{self.operation_count}"
@@ -198,7 +227,7 @@ class PluginDebugger:
             "plugin_name": self.plugin_name,
             "operation": operation_name,
             "operation_id": operation_id,
-            "session_id": self.session_id
+            "session_id": self.session_id,
         }
 
         if self.debug_manager:
@@ -207,7 +236,7 @@ class PluginDebugger:
                 f"plugin.{self.plugin_name}",
                 f"Operation started: {operation_name}",
                 context,
-                self.session_id
+                self.session_id,
             )
 
         start_time = time.time()
@@ -215,7 +244,9 @@ class PluginDebugger:
         try:
             # Execute with optional profiling
             if include_profiling and self.debug_manager:
-                with self.debug_manager.profile_function(operation_id, ProfilerType.CPU):
+                with self.debug_manager.profile_function(
+                    operation_id, ProfilerType.CPU
+                ):
                     result = func(*args, **kwargs)
             else:
                 result = func(*args, **kwargs)
@@ -224,10 +255,7 @@ class PluginDebugger:
 
             # Log successful completion
             success_context = context.copy()
-            success_context.update({
-                "duration": duration,
-                "success": True
-            })
+            success_context.update({"duration": duration, "success": True})
 
             if self.debug_manager:
                 self.debug_manager.log_event(
@@ -235,7 +263,7 @@ class PluginDebugger:
                     f"plugin.{self.plugin_name}",
                     f"Operation completed: {operation_name} ({duration:.4f}s)",
                     success_context,
-                    self.session_id
+                    self.session_id,
                 )
 
             # Track performance
@@ -251,28 +279,28 @@ class PluginDebugger:
 
             # Log error
             error_context = context.copy()
-            error_context.update({
-                "duration": duration,
-                "success": False,
-                "error_count": self.error_count
-            })
+            error_context.update(
+                {
+                    "duration": duration,
+                    "success": False,
+                    "error_count": self.error_count,
+                }
+            )
 
             if self.debug_manager:
                 self.debug_manager.log_error(
-                    f"plugin.{self.plugin_name}",
-                    e,
-                    error_context,
-                    self.session_id
+                    f"plugin.{self.plugin_name}", e, error_context, self.session_id
                 )
 
             raise
 
-    def log_plugin_event(self, level: DebugLevel, message: str,
-                        context: dict[str, Any] | None = None):
+    def log_plugin_event(
+        self, level: DebugLevel, message: str, context: dict[str, Any] | None = None
+    ):
         """Log a plugin-specific event."""
         plugin_context = {
             "plugin_name": self.plugin_name,
-            "session_id": self.session_id
+            "session_id": self.session_id,
         }
         if context:
             plugin_context.update(context)
@@ -283,7 +311,7 @@ class PluginDebugger:
                 f"plugin.{self.plugin_name}",
                 message,
                 plugin_context,
-                self.session_id
+                self.session_id,
             )
 
     def log_plugin_error(self, error: Exception, context: dict[str, Any] | None = None):
@@ -291,7 +319,7 @@ class PluginDebugger:
         plugin_context = {
             "plugin_name": self.plugin_name,
             "session_id": self.session_id,
-            "error_count": self.error_count + 1
+            "error_count": self.error_count + 1,
         }
         if context:
             plugin_context.update(context)
@@ -300,15 +328,16 @@ class PluginDebugger:
 
         if self.debug_manager:
             self.debug_manager.log_error(
-                f"plugin.{self.plugin_name}",
-                error,
-                plugin_context,
-                self.session_id
+                f"plugin.{self.plugin_name}", error, plugin_context, self.session_id
             )
 
     def take_memory_snapshot(self, label: str = ""):
         """Take a memory snapshot for this plugin."""
-        snapshot_label = f"Plugin {self.plugin_name}: {label}" if label else f"Plugin {self.plugin_name}"
+        snapshot_label = (
+            f"Plugin {self.plugin_name}: {label}"
+            if label
+            else f"Plugin {self.plugin_name}"
+        )
         if self.debug_manager:
             self.debug_manager.take_memory_snapshot(snapshot_label)
 
@@ -323,7 +352,7 @@ class PluginDebugger:
                     "avg_duration": sum(durations) / len(durations),
                     "min_duration": min(durations),
                     "max_duration": max(durations),
-                    "total_duration": sum(durations)
+                    "total_duration": sum(durations),
                 }
 
         return {
@@ -331,7 +360,7 @@ class PluginDebugger:
             "operations": summary,
             "total_operations": self.operation_count,
             "total_errors": self.error_count,
-            "session_id": self.session_id
+            "session_id": self.session_id,
         }
 
 
@@ -342,6 +371,7 @@ def create_plugin_debugger(plugin_name: str) -> PluginDebugger:
 
 def debug_plugin_initialization(plugin_name: str):
     """Decorator for debugging plugin initialization."""
+
     def decorator(func):
         @functools.wraps(func)
         async def async_wrapper(*args, **kwargs):
@@ -350,14 +380,15 @@ def debug_plugin_initialization(plugin_name: str):
 
             try:
                 debugger.log_plugin_event(
-                    DebugLevel.INFO,
-                    f"Plugin initialization started: {plugin_name}"
+                    DebugLevel.INFO, f"Plugin initialization started: {plugin_name}"
                 )
 
                 debugger.take_memory_snapshot("before_initialization")
 
                 if debugger.debug_manager:
-                    with debugger.debug_manager.profile_function(f"{plugin_name}.initialize"):
+                    with debugger.debug_manager.profile_function(
+                        f"{plugin_name}.initialize"
+                    ):
                         result = await func(*args, **kwargs)
                 else:
                     result = await func(*args, **kwargs)
@@ -367,7 +398,7 @@ def debug_plugin_initialization(plugin_name: str):
                 debugger.log_plugin_event(
                     DebugLevel.INFO,
                     f"Plugin initialization completed: {plugin_name}",
-                    {"success": True}
+                    {"success": True},
                 )
 
                 return result
@@ -385,14 +416,15 @@ def debug_plugin_initialization(plugin_name: str):
 
             try:
                 debugger.log_plugin_event(
-                    DebugLevel.INFO,
-                    f"Plugin initialization started: {plugin_name}"
+                    DebugLevel.INFO, f"Plugin initialization started: {plugin_name}"
                 )
 
                 debugger.take_memory_snapshot("before_initialization")
 
                 if debugger.debug_manager:
-                    with debugger.debug_manager.profile_function(f"{plugin_name}.initialize"):
+                    with debugger.debug_manager.profile_function(
+                        f"{plugin_name}.initialize"
+                    ):
                         result = func(*args, **kwargs)
                 else:
                     result = func(*args, **kwargs)
@@ -402,7 +434,7 @@ def debug_plugin_initialization(plugin_name: str):
                 debugger.log_plugin_event(
                     DebugLevel.INFO,
                     f"Plugin initialization completed: {plugin_name}",
-                    {"success": True}
+                    {"success": True},
                 )
 
                 return result
@@ -423,26 +455,28 @@ def debug_plugin_initialization(plugin_name: str):
 
 def debug_plugin_test(plugin_name: str, test_name: str):
     """Decorator for debugging plugin tests."""
+
     def decorator(func):
         @functools.wraps(func)
         async def async_wrapper(*args, **kwargs):
             debugger = create_plugin_debugger(plugin_name)
-            session_id = debugger.start_debug_session({
-                "operation": "test",
-                "test_name": test_name
-            })
+            session_id = debugger.start_debug_session(
+                {"operation": "test", "test_name": test_name}
+            )
 
             try:
                 debugger.log_plugin_event(
                     DebugLevel.INFO,
                     f"Plugin test started: {test_name}",
-                    {"test_name": test_name}
+                    {"test_name": test_name},
                 )
 
                 start_time = time.time()
 
                 if debugger.debug_manager:
-                    with debugger.debug_manager.profile_function(f"{plugin_name}.test.{test_name}"):
+                    with debugger.debug_manager.profile_function(
+                        f"{plugin_name}.test.{test_name}"
+                    ):
                         result = await func(*args, **kwargs)
                 else:
                     result = await func(*args, **kwargs)
@@ -461,17 +495,16 @@ def debug_plugin_test(plugin_name: str, test_name: str):
                         "test_name": test_name,
                         "duration": duration,
                         "success": test_success,
-                        "result": result if isinstance(result, dict) else None
-                    }
+                        "result": result if isinstance(result, dict) else None,
+                    },
                 )
 
                 return result
 
             except Exception as e:
-                debugger.log_plugin_error(e, {
-                    "operation": "test",
-                    "test_name": test_name
-                })
+                debugger.log_plugin_error(
+                    e, {"operation": "test", "test_name": test_name}
+                )
                 raise
             finally:
                 debugger.end_debug_session()
@@ -479,22 +512,23 @@ def debug_plugin_test(plugin_name: str, test_name: str):
         @functools.wraps(func)
         def sync_wrapper(*args, **kwargs):
             debugger = create_plugin_debugger(plugin_name)
-            session_id = debugger.start_debug_session({
-                "operation": "test",
-                "test_name": test_name
-            })
+            session_id = debugger.start_debug_session(
+                {"operation": "test", "test_name": test_name}
+            )
 
             try:
                 debugger.log_plugin_event(
                     DebugLevel.INFO,
                     f"Plugin test started: {test_name}",
-                    {"test_name": test_name}
+                    {"test_name": test_name},
                 )
 
                 start_time = time.time()
 
                 if debugger.debug_manager:
-                    with debugger.debug_manager.profile_function(f"{plugin_name}.test.{test_name}"):
+                    with debugger.debug_manager.profile_function(
+                        f"{plugin_name}.test.{test_name}"
+                    ):
                         result = func(*args, **kwargs)
                 else:
                     result = func(*args, **kwargs)
@@ -513,17 +547,16 @@ def debug_plugin_test(plugin_name: str, test_name: str):
                         "test_name": test_name,
                         "duration": duration,
                         "success": test_success,
-                        "result": result if isinstance(result, dict) else None
-                    }
+                        "result": result if isinstance(result, dict) else None,
+                    },
                 )
 
                 return result
 
             except Exception as e:
-                debugger.log_plugin_error(e, {
-                    "operation": "test",
-                    "test_name": test_name
-                })
+                debugger.log_plugin_error(
+                    e, {"operation": "test", "test_name": test_name}
+                )
                 raise
             finally:
                 debugger.end_debug_session()

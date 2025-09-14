@@ -26,7 +26,7 @@ async def test_threads():
             title="Test Thread",
             channel_id="test_channel",
             creator_id="test_user",
-            parent_message_id=None
+            parent_message_id=None,
         )
 
         if success:
@@ -49,12 +49,14 @@ async def test_threads():
 
         # Test sending a message in the thread
         print("\n3. Testing thread message sending...")
-        msg_success, msg_id_or_error, message = await messaging_system.send_thread_message(
-            sender_id="test_user",
-            thread_id=thread_id_or_error,
-            content="Test message in thread",
-            message_type=MessageType.TEXT,
-            reply_to=None
+        msg_success, msg_id_or_error, message = (
+            await messaging_system.send_thread_message(
+                sender_id="test_user",
+                thread_id=thread_id_or_error,
+                content="Test message in thread",
+                message_type=MessageType.TEXT,
+                reply_to=None,
+            )
         )
 
         if msg_success:
@@ -65,9 +67,7 @@ async def test_threads():
         # Test getting thread messages
         print("\n4. Testing thread messages retrieval...")
         messages = await messaging_system.get_thread_messages(
-            thread_id=thread_id_or_error,
-            limit=10,
-            before_message_id=None
+            thread_id=thread_id_or_error, limit=10, before_message_id=None
         )
 
         if messages:
@@ -92,7 +92,9 @@ async def test_threads():
     except Exception as e:
         print(f"[ERROR] Test failed with error: {e}")
         import traceback
+
         traceback.print_exc()
+
 
 if __name__ == "__main__":
     asyncio.run(test_threads())

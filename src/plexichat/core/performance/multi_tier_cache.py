@@ -231,11 +231,10 @@ async def get_cached_value(
             status_code=500, detail=f"Failed to get cached value: {e!s}"
         )
 
+
 # Register the cache lookup function for compilation (Cython)
 optimizer.register_function(
-    "plexichat.core.performance.cache_lookup",
-    "fast_cache_get",
-    compiler="cython"
+    "plexichat.core.performance.cache_lookup", "fast_cache_get", compiler="cython"
 )
 
 

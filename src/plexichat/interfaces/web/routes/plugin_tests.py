@@ -28,6 +28,7 @@ templates = Jinja2Templates(directory="src/plexichat/interfaces/web/templates")
 
 class TestRunRequest(BaseModel):
     """Test run request model."""
+
     plugin_name: str
     test_name: str | None = None
     timeout: int = 300
@@ -35,6 +36,7 @@ class TestRunRequest(BaseModel):
 
 class TestScheduleRequest(BaseModel):
     """Test schedule request model."""
+
     plugin_name: str
     test_name: str
     schedule_expression: str
@@ -64,15 +66,18 @@ async def tests_dashboard(request: Request):
         # Get discovered tests
         # discovered_tests = test_manager.discovered_tests # This line is removed
 
-        return templates.TemplateResponse("plugin_tests_dashboard.html", {
-            "request": request,
-            # "overall_stats": overall_stats, # This line is removed
-            # "plugin_stats": plugin_stats, # This line is removed
-            # "recent_results": recent_results, # This line is removed
-            # "scheduled_tests": scheduled_tests, # This line is removed
-            # "discovered_tests": discovered_tests, # This line is removed
-            "page_title": "Plugin Tests Dashboard"
-        })
+        return templates.TemplateResponse(
+            "plugin_tests_dashboard.html",
+            {
+                "request": request,
+                # "overall_stats": overall_stats, # This line is removed
+                # "plugin_stats": plugin_stats, # This line is removed
+                # "recent_results": recent_results, # This line is removed
+                # "scheduled_tests": scheduled_tests, # This line is removed
+                # "discovered_tests": discovered_tests, # This line is removed
+                "page_title": "Plugin Tests Dashboard",
+            },
+        )
 
     except Exception as e:
         logger.error(f"Error loading tests dashboard: {e}")
@@ -102,15 +107,18 @@ async def plugin_tests_page(request: Request, plugin_name: str):
         #     if schedule.plugin_name == plugin_name # This line is removed
         # ] # This line is removed
 
-        return templates.TemplateResponse("plugin_tests_detail.html", {
-            "request": request,
-            "plugin_name": plugin_name,
-            # "plugin_tests": plugin_tests, # This line is removed
-            # "test_results": test_results, # This line is removed
-            # "plugin_stats": plugin_stats, # This line is removed
-            # "plugin_schedules": plugin_schedules, # This line is removed
-            "page_title": f"Tests - {plugin_name}"
-        })
+        return templates.TemplateResponse(
+            "plugin_tests_detail.html",
+            {
+                "request": request,
+                "plugin_name": plugin_name,
+                # "plugin_tests": plugin_tests, # This line is removed
+                # "test_results": test_results, # This line is removed
+                # "plugin_stats": plugin_stats, # This line is removed
+                # "plugin_schedules": plugin_schedules, # This line is removed
+                "page_title": f"Tests - {plugin_name}",
+            },
+        )
 
     except Exception as e:
         logger.error(f"Error loading plugin tests page: {e}")
@@ -140,11 +148,11 @@ async def run_test(request: TestRunRequest):
             #         "error": result.error # This line is removed
             #     } # This line is removed
             # }) # This line is removed
-            pass # This line is added
+            pass  # This line is added
         else:
             # Run all tests for plugin
             # results = await test_manager.run_all_plugin_tests(request.plugin_name) # This line is removed
-            pass # This line is added
+            pass  # This line is added
 
     except Exception as e:
         logger.error(f"Error running test: {e}")
@@ -175,11 +183,13 @@ async def schedule_test(_request: TestScheduleRequest):
         #     request.timeout # This line is removed
         # ) # This line is removed
 
-        return JSONResponse(content={
-            "success": True,
-            "schedule_id": "dummy_schedule_id", # Placeholder, actual scheduling logic needs to be implemented
-            "message": "Test scheduled successfully"
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "schedule_id": "dummy_schedule_id",  # Placeholder, actual scheduling logic needs to be implemented
+                "message": "Test scheduled successfully",
+            }
+        )
 
     except Exception as e:
         logger.error(f"Error scheduling test: {e}")
@@ -205,10 +215,9 @@ async def unschedule_test(_schedule_id: str):
         #         "message": "Schedule not found" # This line is removed
         #     }, status_code=404) # This line is removed
 
-        return JSONResponse(content={
-            "success": True,
-            "message": "Schedule unscheduled successfully"
-        })
+        return JSONResponse(
+            content={"success": True, "message": "Schedule unscheduled successfully"}
+        )
 
     except Exception as e:
         logger.error(f"Error unscheduling test: {e}")
@@ -219,7 +228,7 @@ async def unschedule_test(_schedule_id: str):
 async def get_test_results(
     _plugin_name: str | None = Query(None),
     _limit: int = Query(50, ge=1, le=1000),
-    _status: str | None = Query(None)
+    _status: str | None = Query(None),
 ):
     """Get test results with optional filtering."""
     try:
@@ -235,24 +244,26 @@ async def get_test_results(
         # Convert to JSON-serializable format
         results_data = [
             {
-                "test_id": "dummy_test_id", # Placeholder, actual test result data needs to be fetched
-                "plugin_name": "dummy_plugin", # Placeholder
-                "test_name": "dummy_test", # Placeholder
-                "status": "ok", # Placeholder
-                "duration": 0, # Placeholder
-                "message": "Test completed", # Placeholder
-                "error": "", # Placeholder
-                "timestamp": datetime.now().isoformat(), # Placeholder
-                "metadata": {} # Placeholder
+                "test_id": "dummy_test_id",  # Placeholder, actual test result data needs to be fetched
+                "plugin_name": "dummy_plugin",  # Placeholder
+                "test_name": "dummy_test",  # Placeholder
+                "status": "ok",  # Placeholder
+                "duration": 0,  # Placeholder
+                "message": "Test completed",  # Placeholder
+                "error": "",  # Placeholder
+                "timestamp": datetime.now().isoformat(),  # Placeholder
+                "metadata": {},  # Placeholder
             }
-            for result in [] # Placeholder, actual test results will be fetched
+            for result in []  # Placeholder, actual test results will be fetched
         ]
 
-        return JSONResponse(content={
-            "success": True,
-            "results": results_data,
-            "count": len(results_data)
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "results": results_data,
+                "count": len(results_data),
+            }
+        )
 
     except Exception as e:
         logger.error(f"Error getting test results: {e}")
@@ -267,10 +278,12 @@ async def get_test_statistics(plugin_name: str | None = Query(None)):
 
         # stats = test_manager.get_test_statistics(plugin_name) # This line is removed
 
-        return JSONResponse(content={
-            "success": True,
-            "statistics": {} # Placeholder, actual statistics will be fetched
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "statistics": {},  # Placeholder, actual statistics will be fetched
+            }
+        )
 
     except Exception as e:
         logger.error(f"Error getting test statistics: {e}")
@@ -285,23 +298,20 @@ async def get_scheduled_tests():
 
         schedules = [
             {
-                "test_id": "dummy_schedule_id", # Placeholder
-                "plugin_name": "dummy_plugin", # Placeholder
-                "test_name": "dummy_test", # Placeholder
-                "schedule_expression": "*/5 * * * *", # Placeholder
-                "enabled": True, # Placeholder
-                "priority": "medium", # Placeholder
-                "timeout": 300, # Placeholder
-                "last_run": datetime.now().isoformat(), # Placeholder
-                "next_run": datetime.now().isoformat() # Placeholder
+                "test_id": "dummy_schedule_id",  # Placeholder
+                "plugin_name": "dummy_plugin",  # Placeholder
+                "test_name": "dummy_test",  # Placeholder
+                "schedule_expression": "*/5 * * * *",  # Placeholder
+                "enabled": True,  # Placeholder
+                "priority": "medium",  # Placeholder
+                "timeout": 300,  # Placeholder
+                "last_run": datetime.now().isoformat(),  # Placeholder
+                "next_run": datetime.now().isoformat(),  # Placeholder
             }
-            for schedule in [] # Placeholder, actual schedules will be fetched
+            for schedule in []  # Placeholder, actual schedules will be fetched
         ]
 
-        return JSONResponse(content={
-            "success": True,
-            "schedules": schedules
-        })
+        return JSONResponse(content={"success": True, "schedules": schedules})
 
     except Exception as e:
         logger.error(f"Error getting scheduled tests: {e}")
@@ -325,20 +335,22 @@ async def discover_tests(plugin_name: str | None = None):
             #     discovered_count = len(tests) # This line is removed
             # else: # This line is removed
             #     raise HTTPException(status_code=404, detail=f"Plugin {plugin_name} not found") # This line is removed
-            pass # This line is added
+            pass  # This line is added
         else:
             # Discover tests for all plugins
             # for plugin_name in plugin_manager.loaded_plugins.keys(): # This line is removed
             #     plugin_path = Path(f"plugins/{plugin_name}") # This line is removed
             #     tests = await test_manager.discover_plugin_tests(plugin_name, plugin_path) # This line is removed
             #     discovered_count += len(tests) # This line is removed
-            pass # This line is added
+            pass  # This line is added
 
-        return JSONResponse(content={
-            "success": True,
-            "message": f"Discovered {discovered_count} tests",
-            "discovered_count": discovered_count
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "message": f"Discovered {discovered_count} tests",
+                "discovered_count": discovered_count,
+            }
+        )
 
     except Exception as e:
         logger.error(f"Error discovering tests: {e}")
@@ -356,11 +368,13 @@ async def live_test_updates():
         # running_tests = list(test_manager.running_tests.keys()) # This line is removed
         # recent_results = test_manager.get_test_results(limit=5) # This line is removed
 
-        return JSONResponse(content={
-            "success": True,
-            "running_tests": [], # Placeholder
-            "recent_results": [] # Placeholder
-        })
+        return JSONResponse(
+            content={
+                "success": True,
+                "running_tests": [],  # Placeholder
+                "recent_results": [],  # Placeholder
+            }
+        )
 
     except Exception as e:
         logger.error(f"Error getting live updates: {e}")
@@ -378,23 +392,21 @@ async def bulk_run_tests(plugin_names: list[str]):
         for plugin_name in plugin_names:
             try:
                 # results = await test_manager.run_all_plugin_tests(plugin_name) # This line is removed
-                pass # This line is added
+                pass  # This line is added
             except Exception as e:
                 logger.error(f"Error running tests for plugin {plugin_name}: {e}")
 
         # Summarize results
         summary = {
-            "total_tests": 0, # Placeholder
-            "passed": 0, # Placeholder
-            "failed": 0, # Placeholder
-            "error": 0 # Placeholder
+            "total_tests": 0,  # Placeholder
+            "passed": 0,  # Placeholder
+            "failed": 0,  # Placeholder
+            "error": 0,  # Placeholder
         }
 
-        return JSONResponse(content={
-            "success": True,
-            "summary": summary,
-            "results": [] # Placeholder
-        })
+        return JSONResponse(
+            content={"success": True, "summary": summary, "results": []}  # Placeholder
+        )
 
     except Exception as e:
         logger.error(f"Error running bulk tests: {e}")

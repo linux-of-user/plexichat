@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 
 class DebugLevel(Enum):
     """Debug levels for different types of debugging."""
+
     TRACE = "trace"
     DEBUG = "debug"
     INFO = "info"
@@ -43,6 +44,7 @@ class DebugLevel(Enum):
 
 class ProfilerType(Enum):
     """Types of profiling available."""
+
     CPU = "cpu"
     MEMORY = "memory"
     IO = "io"
@@ -52,6 +54,7 @@ class ProfilerType(Enum):
 @dataclass
 class DebugEvent:
     """Debug event data structure."""
+
     timestamp: str
     level: DebugLevel
     source: str
@@ -68,6 +71,7 @@ class DebugEvent:
 @dataclass
 class ProfileData:
     """Profiling data structure."""
+
     profiler_type: ProfilerType
     start_time: float
     end_time: float
@@ -145,13 +149,15 @@ class DebugManager:
     def _setup_file_logging(self):
         """Setup file logging for debug events."""
         try:
-            log_file = self.log_directory / f"debug_{datetime.now().strftime('%Y%m%d')}.log"
+            log_file = (
+                self.log_directory / f"debug_{datetime.now().strftime('%Y%m%d')}.log"
+            )
 
             file_handler = logging.FileHandler(log_file)
             file_handler.setLevel(logging.DEBUG)
 
             formatter = logging.Formatter(
-                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
             )
             file_handler.setFormatter(formatter)
 
@@ -162,7 +168,9 @@ class DebugManager:
         except Exception as e:
             logger.error(f"Failed to setup file logging: {e}")
 
-    def create_debug_session(self, name: str, metadata: dict[str, Any] | None = None) -> str:
+    def create_debug_session(
+        self, name: str, metadata: dict[str, Any] | None = None
+    ) -> str:
         """Create a new debug session."""
         try:
             session_id = f"debug_session_{int(time.time())}_{len(self.debug_sessions)}"
@@ -178,7 +186,7 @@ class DebugManager:
                 if len(self.debug_sessions) > self.max_sessions:
                     oldest_session = min(
                         self.debug_sessions.keys(),
-                        key=lambda k: self.debug_sessions[k].start_time
+                        key=lambda k: self.debug_sessions[k].start_time,
                     )
                     del self.debug_sessions[oldest_session]
 
@@ -189,10 +197,15 @@ class DebugManager:
             logger.error(f"Error creating debug session: {e}")
             return ""
 
-    def log_event(self, level: DebugLevel, source: str, message: str,
-                context: dict[str, Any] | None = None,
-                session_id: str | None = None,
-                include_stack: bool = False):
+    def log_event(
+        self,
+        level: DebugLevel,
+        source: str,
+        message: str,
+        context: dict[str, Any] | None = None,
+        session_id: str | None = None,
+        include_stack: bool = False,
+    ):
         """Log a debug event."""
         try:
             if not self.debug_enabled:
@@ -204,7 +217,7 @@ class DebugManager:
                 level=level,
                 source=source,
                 message=message,
-                context=context or {}
+                context=context or {},
             )
 
             # Add stack trace if requested
@@ -221,7 +234,7 @@ class DebugManager:
 
                 # Limit events
                 if len(self.debug_events) > self.max_events:
-                    self.debug_events = self.debug_events[-self.max_events:]
+                    self.debug_events = self.debug_events[-self.max_events :]
 
                 # Add to session if specified
                 if session_id and session_id in self.debug_sessions:
@@ -234,9 +247,13 @@ class DebugManager:
         except Exception as e:
             logger.error(f"Error logging debug event: {e}")
 
-    def log_error(self, source: str, error: Exception,
-                context: dict[str, Any] | None = None,
-                session_id: str | None = None):
+    def log_error(
+        self,
+        source: str,
+        error: Exception,
+        context: dict[str, Any] | None = None,
+        session_id: str | None = None,
+    ):
         """Log an error with full traceback."""
         try:
             error_message = f"{type(error).__name__}: {error!s}"
@@ -248,11 +265,13 @@ class DebugManager:
 
             # Create enhanced context
             enhanced_context = context or {}
-            enhanced_context.update({
-                "error_type": type(error).__name__,
-                "error_count": self.error_counts[error_key],
-                "traceback": traceback.format_exc()
-            })
+            enhanced_context.update(
+                {
+                    "error_type": type(error).__name__,
+                    "error_count": self.error_counts[error_key],
+                    "traceback": traceback.format_exc(),
+                }
+            )
 
             self.log_event(
                 DebugLevel.ERROR,
@@ -260,14 +279,16 @@ class DebugManager:
                 error_message,
                 enhanced_context,
                 session_id,
-                include_stack=True
+                include_stack=True,
             )
 
         except Exception as e:
             logger.error(f"Error logging error: {e}")
 
     @contextmanager
-    def profile_function(self, function_name: str, profiler_type: ProfilerType = ProfilerType.CPU):
+    def profile_function(
+        self, function_name: str, profiler_type: ProfilerType = ProfilerType.CPU
+    ):
         """Context manager for profiling function execution."""
         if not self.profiling_enabled:
             yield
@@ -298,31 +319,36 @@ class DebugManager:
             try:
                 profile_data = {}
 
-                if profiler_type == ProfilerType.CPU and profiler_id in self.active_profilers:
+                if (
+                    profiler_type == ProfilerType.CPU
+                    and profiler_id in self.active_profilers
+                ):
                     profiler = self.active_profilers[profiler_id]
                     profiler.disable()
 
                     # Get profiling stats
                     stats_stream = io.StringIO()
                     stats = pstats.Stats(profiler, stream=stats_stream)
-                    stats.sort_stats('cumulative')
+                    stats.sort_stats("cumulative")
                     stats.print_stats(20)  # Top 20 functions
 
                     profile_data = {
                         "stats": stats_stream.getvalue(),
                         "total_calls": stats.total_calls,
-                        "total_time": stats.total_tt
+                        "total_time": stats.total_tt,
                     }
 
                     del self.active_profilers[profiler_id]
 
                 elif profiler_type == ProfilerType.MEMORY:
                     memory_after = self._get_memory_usage()
-                    memory_before_val = memory_before if memory_before is not None else 0
+                    memory_before_val = (
+                        memory_before if memory_before is not None else 0
+                    )
                     profile_data = {
                         "memory_before": memory_before_val,
                         "memory_after": memory_after,
-                        "memory_delta": memory_after - memory_before_val
+                        "memory_delta": memory_after - memory_before_val,
                     }
 
                 # Create profile data object
@@ -333,7 +359,7 @@ class DebugManager:
                     duration=duration,
                     data=profile_data,
                     function_name=function_name,
-                    module_name="unknown"
+                    module_name="unknown",
                 )
 
                 # Store performance metrics
@@ -344,7 +370,9 @@ class DebugManager:
 
                     # Limit metrics
                     if len(self.performance_metrics[function_name]) > 1000:
-                        self.performance_metrics[function_name] = self.performance_metrics[function_name][-1000:]
+                        self.performance_metrics[function_name] = (
+                            self.performance_metrics[function_name][-1000:]
+                        )
 
                 logger.debug(f"Profiled {function_name}: {duration:.4f}s")
 
@@ -353,22 +381,28 @@ class DebugManager:
 
     def profile_decorator(self, profiler_type: ProfilerType = ProfilerType.CPU):
         """Decorator for profiling functions."""
+
         def decorator(func):
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
                 with self.profile_function(func.__name__, profiler_type):
                     return func(*args, **kwargs)
+
             return wrapper
+
         return decorator
 
     def async_profile_decorator(self, profiler_type: ProfilerType = ProfilerType.CPU):
         """Decorator for profiling async functions."""
+
         def decorator(func):
             @functools.wraps(func)
             async def wrapper(*args, **kwargs):
                 with self.profile_function(func.__name__, profiler_type):
                     return await func(*args, **kwargs)
+
             return wrapper
+
         return decorator
 
     def _get_current_performance_data(self) -> dict[str, Any]:
@@ -381,8 +415,8 @@ class DebugManager:
                 "memory_mb": process.memory_info().rss / 1024 / 1024,
                 "memory_percent": process.memory_percent(),
                 "num_threads": process.num_threads(),
-                "num_fds": process.num_fds() if hasattr(process, 'num_fds') else 0,
-                "timestamp": time.time()
+                "num_fds": process.num_fds() if hasattr(process, "num_fds") else 0,
+                "timestamp": time.time(),
             }
 
         except Exception as e:
@@ -407,11 +441,8 @@ class DebugManager:
                 "timestamp": datetime.now().isoformat(),
                 "label": label,
                 "memory_usage": self._get_memory_usage(),
-                "gc_stats": {
-                    "collected": gc.get_stats(),
-                    "count": gc.get_count()
-                },
-                "process_info": self._get_current_performance_data()
+                "gc_stats": {"collected": gc.get_stats(), "count": gc.get_count()},
+                "process_info": self._get_current_performance_data(),
             }
 
             with self._lock:
@@ -426,9 +457,12 @@ class DebugManager:
         except Exception as e:
             logger.error(f"Error taking memory snapshot: {e}")
 
-    def get_debug_events(self, level: DebugLevel | None = None,
-                        source: str | None = None,
-                        limit: int = 100) -> list[DebugEvent]:
+    def get_debug_events(
+        self,
+        level: DebugLevel | None = None,
+        source: str | None = None,
+        limit: int = 100,
+    ) -> list[DebugEvent]:
         """Get debug events with optional filtering."""
         try:
             with self._lock:
@@ -458,17 +492,17 @@ class DebugManager:
             total_errors = sum(error_counts.values())
 
             # Get top errors
-            top_errors = sorted(
-                error_counts.items(),
-                key=lambda x: x[1],
-                reverse=True
-            )[:10]
+            top_errors = sorted(error_counts.items(), key=lambda x: x[1], reverse=True)[
+                :10
+            ]
 
             return {
                 "total_errors": total_errors,
                 "unique_errors": len(error_counts),
                 "top_errors": top_errors,
-                "error_rate": total_errors / len(self.debug_events) if self.debug_events else 0
+                "error_rate": (
+                    total_errors / len(self.debug_events) if self.debug_events else 0
+                ),
             }
 
         except Exception as e:
@@ -490,7 +524,7 @@ class DebugManager:
                         "avg_duration": sum(durations) / len(durations),
                         "min_duration": min(durations),
                         "max_duration": max(durations),
-                        "total_duration": sum(durations)
+                        "total_duration": sum(durations),
                     }
 
             return summary
@@ -509,14 +543,16 @@ class DebugManager:
                         "session_id": session_id,
                         "session_name": session.name,
                         "start_time": session.start_time,
-                        "duration": getattr(session, 'duration', time.time() - session.start_time),
+                        "duration": getattr(
+                            session, "duration", time.time() - session.start_time
+                        ),
                         "events": [
                             {
                                 "timestamp": event.timestamp,
                                 "level": event.level.value,
                                 "source": event.source,
                                 "message": event.message,
-                                "context": event.context
+                                "context": event.context,
                             }
                             for event in session.events
                         ],
@@ -525,10 +561,10 @@ class DebugManager:
                                 "function_name": profile.function_name,
                                 "duration": profile.duration,
                                 "profiler_type": profile.profiler_type.value,
-                                "data": profile.data
+                                "data": profile.data,
                             }
                             for profile in session.profiling_data
-                        ]
+                        ],
                     }
                 else:
                     return {
@@ -538,13 +574,13 @@ class DebugManager:
                                 "level": event.level.value,
                                 "source": event.source,
                                 "message": event.message,
-                                "context": event.context
+                                "context": event.context,
                             }
                             for event in self.debug_events
                         ],
                         "error_summary": self.get_error_summary(),
                         "performance_summary": self.get_performance_summary(),
-                        "memory_snapshots": self.memory_snapshots
+                        "memory_snapshots": self.memory_snapshots,
                     }
 
         except Exception as e:

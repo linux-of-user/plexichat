@@ -151,9 +151,7 @@ class SessionService(ISessionService):
         """Extend session expiration time."""
         session = self.session_store.get_session(session_id)
         if session and session.is_active and not self._is_expired(session):
-            session.expires_at = datetime.now(UTC) + timedelta(
-                hours=extension_hours
-            )
+            session.expires_at = datetime.now(UTC) + timedelta(hours=extension_hours)
             logger.info(f"Extended session {session_id} by {extension_hours} hours")
             return True
         return False

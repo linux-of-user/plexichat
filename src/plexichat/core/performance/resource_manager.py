@@ -57,7 +57,9 @@ class ResourcePool:
 class FileResourceManager:
     """Manages file resources and temporary files."""
 
-    def __init__(self, temp_dir: str | None = None, max_temp_size_mb: int = 1024) -> None:
+    def __init__(
+        self, temp_dir: str | None = None, max_temp_size_mb: int = 1024
+    ) -> None:
         self.temp_dir = temp_dir or tempfile.gettempdir()
         self.max_temp_size_mb = max_temp_size_mb
         self.temp_files: dict[str, dict[str, Any]] = {}
@@ -203,9 +205,7 @@ class MemoryResourceManager:
             self.gc_stats["freed_objects"] += sum(collected)
             self.gc_stats["freed_mb"] += freed_mb
 
-        logger.info(
-            f"[GC] Freed {freed_mb:.1f}MB, collected {sum(collected)} objects"
-        )
+        logger.info(f"[GC] Freed {freed_mb:.1f}MB, collected {sum(collected)} objects")
         return stats
 
     def get_memory_usage(self) -> dict[str, Any]:
@@ -450,7 +450,11 @@ class ResourceManager:
 
             # Get file descriptor count if available
             try:
-                open_files = process.num_fds() if hasattr(process, 'num_fds') else len(process.open_files())
+                open_files = (
+                    process.num_fds()
+                    if hasattr(process, "num_fds")
+                    else len(process.open_files())
+                )
             except (psutil.AccessDenied, AttributeError):
                 open_files = 0
 
@@ -461,7 +465,8 @@ class ResourceManager:
                 network_io_mb=0.0,  # Could be implemented if needed
                 open_files=open_files,
                 active_connections=sum(
-                    len(conns) for conns in self.connection_manager.active_connections.values()
+                    len(conns)
+                    for conns in self.connection_manager.active_connections.values()
                 ),
                 thread_count=threading.active_count(),
                 process_count=len(psutil.pids()),
@@ -475,6 +480,7 @@ class ResourceManager:
 
 # Global instance
 resource_manager = ResourceManager()
+
 
 # Convenience functions
 async def start_resource_management() -> None:

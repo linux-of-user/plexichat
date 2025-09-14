@@ -61,6 +61,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class IPBlacklistConfig:
     """Configuration for IP blacklisting."""
+
     enabled: bool = True
     permanent_blacklist: list[str] = field(default_factory=list)
     temporary_blacklist: dict[str, int] = field(default_factory=dict)
@@ -70,6 +71,7 @@ class IPBlacklistConfig:
     auto_blacklist_enabled: bool = True
     auto_blacklist_threshold: int = 100
     auto_blacklist_duration: int = 3600
+
 
 @dataclass
 class EndpointRateLimit:
@@ -295,6 +297,7 @@ def get_rate_limit_config_manager() -> RateLimitConfigManager:
 def get_rate_limit_config() -> RateLimitConfig:
     """Get the current rate limiting configuration."""
     return get_rate_limit_config_manager().get_config()
+
 
 __all__ = [
     "EndpointRateLimit",

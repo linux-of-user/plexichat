@@ -181,6 +181,8 @@ reportUnusedExpression = "information"
 [tool.ruff]
 target-version = "py311"
 line-length = 88
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "ASYNC", "C4", "N"]
 ignore = ["E501"]
 exclude = [
@@ -213,21 +215,21 @@ exclude = [
     "**/*_pb2.py",
 ]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401", "F403"]
 "tests/**/*.py" = ["S101", "ARG", "FBT"]
 "src/plexichat/plugins/**/*.py" = ["PLR0913", "PLR0915"]
 "*.pyx" = ["C4"]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["plexichat"]
 force-sort-within-sections = true
 split-on-trailing-comma = true
 
-[tool.ruff.mccabe]
+[tool.ruff.lint.mccabe]
 max-complexity = 10
 
-[tool.ruff.pylint]
+[tool.ruff.lint.pylint]
 max-args = 8
 max-branches = 15
 max-returns = 8
@@ -321,12 +323,12 @@ skip_glob = [
 [tool.mypy]
 plugins = [
     "sqlalchemy.ext.mypy.plugin",
-    "fastapi-mypy's plugin",
+    "fastapi.plugins.mypy",
     "cython"
 ]
 strict = true
 mypy_path = "./mypy-stubs"
-ignore_missing_imports = True
+ignore_missing_imports = true
 python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true

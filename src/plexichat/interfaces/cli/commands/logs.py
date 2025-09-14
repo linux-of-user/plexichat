@@ -5,35 +5,55 @@ import sys
 
 # Mock for standalone execution
 class MockLogManager:
-    def get_log_files(self): return []
-    def read_log_entries(self, **kwargs): return [], 0
-    def search_logs(self, **kwargs): return []
-    def get_log_statistics(self, **kwargs): return {}
-    def archive_old_logs(self, **kwargs): return []
-    def export_logs(self, **kwargs): return ""
-    def cleanup_old_archives(self, **kwargs): return []
+    def get_log_files(self):
+        return []
+
+    def read_log_entries(self, **kwargs):
+        return [], 0
+
+    def search_logs(self, **kwargs):
+        return []
+
+    def get_log_statistics(self, **kwargs):
+        return {}
+
+    def archive_old_logs(self, **kwargs):
+        return []
+
+    def export_logs(self, **kwargs):
+        return ""
+
+    def cleanup_old_archives(self, **kwargs):
+        return []
+
 
 log_manager = MockLogManager()
 
-logging.basicConfig(level=logging.INFO, format='%(message)s')
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
+
 
 class LogCLI:
     """Advanced CLI for log management."""
+
     def __init__(self):
         self.log_manager = log_manager
         self.parser = self._create_parser()
 
     def _create_parser(self) -> argparse.ArgumentParser:
         """Creates the argument parser for log commands."""
-        parser = argparse.ArgumentParser(description="PlexiChat Advanced Log Management CLI")
-        subparsers = parser.add_subparsers(dest='command', help='Log management commands', required=True)
+        parser = argparse.ArgumentParser(
+            description="PlexiChat Advanced Log Management CLI"
+        )
+        subparsers = parser.add_subparsers(
+            dest="command", help="Log management commands", required=True
+        )
 
-        subparsers.add_parser('list', help='List all log files')
-        view_parser = subparsers.add_parser('view', help='View log file contents')
-        view_parser.add_argument('filename', help='Log file to view')
-        search_parser = subparsers.add_parser('search', help='Search across log files')
-        search_parser.add_argument('term', help='Search term')
+        subparsers.add_parser("list", help="List all log files")
+        view_parser = subparsers.add_parser("view", help="View log file contents")
+        view_parser.add_argument("filename", help="Log file to view")
+        search_parser = subparsers.add_parser("search", help="Search across log files")
+        search_parser.add_argument("term", help="Search term")
 
         return parser
 
@@ -80,6 +100,7 @@ class LogCLI:
         for filename, entry in results:
             logger.info(f"[{filename}] {entry.raw_line}")
 
+
 def main():
     """Main CLI entry point."""
     cli = LogCLI()
@@ -88,6 +109,7 @@ def main():
     except Exception as e:
         logger.error(f"An error occurred: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

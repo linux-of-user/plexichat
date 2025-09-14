@@ -24,15 +24,24 @@ try:
         cache_get,
         cache_set,
     )
+
     CACHE_AVAILABLE = True
 except ImportError:
     # Fallback if cache not available
-    async def cache_get(key: str, default=None): return default
-    async def cache_set(key: str, value, ttl=None): return True
-    async def cache_delete(key: str): return True
+    async def cache_get(key: str, default=None):
+        return default
+
+    async def cache_set(key: str, value, ttl=None):
+        return True
+
+    async def cache_delete(key: str):
+        return True
+
     class CacheKeyBuilder:
         @staticmethod
-        def message_key(msg_id: str, suffix: str = ""): return f"msg:{msg_id}:{suffix}"
+        def message_key(msg_id: str, suffix: str = ""):
+            return f"msg:{msg_id}:{suffix}"
+
     CACHE_AVAILABLE = False
 
 """
@@ -40,10 +49,14 @@ Enhanced Messaging Service
 Comprehensive messaging service with emoji support, replies, reactions, and resilience features.
 """
 
+
 class ReactionService:
     """Service for handling message reactions."""
+
     @classmethod
-    async def add_reaction(cls, message_id: int, user_id: int, emoji: str, emoji_id: int | None = None) -> bool:
+    async def add_reaction(
+        cls, message_id: int, user_id: int, emoji: str, emoji_id: int | None = None
+    ) -> bool:
         """Add a reaction to a message."""
         try:
             with Session(engine) as session:
@@ -55,8 +68,8 @@ class ReactionService:
                             MessageReaction.user_id == user_id,
                             or_(
                                 MessageReaction.emoji == emoji,
-                                MessageReaction.emoji_id == emoji_id
-                            )
+                                MessageReaction.emoji_id == emoji_id,
+                            ),
                         )
                     )
                 ).first()
@@ -70,7 +83,7 @@ class ReactionService:
                     user_id=user_id,
                     emoji=emoji,
                     emoji_id=emoji_id,
-                    emoji_name=None # EmojiService removed
+                    emoji_name=None,  # EmojiService removed
                 )
                 session.add(reaction)
                 session.commit()
@@ -81,7 +94,9 @@ class ReactionService:
             return False
 
     @classmethod
-    async def remove_reaction(cls, message_id: int, user_id: int, emoji: str, emoji_id: int | None = None) -> bool:
+    async def remove_reaction(
+        cls, message_id: int, user_id: int, emoji: str, emoji_id: int | None = None
+    ) -> bool:
         """Remove a reaction from a message."""
         try:
             with Session(engine) as session:
@@ -92,8 +107,8 @@ class ReactionService:
                             MessageReaction.user_id == user_id,
                             or_(
                                 MessageReaction.emoji == emoji,
-                                MessageReaction.emoji_id == emoji_id
-                            )
+                                MessageReaction.emoji_id == emoji_id,
+                            ),
                         )
                     )
                 ).first()
@@ -114,7 +129,9 @@ class ReactionService:
         try:
             with Session(engine) as session:
                 reactions = session.exec(
-                    select(MessageReaction).where(MessageReaction.message_id == message_id)
+                    select(MessageReaction).where(
+                        MessageReaction.message_id == message_id
+                    )
                 ).all()
 
                 # Group reactions by emoji
@@ -127,7 +144,7 @@ class ReactionService:
                             "emoji_id": reaction.emoji_id,
                             "emoji_name": reaction.emoji_name,
                             "count": 0,
-                            "users": []
+                            "users": [],
                         }
                     reaction_groups[key]["count"] += 1
                     reaction_groups[key]["users"].append(reaction.user_id)
@@ -141,8 +158,11 @@ class ReactionService:
 
 class ReplyService:
     """Service for handling message replies."""
+
     @classmethod
-    async def create_reply(cls, original_message_id: int, reply_content: str, sender_id: int, **kwargs) -> Message | None:
+    async def create_reply(
+        cls, original_message_id: int, reply_content: str, sender_id: int, **kwargs
+    ) -> Message | None:
         """Create a reply to a message."""
         try:
             with Session(engine) as session:
@@ -154,17 +174,17 @@ class ReplyService:
                 # Create reply message
                 reply_message = Message(
                     sender_id=sender_id,
-                    recipient_id=kwargs.get('recipient_id', original_message.sender_id),
-                    channel_id=kwargs.get('channel_id', original_message.channel_id),
-                    guild_id=kwargs.get('guild_id', original_message.guild_id),
+                    recipient_id=kwargs.get("recipient_id", original_message.sender_id),
+                    channel_id=kwargs.get("channel_id", original_message.channel_id),
+                    guild_id=kwargs.get("guild_id", original_message.guild_id),
                     content=reply_content,
-                    type=kwargs.get('message_type', MessageType.REPLY),
+                    type=kwargs.get("message_type", MessageType.REPLY),
                     referenced_message_id=original_message_id,
                     message_reference={
                         "message_id": original_message_id,
                         "channel_id": original_message.channel_id,
-                        "guild_id": original_message.guild_id
-                    }
+                        "guild_id": original_message.guild_id,
+                    },
                 )
 
                 session.add(reply_message)
@@ -177,7 +197,9 @@ class ReplyService:
             return None
 
     @classmethod
-    async def get_message_replies(cls, message_id: int, limit: int = 50) -> list[Message]:
+    async def get_message_replies(
+        cls, message_id: int, limit: int = 50
+    ) -> list[Message]:
         """Get replies to a message."""
         try:
             with Session(engine) as session:
@@ -196,13 +218,16 @@ class ReplyService:
 
 class EnhancedMessagingService:
     """Enhanced messaging service with comprehensive features."""
+
     def __init__(self):
         self.reaction_service = ReactionService()
         self.reply_service = ReplyService()
         self.message_cache = {}
         self.rate_limits = {}  # Rate limiting storage
 
-    async def send_message(self, sender_id: int, content: str, **kwargs) -> Message | None:
+    async def send_message(
+        self, sender_id: int, content: str, **kwargs
+    ) -> Message | None:
         """Send a message with emoji processing and resilience."""
         try:
             # Check rate limits
@@ -212,13 +237,13 @@ class EnhancedMessagingService:
             with Session(engine) as session:
                 message = Message(
                     sender_id=sender_id,
-                    recipient_id=kwargs.get('recipient_id'),
-                    channel_id=kwargs.get('channel_id'),
-                    guild_id=kwargs.get('guild_id'),
+                    recipient_id=kwargs.get("recipient_id"),
+                    channel_id=kwargs.get("channel_id"),
+                    guild_id=kwargs.get("guild_id"),
                     content=content,
-                    type=kwargs.get('message_type', MessageType.DEFAULT),
-                    metadata=kwargs.get('metadata', {}),
-                    is_system=kwargs.get('is_system', False)
+                    type=kwargs.get("message_type", MessageType.DEFAULT),
+                    metadata=kwargs.get("metadata", {}),
+                    is_system=kwargs.get("is_system", False),
                 )
 
                 session.add(message)
@@ -235,7 +260,9 @@ class EnhancedMessagingService:
             logger.error(f"Failed to send message: {e}")
             return None
 
-    async def send_reply(self, sender_id: int, original_message_id: int, content: str, **kwargs) -> Message | None:
+    async def send_reply(
+        self, sender_id: int, original_message_id: int, content: str, **kwargs
+    ) -> Message | None:
         """Send a reply to a message."""
         try:
             # Check rate limits
@@ -246,12 +273,14 @@ class EnhancedMessagingService:
                 original_message_id=original_message_id,
                 reply_content=content,
                 sender_id=sender_id,
-                **kwargs
+                **kwargs,
             )
 
             if reply:
                 self.message_cache[reply.id] = reply
-                logger.info(f"Reply {reply.id} sent by user {sender_id} to message {original_message_id}")
+                logger.info(
+                    f"Reply {reply.id} sent by user {sender_id} to message {original_message_id}"
+                )
 
             return reply
 
@@ -283,19 +312,19 @@ class EnhancedMessagingService:
                 query = select(Message).where(not Message.is_deleted)
 
                 # Apply filters
-                if filters.get('channel_id'):
-                    query = query.where(Message.channel_id == filters['channel_id'])
-                if filters.get('guild_id'):
-                    query = query.where(Message.guild_id == filters['guild_id'])
-                if filters.get('sender_id'):
-                    query = query.where(Message.sender_id == filters['sender_id'])
-                if filters.get('recipient_id'):
-                    query = query.where(Message.recipient_id == filters['recipient_id'])
+                if filters.get("channel_id"):
+                    query = query.where(Message.channel_id == filters["channel_id"])
+                if filters.get("guild_id"):
+                    query = query.where(Message.guild_id == filters["guild_id"])
+                if filters.get("sender_id"):
+                    query = query.where(Message.sender_id == filters["sender_id"])
+                if filters.get("recipient_id"):
+                    query = query.where(Message.recipient_id == filters["recipient_id"])
 
                 # Ordering and limiting
                 query = query.order_by(desc(Message.timestamp))
-                if filters.get('limit'):
-                    query = query.limit(filters['limit'])
+                if filters.get("limit"):
+                    query = query.limit(filters["limit"])
 
                 messages = session.exec(query).all()
                 return list(messages)
@@ -313,7 +342,9 @@ class EnhancedMessagingService:
                     return {}
 
                 # Get reactions
-                reactions = await self.reaction_service.get_message_reactions(message_id)
+                reactions = await self.reaction_service.get_message_reactions(
+                    message_id
+                )
 
                 # Get replies
                 replies = await self.reply_service.get_message_replies(message_id)
@@ -321,15 +352,17 @@ class EnhancedMessagingService:
                 # Get referenced message if this is a reply
                 referenced_message = None
                 if message.referenced_message_id:
-                    referenced_message = session.get(Message, message.referenced_message_id)
+                    referenced_message = session.get(
+                        Message, message.referenced_message_id
+                    )
 
                 return {
                     "message": message,
                     "reactions": reactions,
                     "replies": replies,
                     "referenced_message": referenced_message,
-                    "emoji_count": 0, # EmojiService removed
-                    "has_emoji": False # EmojiService removed
+                    "emoji_count": 0,  # EmojiService removed
+                    "has_emoji": False,  # EmojiService removed
                 }
 
         except Exception as e:
@@ -347,14 +380,15 @@ class EnhancedMessagingService:
 
             # Clean old entries
             self.rate_limits[key] = [
-                timestamp for timestamp in self.rate_limits[key]
+                timestamp
+                for timestamp in self.rate_limits[key]
                 if now - timestamp < timedelta(minutes=1)
             ]
 
             # Check limits (configurable)
             limits = {
                 "message": 60,  # 60 messages per minute
-                "reaction": 100  # 100 reactions per minute
+                "reaction": 100,  # 100 reactions per minute
             }
 
             if len(self.rate_limits[key]) >= limits.get(action, 60):
@@ -368,7 +402,6 @@ class EnhancedMessagingService:
             logger.error(f"Rate limit check failed: {e}")
             return True  # Allow on error
 
-
     async def search_messages(self, query: str, **filters) -> list[Message]:
         """Search messages using advanced search service."""
         try:
@@ -380,18 +413,20 @@ class EnhancedMessagingService:
             # Convert filters to SearchFilter
             search_filters = SearchFilter(
                 query=query,
-                user_id=filters.get('sender_id'),
-                channel_id=filters.get('channel_id'),
-                date_from=filters.get('date_from'),
-                date_to=filters.get('date_to'),
-                message_type=filters.get('message_type'),
-                has_attachments=filters.get('has_attachments'),
-                limit=filters.get('limit', 50),
-                offset=filters.get('offset', 0)
+                user_id=filters.get("sender_id"),
+                channel_id=filters.get("channel_id"),
+                date_from=filters.get("date_from"),
+                date_to=filters.get("date_to"),
+                message_type=filters.get("message_type"),
+                has_attachments=filters.get("has_attachments"),
+                limit=filters.get("limit", 50),
+                offset=filters.get("offset", 0),
             )
 
             # Perform search
-            results, _ = await search_service.search_messages(search_filters, filters.get('user_id', 'system'))
+            results, _ = await search_service.search_messages(
+                search_filters, filters.get("user_id", "system")
+            )
 
             # Convert SearchResult back to Message objects
             messages = []
@@ -413,26 +448,29 @@ class EnhancedMessagingService:
         try:
             with Session(engine) as session:
                 search_query = select(Message).where(
-                    and_(
-                        not Message.is_deleted,
-                        Message.content.contains(query)
-                    )
+                    and_(not Message.is_deleted, Message.content.contains(query))
                 )
 
                 # Apply additional filters
-                if filters.get('channel_id'):
-                    search_query = search_query.where(Message.channel_id == filters['channel_id'])
-                if filters.get('guild_id'):
-                    search_query = search_query.where(Message.guild_id == filters['guild_id'])
-                if filters.get('sender_id'):
-                    search_query = search_query.where(Message.sender_id == filters['sender_id'])
-                if filters.get('has_emoji'):
+                if filters.get("channel_id"):
+                    search_query = search_query.where(
+                        Message.channel_id == filters["channel_id"]
+                    )
+                if filters.get("guild_id"):
+                    search_query = search_query.where(
+                        Message.guild_id == filters["guild_id"]
+                    )
+                if filters.get("sender_id"):
+                    search_query = search_query.where(
+                        Message.sender_id == filters["sender_id"]
+                    )
+                if filters.get("has_emoji"):
                     # This would need a more sophisticated implementation
                     pass
 
                 search_query = search_query.order_by(desc(Message.timestamp))
-                if filters.get('limit'):
-                    search_query = search_query.limit(filters['limit'])
+                if filters.get("limit"):
+                    search_query = search_query.limit(filters["limit"])
 
                 messages = session.exec(search_query).all()
                 return list(messages)
@@ -441,7 +479,9 @@ class EnhancedMessagingService:
             logger.error(f"Failed to perform basic search: {e}")
             return []
 
-    async def delete_message(self, message_id: int, user_id: int, force: bool = False) -> bool:
+    async def delete_message(
+        self, message_id: int, user_id: int, force: bool = False
+    ) -> bool:
         """Delete a message (soft delete by default)."""
         try:
             with Session(engine) as session:
@@ -474,7 +514,9 @@ class EnhancedMessagingService:
             logger.error(f"Failed to delete message: {e}")
             return False
 
-    async def edit_message(self, message_id: int, user_id: int, new_content: str) -> Message | None:
+    async def edit_message(
+        self, message_id: int, user_id: int, new_content: str
+    ) -> Message | None:
         """Edit a message."""
         try:
             with Session(engine) as session:

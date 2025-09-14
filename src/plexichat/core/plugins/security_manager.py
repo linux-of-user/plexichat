@@ -72,7 +72,11 @@ except ImportError:
     file_manager = None
 
 try:
-    from src.plexichat.shared.exceptions import PluginError, SecurityError, ValidationError
+    from src.plexichat.shared.exceptions import (
+        PluginError,
+        SecurityError,
+        ValidationError,
+    )
 except ImportError:
 
     class SecurityError(Exception):

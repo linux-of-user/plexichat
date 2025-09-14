@@ -24,10 +24,10 @@ except ImportError as e:
 
 # Setup logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
 
 def create_webui_app():
     """Create and configure the WebUI application."""
@@ -37,6 +37,7 @@ def create_webui_app():
 
     logger.info("WebUI application created successfully")
     return app
+
 
 def run_webui_server(host: str = "0.0.0.0", port: int = 8080, reload: bool = False):
     """Run the WebUI server."""
@@ -52,17 +53,12 @@ def run_webui_server(host: str = "0.0.0.0", port: int = 8080, reload: bool = Fal
     logger.info(f"Starting PlexiChat WebUI server on {host}:{port}")
 
     try:
-        uvicorn.run(
-            webui_app,
-            host=host,
-            port=port,
-            reload=reload,
-            log_level="info"
-        )
+        uvicorn.run(webui_app, host=host, port=port, reload=reload, log_level="info")
         return True
     except Exception as e:
         logger.error(f"Failed to start WebUI server: {e}")
         return False
+
 
 if __name__ == "__main__":
     print("[X] This module cannot be run standalone!")

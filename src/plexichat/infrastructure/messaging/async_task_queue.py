@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 # Optional Redis import - graceful degradation if not available
 try:
     import aioredis
+
     REDIS_AVAILABLE = True
 except ImportError:
     REDIS_AVAILABLE = False
@@ -28,6 +29,7 @@ except ImportError:
 
 class TaskStatus(Enum):
     """Task execution status."""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -38,6 +40,7 @@ class TaskStatus(Enum):
 
 class TaskPriority(Enum):
     """Task priority levels."""
+
     LOW = 1
     NORMAL = 2
     HIGH = 3
@@ -47,6 +50,7 @@ class TaskPriority(Enum):
 @dataclass
 class TaskResult:
     """Task execution result."""
+
     task_id: str
     status: TaskStatus
     result: Any = None
@@ -61,6 +65,7 @@ class TaskResult:
 @dataclass
 class Task:
     """Task definition."""
+
     id: str
     function_name: str
     args: tuple = field(default_factory=tuple)
@@ -84,9 +89,11 @@ class Task:
             "max_retries": self.max_retries,
             "retry_delay": self.retry_delay,
             "timeout": self.timeout,
-            "scheduled_time": self.scheduled_time.isoformat() if self.scheduled_time else None,
+            "scheduled_time": (
+                self.scheduled_time.isoformat() if self.scheduled_time else None
+            ),
             "created_at": self.created_at.isoformat(),
-            "queue_name": self.queue_name
+            "queue_name": self.queue_name,
         }
 
     @classmethod
@@ -101,7 +108,7 @@ class Task:
             max_retries=data.get("max_retries", 3),
             retry_delay=data.get("retry_delay", 1.0),
             timeout=data.get("timeout"),
-            queue_name=data.get("queue_name", "default")
+            queue_name=data.get("queue_name", "default"),
         )
 
         if data.get("scheduled_time"):
@@ -110,7 +117,6 @@ class Task:
             task.created_at = datetime.fromisoformat(data["created_at"])
 
         return task
-
 
 
 class TaskWorker:
@@ -159,7 +165,9 @@ class TaskWorker:
             logger.info(f"Worker {self.worker_id} processing task {task.id}")
 
             # Update task status
-            await self.queue.update_task_status(task.id, TaskStatus.RUNNING, worker_id=self.worker_id)
+            await self.queue.update_task_status(
+                task.id, TaskStatus.RUNNING, worker_id=self.worker_id
+            )
 
             # Get the function to execute
             func = self.queue.get_registered_function(task.function_name)
@@ -169,8 +177,7 @@ class TaskWorker:
             # Execute the task with timeout
             if task.timeout:
                 result = await asyncio.wait_for(
-                    func(*task.args, **task.kwargs),
-                    timeout=task.timeout
+                    func(*task.args, **task.kwargs), timeout=task.timeout
                 )
             else:
                 result = await func(*task.args, **task.kwargs)
@@ -186,7 +193,7 @@ class TaskWorker:
                 start_time=start_time,
                 end_time=end_time,
                 duration=duration,
-                worker_id=self.worker_id
+                worker_id=self.worker_id,
             )
 
             await self.queue.complete_task(task.id, task_result)
@@ -206,7 +213,7 @@ class TaskWorker:
                 start_time=start_time,
                 end_time=end_time,
                 duration=duration,
-                worker_id=self.worker_id
+                worker_id=self.worker_id,
             )
 
             await self.queue.handle_task_failure(task, task_result)
@@ -238,7 +245,7 @@ class AsyncTaskQueue:
             "tasks_submitted": 0,
             "tasks_completed": 0,
             "tasks_failed": 0,
-            "tasks_retried": 0
+            "tasks_retried": 0,
         }
 
     async def start(self):
@@ -252,6 +259,7 @@ class AsyncTaskQueue:
         if REDIS_AVAILABLE and self.redis_url:
             try:
                 import aioredis
+
                 self.redis = await aioredis.from_url(self.redis_url)
                 logger.info("Connected to Redis backend")
             except Exception as e:
@@ -287,7 +295,7 @@ class AsyncTaskQueue:
             task.cancel()
 
         # Cancel scheduler
-        if hasattr(self, 'scheduler_task'):
+        if hasattr(self, "scheduler_task"):
             self.scheduler_task.cancel()
 
         # Close Redis connection
@@ -309,12 +317,7 @@ class AsyncTaskQueue:
     async def submit_task(self, function_name: str, *args, **kwargs) -> str:
         """Submit a task for execution."""
         task_id = str(uuid.uuid4())
-        task = Task(
-            id=task_id,
-            function_name=function_name,
-            args=args,
-            kwargs=kwargs
-        )
+        task = Task(id=task_id, function_name=function_name, args=args, kwargs=kwargs)
 
         # Add to queue
         self.task_queues[task.queue_name].append(task)
@@ -359,7 +362,8 @@ class AsyncTaskQueue:
             try:
                 current_time = datetime.now()
                 ready_tasks = [
-                    task for task in self.scheduled_tasks
+                    task
+                    for task in self.scheduled_tasks
                     if task.scheduled_time and task.scheduled_time <= current_time
                 ]
 
@@ -384,5 +388,5 @@ __all__ = [
     "TaskResult",
     "TaskStatus",
     "TaskWorker",
-    "task_queue"
+    "task_queue",
 ]

@@ -15,12 +15,14 @@ from typing import Any, TypeVar
 try:
     import cython
     from Cython.Build import cythonize
+
     CYTHON_AVAILABLE = True
 except ImportError:
     CYTHON_AVAILABLE = False
 
 try:
     from numba import jit, njit
+
     NUMBA_AVAILABLE = True
 except ImportError:
     NUMBA_AVAILABLE = False
@@ -30,6 +32,7 @@ T = TypeVar("T")
 
 class CompilerType(Enum):
     """Enum for supported compilers."""
+
     CYTHON = "cython"
     NUMBA = "numba"
 
@@ -101,7 +104,9 @@ class CompilationOptimizer:
         except ImportError as e:
             raise CompilationError(f"Failed to import {module_path}: {e}")
         except AttributeError as e:
-            raise CompilationError(f"Function {function_name} not found in {module_path}: {e}")
+            raise CompilationError(
+                f"Function {function_name} not found in {module_path}: {e}"
+            )
 
     def _compile_single(self, key: str) -> None:
         """Compile a single registered function."""
@@ -240,9 +245,7 @@ class CompilationOptimizer:
             return await compiled(*args, **kwargs)
         else:
             loop = asyncio.get_event_loop()
-            return await loop.run_in_executor(
-                None, lambda: compiled(*args, **kwargs)
-            )
+            return await loop.run_in_executor(None, lambda: compiled(*args, **kwargs))
 
     def clear_cache(self) -> None:
         """Clear compiled cache."""

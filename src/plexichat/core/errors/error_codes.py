@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 class PlexiChatErrorCode(BasePlexiChatErrorCode):
     """Centralized error codes for the PlexiChat application."""
+
     pass
 
 

@@ -15,7 +15,10 @@ from plexichat.core.logging import get_logger
 
 security = HTTPBearer()
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+):
     """Get current authenticated user from token."""
     token = credentials.credentials
 
@@ -33,17 +36,20 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         "id": payload.get("user_id"),
         "username": payload.get("username", ""),
         "permissions": payload.get("permissions", []),
-        "roles": payload.get("roles", [])
+        "roles": payload.get("roles", []),
     }
+
 
 async def require_admin(current_user: dict = Depends(get_current_user)):
     """Require admin privileges."""
-    if "admin" not in current_user.get("permissions", []) and "super_admin" not in current_user.get("roles", []):
+    if "admin" not in current_user.get(
+        "permissions", []
+    ) and "super_admin" not in current_user.get("roles", []):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin privileges required"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin privileges required"
         )
     return current_user
+
 
 async def get_optional_user(token: str = None):
     """Get user if authenticated, None otherwise."""
@@ -51,6 +57,7 @@ async def get_optional_user(token: str = None):
         return await get_current_user(token)
     except HTTPException:
         return None
+
 
 logger = get_logger(__name__)
 
@@ -76,6 +83,7 @@ try:
     from plexichat.interfaces.api.routers.file_sharing_router import (
         router as file_sharing_router,
     )
+
     file_sharing_available = True
 except ImportError as e:
     logger.warning(f"Enhanced file sharing router not available: {e}")
@@ -162,14 +170,19 @@ router.include_router(shards_router, dependencies=[Depends(get_current_user)])
 
 # Include user settings router if available (requires authentication)
 if user_settings_available and user_settings_router:
-    router.include_router(user_settings_router, dependencies=[Depends(get_current_user)])
+    router.include_router(
+        user_settings_router, dependencies=[Depends(get_current_user)]
+    )
 
 # Include client settings router if available (may require admin or user depending on endpoint,
 # Performance monitoring requires authentication
 # router.include_router(performance_router, dependencies=[Depends(get_current_user)])
 # but most client settings are per-user)
 if client_settings_available and client_settings_router:
-    router.include_router(client_settings_router, dependencies=[Depends(get_current_user)])
+    router.include_router(
+        client_settings_router, dependencies=[Depends(get_current_user)]
+    )
+
 
 # Root endpoint
 @router.get("/")
@@ -195,11 +208,12 @@ async def api_root():
             "backups": "/api/v1/backups",
             "performance": "/api/v1/performance",
             "keyboard": "/api/v1/keyboard",
-            "shards": "/api/v1/shards"
+            "shards": "/api/v1/shards",
         },
         "documentation": "/docs",
-        "status": "online"
+        "status": "online",
     }
+
 
 # API information endpoint
 @router.get("/info")
@@ -211,7 +225,7 @@ async def api_info():
             "version": "v1",
             "description": "Simple, secure messaging API with file sharing",
             "build_date": "2024-07-26",
-            "environment": "development"
+            "environment": "development",
         },
         "features": [
             "User authentication and registration",
@@ -223,7 +237,7 @@ async def api_info():
             "Real-time messaging with WebSocket",
             "Groups and channels management",
             "Advanced search and analytics",
-            "Comprehensive notification system"
+            "Comprehensive notification system",
         ],
         "endpoints": {
             "auth": {
@@ -233,8 +247,8 @@ async def api_info():
                     "POST /login - Login user",
                     "POST /logout - Logout user",
                     "GET /me - Get current user info",
-                    "GET /status - Auth service status"
-                ]
+                    "GET /status - Auth service status",
+                ],
             },
             "users": {
                 "prefix": "/api/v1/users",
@@ -244,8 +258,8 @@ async def api_info():
                     "GET /search - Search users",
                     "GET /{user_id} - Get user profile",
                     "GET / - List users",
-                    "DELETE /me - Delete my account"
-                ]
+                    "DELETE /me - Delete my account",
+                ],
             },
             "messages": {
                 "prefix": "/api/v1/messages",
@@ -254,8 +268,8 @@ async def api_info():
                     "GET /conversations - Get conversations",
                     "GET /conversation/{user_id} - Get conversation",
                     "DELETE /{message_id} - Delete message",
-                    "GET /stats - Message statistics"
-                ]
+                    "GET /stats - Message statistics",
+                ],
             },
             "files": {
                 "prefix": "/api/v1/files",
@@ -265,8 +279,8 @@ async def api_info():
                     "GET /{file_id}/info - Get file info",
                     "GET / - List my files",
                     "POST /{file_id}/share - Share file",
-                    "DELETE /{file_id} - Delete file"
-                ]
+                    "DELETE /{file_id} - Delete file",
+                ],
             },
             "admin": {
                 "prefix": "/api/v1/admin",
@@ -277,8 +291,8 @@ async def api_info():
                     "POST /users/{user_id}/activate - Activate user",
                     "DELETE /users/{user_id} - Delete user",
                     "GET /messages/recent - Recent messages",
-                    "DELETE /messages/{message_id} - Delete message"
-                ]
+                    "DELETE /messages/{message_id} - Delete message",
+                ],
             },
             "system": {
                 "prefix": "/api/v1/system",
@@ -288,8 +302,8 @@ async def api_info():
                     "GET /metrics - Performance metrics",
                     "GET /status - Detailed status",
                     "GET /version - Version info",
-                    "GET /ping - Simple ping"
-                ]
+                    "GET /ping - Simple ping",
+                ],
             },
             "realtime": {
                 "prefix": "/api/v1/realtime",
@@ -298,8 +312,8 @@ async def api_info():
                     "GET /connections - Active connections info",
                     "POST /broadcast - Broadcast message",
                     "POST /send/{user_id} - Send direct message",
-                    "GET /status - Real-time system status"
-                ]
+                    "GET /status - Real-time system status",
+                ],
             },
             "groups": {
                 "prefix": "/api/v1/groups",
@@ -314,8 +328,8 @@ async def api_info():
                     "POST /{group_id}/invite - Invite users",
                     "GET /{group_id}/members - Get members",
                     "GET /my/groups - My groups",
-                    "GET /stats - Groups statistics"
-                ]
+                    "GET /stats - Groups statistics",
+                ],
             },
             "search": {
                 "prefix": "/api/v1/search",
@@ -324,8 +338,8 @@ async def api_info():
                     "GET /suggestions - Search suggestions",
                     "GET /analytics/overview - Analytics overview",
                     "GET /analytics/trends - Search trends",
-                    "GET /status - Search system status"
-                ]
+                    "GET /status - Search system status",
+                ],
             },
             "notifications": {
                 "prefix": "/api/v1/notifications",
@@ -341,8 +355,8 @@ async def api_info():
                     "PUT /settings - Update notification settings",
                     "GET /stats - Notification statistics",
                     "GET /unread/count - Unread count",
-                    "POST /test - Send test notification"
-                ]
+                    "POST /test - Send test notification",
+                ],
             },
             "shards": {
                 "prefix": "/api/v1/shards",
@@ -351,32 +365,40 @@ async def api_info():
                     "POST /upload - Upload shard for P2P distribution",
                     "GET /download/{backup_id}/{shard_index} - Download shard",
                     "POST /verify/{backup_id}/{shard_index} - Verify shard integrity",
-                    "GET /list/{backup_id} - List all shards for backup"
-                ]
-            }
+                    "GET /list/{backup_id} - List all shards for backup",
+                ],
+            },
         },
         "authentication": {
             "type": "Bearer Token",
             "header": "Authorization: Bearer <token>",
             "expiry": "24 hours",
-            "note": "Get token from /api/v1/auth/login"
+            "note": "Get token from /api/v1/auth/login",
         },
         "limits": {
             "max_file_size": "10MB",
             "max_message_length": 10000,
-            "token_expiry": "24 hours"
-        }
+            "token_expiry": "24 hours",
+        },
     }
+
 
 logger.info("PlexiChat API v1 main router initialized")
 
 # Additional lightweight endpoints retained for compatibility and to replace
 # a few common legacy router entries that should exist at the v1 root.
 
+
 @router.get("/status")
 async def status():
     """Lightweight public status endpoint."""
-    return {"status": "ok", "service": "plexichat", "version": "v1", "timestamp": datetime.now()}
+    return {
+        "status": "ok",
+        "service": "plexichat",
+        "version": "v1",
+        "timestamp": datetime.now(),
+    }
+
 
 @router.get("/admin/status", dependencies=[Depends(require_admin)])
 async def admin_status():
@@ -386,8 +408,9 @@ async def admin_status():
         "status": "ok",
         "service": "plexichat",
         "role": "admin",
-        "timestamp": datetime.now()
+        "timestamp": datetime.now(),
     }
+
 
 # Export router as root_router for compatibility
 root_router = router

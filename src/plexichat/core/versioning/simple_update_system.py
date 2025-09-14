@@ -117,9 +117,7 @@ class SimpleUpdateSystem:
 
     async def execute_update(self, plan: UpdatePlan) -> UpdateResult:
         """Execute an update with full security compliance."""
-        result = UpdateResult(
-            update_id=plan.update_id, start_time=datetime.now(UTC)
-        )
+        result = UpdateResult(update_id=plan.update_id, start_time=datetime.now(UTC))
 
         try:
             result.add_log(

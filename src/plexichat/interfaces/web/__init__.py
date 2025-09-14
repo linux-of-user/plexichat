@@ -16,6 +16,7 @@ try:
     from fastapi import FastAPI
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.responses import JSONResponse
+
     logger.info("FastAPI imports successful")
 except ImportError as e:
     logger.error(f"FastAPI import failed: {e}")
@@ -33,7 +34,7 @@ else:
             description="Government-Level Secure Communication Platform",
             version="0.0.1",
             docs_url="/docs",
-            redoc_url="/redoc"
+            redoc_url="/redoc",
         )
 
         # Add basic CORS middleware
@@ -48,6 +49,7 @@ else:
         # Routers
         try:
             from plexichat.interfaces.web.routers.logs import router as logs_router
+
             app.include_router(logs_router)
         except Exception as e:
             logger.warning(f"Failed to include logs router: {e}")
@@ -68,4 +70,4 @@ else:
         app = None
 
 # Export the app for external use
-__all__ = ['app']
+__all__ = ["app"]

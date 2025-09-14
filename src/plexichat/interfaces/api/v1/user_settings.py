@@ -8,19 +8,23 @@ from pydantic import BaseModel
 def get_current_user():
     return {"user_id": "mock_user"}
 
+
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/user-settings", tags=["User Settings"])
 
 # In-memory storage for demonstration
 user_settings_db: dict[str, dict] = {}
 
+
 class UserSettings(BaseModel):
     theme: str = "dark"
     notifications_enabled: bool = True
 
+
 class UserSettingsUpdate(BaseModel):
     theme: str | None = None
     notifications_enabled: bool | None = None
+
 
 @router.get("/", response_model=UserSettings)
 async def get_user_settings(current_user: dict = Depends(get_current_user)):
@@ -31,10 +35,10 @@ async def get_user_settings(current_user: dict = Depends(get_current_user)):
         user_settings_db[user_id] = UserSettings().dict()
     return UserSettings(**user_settings_db[user_id])
 
+
 @router.put("/", response_model=UserSettings)
 async def update_user_settings(
-    settings_update: UserSettingsUpdate,
-    current_user: dict = Depends(get_current_user)
+    settings_update: UserSettingsUpdate, current_user: dict = Depends(get_current_user)
 ):
     """Update the current user's settings."""
     user_id = current_user["user_id"]
@@ -46,7 +50,8 @@ async def update_user_settings(
 
     return UserSettings(**user_settings_db[user_id])
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # Example of how to run this API with uvicorn
     from fastapi import FastAPI
 

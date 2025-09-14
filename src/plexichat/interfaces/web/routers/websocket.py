@@ -47,21 +47,25 @@ from plexichat.core.auth.fastapi_adapter import get_auth_adapter
 try:
     from plexichat.infrastructure.utils.security import InputSanitizer
 except ImportError:
+
     class InputSanitizer:
         @staticmethod
         def sanitize_input(text: str) -> str:
             return text.strip()
 
+
 # Configuration imports
 try:
     from plexichat.core.config import settings
 except ImportError:
+
     class MockSettings:
         JWT_SECRET = "mock-secret"
         JWT_ALGORITHM = "HS256"
         API_VERSION = "1.0.0"
         DEBUG = False
         LOG_LEVEL = "INFO"
+
     settings = MockSettings()
 
 # System monitoring imports
@@ -80,7 +84,10 @@ router = APIRouter(prefix="/ws", tags=["websocket"])
 
 # Initialize EXISTING performance systems
 performance_logger = get_performance_logger() if get_performance_logger else None
-optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
+optimization_engine = (
+    PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
+)
+
 
 class ConnectionManager:
     """WebSocket connection manager with performance optimization."""
@@ -99,11 +106,15 @@ class ConnectionManager:
         # Performance tracking
         if self.performance_logger:
             try:
-                self.performance_logger.record_metric("websocket_connections", len(self.active_connections), "count")
+                self.performance_logger.record_metric(
+                    "websocket_connections", len(self.active_connections), "count"
+                )
             except Exception:
                 pass
 
-        logger.info(f"WebSocket connected for user {user_id}. Total connections: {len(self.active_connections)}")
+        logger.info(
+            f"WebSocket connected for user {user_id}. Total connections: {len(self.active_connections)}"
+        )
 
     def disconnect(self, websocket: WebSocket, user_id: int):
         """Disconnect a WebSocket with performance tracking."""
@@ -116,11 +127,15 @@ class ConnectionManager:
         # Performance tracking
         if self.performance_logger:
             try:
-                self.performance_logger.record_metric("websocket_connections", len(self.active_connections), "count")
+                self.performance_logger.record_metric(
+                    "websocket_connections", len(self.active_connections), "count"
+                )
             except Exception:
                 pass
 
-        logger.info(f"WebSocket disconnected for user {user_id}. Total connections: {len(self.active_connections)}")
+        logger.info(
+            f"WebSocket disconnected for user {user_id}. Total connections: {len(self.active_connections)}"
+        )
 
     async def send_personal_message(self, message: str, user_id: int):
         """Send message to specific user."""
@@ -132,7 +147,9 @@ class ConnectionManager:
                 # Performance tracking
                 if self.performance_logger:
                     try:
-                        self.performance_logger.increment_counter("websocket_messages_sent", 1)
+                        self.performance_logger.increment_counter(
+                            "websocket_messages_sent", 1
+                        )
                     except Exception:
                         pass
 
@@ -160,12 +177,16 @@ class ConnectionManager:
         if self.performance_logger:
             try:
                 self.performance_logger.increment_counter("websocket_broadcasts", 1)
-                self.performance_logger.record_metric("websocket_connections", len(self.active_connections), "count")
+                self.performance_logger.record_metric(
+                    "websocket_connections", len(self.active_connections), "count"
+                )
             except Exception:
                 pass
 
+
 # Global connection manager
 manager = ConnectionManager()
+
 
 class WebSocketService:
     """Service class for WebSocket operations using EXISTING database abstraction layer."""
@@ -177,7 +198,11 @@ class WebSocketService:
         # Use auth adapter for token validation
         self.auth_adapter = get_auth_adapter()
 
-    @async_track_performance("websocket_user_validation") if async_track_performance else (lambda f: f)
+    @(
+        async_track_performance("websocket_user_validation")
+        if async_track_performance
+        else (lambda f: f)
+    )
     async def validate_user_token(self, token: str) -> dict[str, Any] | None:
         """Validate user token using UnifiedAuthManager via FastAPI auth adapter."""
         try:
@@ -197,12 +222,14 @@ class WebSocketService:
                     "user_id": api_key_result.get("user_id"),
                     "permissions": set(api_key_result.get("permissions", [])),
                     "is_active": api_key_result.get("is_active", True),
-                    "is_admin": "admin" in set(api_key_result.get("permissions", []))
+                    "is_admin": "admin" in set(api_key_result.get("permissions", [])),
                 }
 
             # Next, attempt to validate JWT/token via auth manager
             try:
-                valid, payload = await self.auth_adapter.auth_manager.validate_token(token)
+                valid, payload = await self.auth_adapter.auth_manager.validate_token(
+                    token
+                )
             except Exception as e:
                 logger.debug(f"Token validation threw exception: {e}")
                 valid, payload = False, None
@@ -210,7 +237,12 @@ class WebSocketService:
             if not valid or not payload:
                 # Fallback simple check for legacy token used in tests
                 if token == "valid-token":
-                    return {"id": 1, "username": "admin", "is_admin": True, "permissions": {"admin"}}
+                    return {
+                        "id": 1,
+                        "username": "admin",
+                        "is_admin": True,
+                        "permissions": {"admin"},
+                    }
                 return None
 
             # Extract user information from payload
@@ -219,10 +251,16 @@ class WebSocketService:
                 return None
 
             # Get permissions from auth manager if not present in payload
-            permissions = set(payload.get("permissions", [])) if payload.get("permissions") else set()
+            permissions = (
+                set(payload.get("permissions", []))
+                if payload.get("permissions")
+                else set()
+            )
             if not permissions:
                 try:
-                    permissions = set(self.auth_adapter.auth_manager.get_user_permissions(user_id))
+                    permissions = set(
+                        self.auth_adapter.auth_manager.get_user_permissions(user_id)
+                    )
                 except Exception:
                     permissions = set()
 
@@ -235,7 +273,7 @@ class WebSocketService:
                 "token_type": payload.get("token_type", "access"),
                 "jti": payload.get("jti"),
                 "exp": payload.get("exp"),
-                "iat": payload.get("iat")
+                "iat": payload.get("iat"),
             }
 
             return user_context
@@ -244,8 +282,14 @@ class WebSocketService:
             logger.error(f"Error validating user token: {e}")
             return None
 
-    @async_track_performance("websocket_message_log") if async_track_performance else (lambda f: f)
-    async def log_websocket_message(self, user_id: int, message_type: str, content: str):
+    @(
+        async_track_performance("websocket_message_log")
+        if async_track_performance
+        else (lambda f: f)
+    )
+    async def log_websocket_message(
+        self, user_id: int, message_type: str, content: str
+    ):
         """Log WebSocket message using EXISTING database abstraction layer."""
         if self.db_manager:
             try:
@@ -258,7 +302,7 @@ class WebSocketService:
                     "user_id": user_id,
                     "message_type": message_type,
                     "content": content[:1000],  # Limit content length
-                    "timestamp": datetime.now()
+                    "timestamp": datetime.now(),
                 }
 
                 # Use performance tracking if available
@@ -275,8 +319,10 @@ class WebSocketService:
             except Exception as e:
                 logger.error(f"Error logging WebSocket message: {e}")
 
+
 # Initialize service
 websocket_service = WebSocketService()
+
 
 @router.websocket("/connect")
 async def websocket_endpoint(websocket: WebSocket, token: str = None):
@@ -307,14 +353,16 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
             "user_id": user_id,
             "timestamp": datetime.now().isoformat(),
             "server_info": {
-                "version": getattr(settings, 'API_VERSION', 'Unknown'),
-                "debug": getattr(settings, 'DEBUG', False)
-            }
+                "version": getattr(settings, "API_VERSION", "Unknown"),
+                "debug": getattr(settings, "DEBUG", False),
+            },
         }
         await websocket.send_text(json.dumps(welcome_message))
 
         # Log connection
-        await websocket_service.log_websocket_message(user_id, "connection", "User connected")
+        await websocket_service.log_websocket_message(
+            user_id, "connection", "User connected"
+        )
 
         # Message handling loop
         while True:
@@ -330,13 +378,17 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
                     # Sanitize input
                     if "content" in message_data:
                         try:
-                            message_data["content"] = InputSanitizer.sanitize_input(message_data["content"])
+                            message_data["content"] = InputSanitizer.sanitize_input(
+                                message_data["content"]
+                            )
                         except Exception:
                             # Best-effort sanitize; if it fails, leave content as-is
                             pass
 
                     # Log message
-                    await websocket_service.log_websocket_message(user_id, message_type, data)
+                    await websocket_service.log_websocket_message(
+                        user_id, message_type, data
+                    )
 
                     # Handle different message types
                     await handle_websocket_message(websocket, user_id, message_data)
@@ -345,7 +397,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
                     error_response = {
                         "type": "error",
                         "message": "Invalid JSON format",
-                        "timestamp": datetime.now().isoformat()
+                        "timestamp": datetime.now().isoformat(),
                     }
                     await websocket.send_text(json.dumps(error_response))
 
@@ -356,7 +408,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
                 error_response = {
                     "type": "error",
                     "message": "Internal server error",
-                    "timestamp": datetime.now().isoformat()
+                    "timestamp": datetime.now().isoformat(),
                 }
                 try:
                     await websocket.send_text(json.dumps(error_response))
@@ -372,20 +424,22 @@ async def websocket_endpoint(websocket: WebSocket, token: str = None):
         try:
             if user_id:
                 manager.disconnect(websocket, user_id)
-                await websocket_service.log_websocket_message(user_id, "disconnection", "User disconnected")
+                await websocket_service.log_websocket_message(
+                    user_id, "disconnection", "User disconnected"
+                )
         except Exception as e:
             logger.error(f"Error during WebSocket cleanup: {e}")
 
-async def handle_websocket_message(websocket: WebSocket, user_id: int, message_data: dict[str, Any]):
+
+async def handle_websocket_message(
+    websocket: WebSocket, user_id: int, message_data: dict[str, Any]
+):
     """Handle different types of WebSocket messages."""
     message_type = message_data.get("type", "unknown")
 
     if message_type == "ping":
         # Handle ping message
-        pong_response = {
-            "type": "pong",
-            "timestamp": datetime.now().isoformat()
-        }
+        pong_response = {"type": "pong", "timestamp": datetime.now().isoformat()}
         await websocket.send_text(json.dumps(pong_response))
 
     elif message_type == "status":
@@ -394,7 +448,7 @@ async def handle_websocket_message(websocket: WebSocket, user_id: int, message_d
         status_response = {
             "type": "status_response",
             "data": status_info,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
         await websocket.send_text(json.dumps(status_response))
 
@@ -408,14 +462,14 @@ async def handle_websocket_message(websocket: WebSocket, user_id: int, message_d
                 "type": "broadcast",
                 "message": message_data.get("message", ""),
                 "from": "admin",
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
             await manager.broadcast(json.dumps(broadcast_message))
         else:
             error_response = {
                 "type": "error",
                 "message": "Unauthorized: Admin access required",
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
             await websocket.send_text(json.dumps(error_response))
 
@@ -424,9 +478,10 @@ async def handle_websocket_message(websocket: WebSocket, user_id: int, message_d
         error_response = {
             "type": "error",
             "message": f"Unknown message type: {message_type}",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
         await websocket.send_text(json.dumps(error_response))
+
 
 async def get_system_status() -> dict[str, Any]:
     """Get system status information with performance optimization."""
@@ -435,10 +490,10 @@ async def get_system_status() -> dict[str, Any]:
             "timestamp": datetime.now().isoformat(),
             "websocket_connections": len(manager.active_connections),
             "server_info": {
-                "version": getattr(settings, 'API_VERSION', 'Unknown'),
-                "debug": getattr(settings, 'DEBUG', False),
-                "log_level": getattr(settings, 'LOG_LEVEL', 'INFO')
-            }
+                "version": getattr(settings, "API_VERSION", "Unknown"),
+                "debug": getattr(settings, "DEBUG", False),
+                "log_level": getattr(settings, "LOG_LEVEL", "INFO"),
+            },
         }
 
         # Add system metrics if psutil is available
@@ -446,7 +501,7 @@ async def get_system_status() -> dict[str, Any]:
             try:
                 cpu_percent = psutil.cpu_percent(interval=0.1)
                 memory = psutil.virtual_memory()
-                disk = psutil.disk_usage('/')
+                disk = psutil.disk_usage("/")
 
                 status_info["system"] = {
                     "cpu_usage_percent": cpu_percent,
@@ -455,7 +510,7 @@ async def get_system_status() -> dict[str, Any]:
                     "memory_total_gb": memory.total // (1024**3),
                     "disk_usage_percent": (disk.used / disk.total) * 100,
                     "disk_used_gb": disk.used // (1024**3),
-                    "disk_total_gb": disk.total // (1024**3)
+                    "disk_total_gb": disk.total // (1024**3),
                 }
             except Exception as e:
                 logger.error(f"Error getting system metrics: {e}")
@@ -469,5 +524,5 @@ async def get_system_status() -> dict[str, Any]:
         logger.error(f"Error getting system status: {e}")
         return {
             "error": "Unable to retrieve system status",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }

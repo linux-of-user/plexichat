@@ -351,7 +351,7 @@ class UnifiedAuthManager:
                     "device_tracking",
                     "database_storage",
                 ],
-            }
+            },
         )
 
     def _record_metric(
@@ -516,7 +516,7 @@ class UnifiedAuthManager:
                                 "session_id": row["id"],
                                 "user_id": row["user_id"],
                                 "event_type": "session_expired",
-                            }
+                            },
                         )
 
                 # Clean up expired MFA challenges
@@ -641,9 +641,7 @@ class UnifiedAuthManager:
         except Exception:
             return True  # Invalid IP format is suspicious
 
-    def _check_brute_force_protection(
-        self, ip_address: str
-    ) -> tuple[bool, str | None]:
+    def _check_brute_force_protection(self, ip_address: str) -> tuple[bool, str | None]:
         """Check if IP is blocked due to brute force attempts."""
         if ip_address not in self.brute_force_tracking:
             return True, None
@@ -703,7 +701,7 @@ class UnifiedAuthManager:
                     "ip_address": ip_address,
                     "event_type": "brute_force_block",
                     "failed_attempts": protection.failed_attempts,
-                }
+                },
             )
 
     def _validate_password_policy(
@@ -922,7 +920,7 @@ class UnifiedAuthManager:
                             "challenge_id": challenge_id,
                             "event_type": "mfa_challenge_created",
                             "method": method.value,
-                        }
+                        },
                     )
 
                     return challenge
@@ -1029,7 +1027,7 @@ class UnifiedAuthManager:
                             "challenge_id": challenge_id,
                             "event_type": "mfa_verified",
                             "method": method.value,
-                        }
+                        },
                     )
 
                     return True
@@ -1067,7 +1065,7 @@ class UnifiedAuthManager:
                 extra={
                     "provider": provider.value,
                     "event_type": "oauth2_provider_configured",
-                }
+                },
             )
         except Exception as e:
             logger.error(f"Error configuring OAuth2 provider {provider.value}: {e}")
@@ -1200,7 +1198,7 @@ class UnifiedAuthManager:
                     "user_id": user_id,
                     "provider": provider.value,
                     "event_type": "oauth2_login_success",
-                }
+                },
             )
 
             return AuthResult(
@@ -1325,7 +1323,7 @@ class UnifiedAuthManager:
                         "ip_address": ip_address,
                         "event_type": "brute_force_block",
                         "reason": "brute_force_protection",
-                    }
+                    },
                 )
 
                 return AuthResult(
@@ -1360,7 +1358,7 @@ class UnifiedAuthManager:
                         "ip_address": ip_address,
                         "event_type": "login_failure",
                         "reason": "invalid_credentials",
-                    }
+                    },
                 )
                 logger.performance(
                     "user_authentication",
@@ -1438,7 +1436,7 @@ class UnifiedAuthManager:
                                 "challenge_id": challenge_id,
                                 "event_type": "mfa_challenge_created",
                                 "method": challenge.method.value,
-                            }
+                            },
                         )
 
                         logger.security(
@@ -1586,7 +1584,7 @@ class UnifiedAuthManager:
                                     "challenge_id": challenge_id,
                                     "event_type": "mfa_verified",
                                     "method": method.value,
-                                }
+                                },
                             )
                         else:
                             # Update attempts
@@ -1794,7 +1792,7 @@ class UnifiedAuthManager:
                     "risk_score": risk_score,
                     "mfa_verified": mfa_verified or not requires_mfa,
                     "auth_provider": AuthProvider.LOCAL.value,
-                }
+                },
             )
             logger.performance(
                 "user_authentication",
@@ -2040,7 +2038,7 @@ class UnifiedAuthManager:
                             "session_id": session_id,
                             "user_id": session.user_id,
                             "event_type": "session_expired",
-                        }
+                        },
                     )
                     return False, None
 
@@ -2142,10 +2140,7 @@ class UnifiedAuthManager:
                     logger.security("API key validation successful", user_id=username)
                     logger.info(
                         "API key used",
-                        extra={
-                            "user_id": username,
-                            "event_type": "api_key_access"
-                        }
+                        extra={"user_id": username, "event_type": "api_key_access"},
                     )
                     logger.performance(
                         "api_key_validation",
@@ -2208,7 +2203,7 @@ class UnifiedAuthManager:
                     "user_id": user_id,
                     "event_type": "token_created",
                     "token_type": "access",
-                }
+                },
             )
 
             return token
@@ -2237,7 +2232,7 @@ class UnifiedAuthManager:
                     "user_id": user_id,
                     "event_type": "token_created",
                     "token_type": "refresh",
-                }
+                },
             )
 
             return token
@@ -2271,10 +2266,7 @@ class UnifiedAuthManager:
                 logger.security("Token revoked", user_id=user_id)
                 logger.info(
                     "Token revoked",
-                    extra={
-                        "user_id": user_id,
-                        "event_type": "token_revoked"
-                    }
+                    extra={"user_id": user_id, "event_type": "token_revoked"},
                 )
 
             return success
@@ -2321,7 +2313,7 @@ class UnifiedAuthManager:
                         "session_id": session_id,
                         "user_id": user_id,
                         "event_type": "session_invalidated",
-                    }
+                    },
                 )
 
                 return True
@@ -2369,7 +2361,7 @@ class UnifiedAuthManager:
                         "user_id": user_id,
                         "event_type": "all_sessions_invalidated",
                         "session_count": session_count,
-                    }
+                    },
                 )
 
                 return session_count
@@ -2456,7 +2448,7 @@ class UnifiedAuthManager:
                     "event_type": "user_registered",
                     "permissions": list(final_permissions),
                     "roles": [role.value for role in (roles or set())],
-                }
+                },
             )
 
             return True, []
@@ -2539,7 +2531,7 @@ class UnifiedAuthManager:
                         "user_id": user_id,
                         "event_type": "session_elevated",
                         "elevation_expires_at": elevation_expires_at,
-                    }
+                    },
                 )
 
                 return True
@@ -2622,7 +2614,7 @@ class UnifiedAuthManager:
                     "user_id": user_id,
                     "role": role.value,
                     "event_type": "role_assigned",
-                }
+                },
             )
 
             return True
@@ -2658,7 +2650,7 @@ class UnifiedAuthManager:
                     "user_id": user_id,
                     "role": role.value,
                     "event_type": "role_revoked",
-                }
+                },
             )
 
             return True
@@ -2713,10 +2705,7 @@ class UnifiedAuthManager:
                 logger.security("Password changed successfully", user_id=user_id)
                 logger.info(
                     "Password changed",
-                    extra={
-                        "user_id": user_id,
-                        "event_type": "password_changed"
-                    }
+                    extra={"user_id": user_id, "event_type": "password_changed"},
                 )
 
                 # Invalidate all user sessions except current one
@@ -2772,7 +2761,7 @@ class UnifiedAuthManager:
                         "event_type": "permissions_updated",
                         "old_permissions": list(old_permissions),
                         "new_permissions": list(permissions),
-                    }
+                    },
                 )
 
                 return True
@@ -3014,7 +3003,7 @@ class UnifiedAuthManager:
                         "expired_challenges_removed": expired_challenges,
                         "cleaned_brute_force_entries": cleaned_brute_force,
                         "cleaned_old_devices": cleaned_devices,
-                    }
+                    },
                 )
 
         except Exception as e:

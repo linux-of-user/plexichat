@@ -429,12 +429,7 @@ class MessageQueueManager:
                 json.dumps(message.to_dict()).encode(),
                 priority=message.priority.value,
                 expiration=(
-                    int(
-                        (
-                            message.expires_at - datetime.now(UTC)
-                        ).total_seconds()
-                        * 1000
-                    )
+                    int((message.expires_at - datetime.now(UTC)).total_seconds() * 1000)
                     if message.expires_at
                     else None
                 ),

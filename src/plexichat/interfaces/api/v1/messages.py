@@ -12,19 +12,24 @@ from plexichat.core.messaging.unified_messaging_system import get_messaging_syst
 def get_current_user():
     return {"id": "mock_user_id", "username": "mock_user"}
 
+
 router = APIRouter(prefix="/messages", tags=["Messages"])
 
 # In-memory storage for demonstration
 messages_db: dict[str, dict] = {}
+
 
 class MessageCreate(BaseModel):
     recipient_id: str
     content: str = Field(..., max_length=10000)
     thread_id: str | None = None
     reply_to: str | None = None
+
+
 class MessageCreate(BaseModel):
     recipient_id: str
     content: str = Field(..., max_length=10000)
+
 
 class MessageResponse(BaseModel):
     id: str
@@ -34,26 +39,34 @@ class MessageResponse(BaseModel):
     timestamp: datetime
     reactions: dict[str, list[str]] | None = None
 
+
 class ReactionCreate(BaseModel):
     emoji: str = Field(..., max_length=10, description="Emoji to react with")
+
 
 class ReactionResponse(BaseModel):
     emoji: str
     users: list[str]
     count: int
+
+
 @router.post("/send", response_model=MessageResponse)
-async def send_message(message_data: MessageCreate, current_user: dict = Depends(get_current_user)):
+async def send_message(
+    message_data: MessageCreate, current_user: dict = Depends(get_current_user)
+):
     """Send a message to another user or in a thread."""
     messaging_system = get_messaging_system()
 
     # Determine if this is a direct message or thread message
     if message_data.thread_id:
         # Send message in thread
-        success, message_id_or_error, message = await messaging_system.send_thread_message(
-            sender_id=current_user["id"],
-            thread_id=message_data.thread_id,
-            content=message_data.content,
-            reply_to=message_data.reply_to
+        success, message_id_or_error, message = (
+            await messaging_system.send_thread_message(
+                sender_id=current_user["id"],
+                thread_id=message_data.thread_id,
+                content=message_data.content,
+                reply_to=message_data.reply_to,
+            )
         )
     else:
         # Send direct message
@@ -62,7 +75,7 @@ async def send_message(message_data: MessageCreate, current_user: dict = Depends
             channel_id=message_data.recipient_id,  # Using recipient_id as channel_id for now
             content=message_data.content,
             reply_to=message_data.reply_to,
-            thread_id=message_data.thread_id
+            thread_id=message_data.thread_id,
         )
 
     if not success:
@@ -74,19 +87,25 @@ async def send_message(message_data: MessageCreate, current_user: dict = Depends
         recipient_id=message_data.recipient_id,
         content=message_data.content,
         timestamp=datetime.now(),
-        reactions=None
+        reactions=None,
     )
+
 
 def encrypt_message(content: str) -> str:
     """Simulates message encryption."""
     return hashlib.sha256(content.encode()).hexdigest()
 
+
 @router.post("/send", response_model=MessageResponse)
-async def send_message(message_data: MessageCreate, current_user: dict = Depends(get_current_user)):
+async def send_message(
+    message_data: MessageCreate, current_user: dict = Depends(get_current_user)
+):
     """Send a message to another user."""
     sender_id = current_user["id"]
     if message_data.recipient_id == sender_id:
-        raise HTTPException(status_code=400, detail="Cannot send a message to yourself.")
+        raise HTTPException(
+            status_code=400, detail="Cannot send a message to yourself."
+        )
 
     message_id = str(uuid4())
     timestamp = datetime.now()
@@ -104,20 +123,22 @@ async def send_message(message_data: MessageCreate, current_user: dict = Depends
 
     return MessageResponse(**message_record)
 
+
 @router.get("/conversation/{other_user_id}", response_model=list[MessageResponse])
 async def get_conversation(
     other_user_id: str,
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
 ):
     """Get messages in a conversation with another user."""
     user_id = current_user["id"]
 
     conversation = []
     for msg in messages_db.values():
-        if (msg["sender_id"] == user_id and msg["recipient_id"] == other_user_id) or \
-           (msg["sender_id"] == other_user_id and msg["recipient_id"] == user_id):
+        if (msg["sender_id"] == user_id and msg["recipient_id"] == other_user_id) or (
+            msg["sender_id"] == other_user_id and msg["recipient_id"] == user_id
+        ):
             # Ensure reactions field exists
             if "reactions" not in msg:
                 msg["reactions"] = {}
@@ -127,18 +148,28 @@ async def get_conversation(
 
     return conversation[offset : offset + limit]
 
+
 @router.delete("/{message_id}")
-async def delete_message(message_id: str, current_user: dict = Depends(get_current_user)):
+async def delete_message(
+    message_id: str, current_user: dict = Depends(get_current_user)
+):
     """Delete a message."""
     message = messages_db.get(message_id)
     if not message or message["sender_id"] != current_user["id"]:
-        raise HTTPException(status_code=404, detail="Message not found or not owned by user.")
+        raise HTTPException(
+            status_code=404, detail="Message not found or not owned by user."
+        )
 
     del messages_db[message_id]
     return {"message": "Message deleted"}
 
+
 @router.post("/{message_id}/reactions", response_model=ReactionResponse)
-async def add_reaction(message_id: str, reaction: ReactionCreate, current_user: dict = Depends(get_current_user)):
+async def add_reaction(
+    message_id: str,
+    reaction: ReactionCreate,
+    current_user: dict = Depends(get_current_user),
+):
     """Add a reaction to a message."""
     messaging_system = get_messaging_system()
 
@@ -167,23 +198,25 @@ async def add_reaction(message_id: str, reaction: ReactionCreate, current_user: 
 
     # Broadcast reaction update via WebSocket
     from plexichat.core.websocket.websocket_manager import send_to_channel
+
     reaction_update = {
         "type": "reaction_added",
         "message_id": message_id,
         "emoji": emoji,
         "user_id": user_id,
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
     await send_to_channel(message.metadata.channel_id, reaction_update)
 
     return ReactionResponse(
-        emoji=emoji,
-        users=message.reactions[emoji],
-        count=len(message.reactions[emoji])
+        emoji=emoji, users=message.reactions[emoji], count=len(message.reactions[emoji])
     )
 
+
 @router.delete("/{message_id}/reactions/{emoji}")
-async def remove_reaction(message_id: str, emoji: str, current_user: dict = Depends(get_current_user)):
+async def remove_reaction(
+    message_id: str, emoji: str, current_user: dict = Depends(get_current_user)
+):
     """Remove a reaction from a message."""
     messaging_system = get_messaging_system()
 
@@ -208,19 +241,23 @@ async def remove_reaction(message_id: str, emoji: str, current_user: dict = Depe
 
     # Broadcast reaction update via WebSocket
     from plexichat.core.websocket.websocket_manager import send_to_channel
+
     reaction_update = {
         "type": "reaction_removed",
         "message_id": message_id,
         "emoji": emoji,
         "user_id": user_id,
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
     await send_to_channel(message.metadata.channel_id, reaction_update)
 
     return {"message": "Reaction removed"}
 
+
 @router.get("/{message_id}/reactions", response_model=list[ReactionResponse])
-async def get_reactions(message_id: str, current_user: dict = Depends(get_current_user)):
+async def get_reactions(
+    message_id: str, current_user: dict = Depends(get_current_user)
+):
     """Get all reactions for a message."""
     messaging_system = get_messaging_system()
 
@@ -232,15 +269,12 @@ async def get_reactions(message_id: str, current_user: dict = Depends(get_curren
 
     reactions = []
     for emoji, users in message.reactions.items():
-        reactions.append(ReactionResponse(
-            emoji=emoji,
-            users=users,
-            count=len(users)
-        ))
+        reactions.append(ReactionResponse(emoji=emoji, users=users, count=len(users)))
 
     return reactions
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # Example of how to run this API with uvicorn
     from fastapi import FastAPI
 

@@ -20,6 +20,7 @@ security = HTTPBearer()
 v1_router = APIRouter(prefix="/api/v1")
 root_router = APIRouter()  # Root-level endpoints for backward compatibility
 
+
 # Pydantic models
 class User(BaseModel):
     id: int
@@ -27,10 +28,12 @@ class User(BaseModel):
     email: str
     is_active: bool = True
 
+
 class UserCreate(BaseModel):
     username: str
     email: str  # Basic string type, no email validation
     password: str
+
 
 class Message(BaseModel):
     id: int
@@ -39,14 +42,17 @@ class Message(BaseModel):
     recipient_id: int | None = None
     timestamp: str
 
+
 class MessageCreate(BaseModel):
     content: str
     recipient_id: int | None = None
+
 
 class FileUpload(BaseModel):
     filename: str
     content_type: str
     size: int
+
 
 # Mock data storage (replace with database in production)
 users_db = [
@@ -55,16 +61,30 @@ users_db = [
 ]
 
 messages_db = [
-    {"id": 1, "content": "Hello World", "sender_id": 1, "recipient_id": 2, "timestamp": "2025-07-30T12:00:00"},
-    {"id": 2, "content": "Welcome to PlexiChat", "sender_id": 2, "recipient_id": 1, "timestamp": "2025-07-30T12:01:00"},
+    {
+        "id": 1,
+        "content": "Hello World",
+        "sender_id": 1,
+        "recipient_id": 2,
+        "timestamp": "2025-07-30T12:00:00",
+    },
+    {
+        "id": 2,
+        "content": "Welcome to PlexiChat",
+        "sender_id": 2,
+        "recipient_id": 1,
+        "timestamp": "2025-07-30T12:01:00",
+    },
 ]
 
 files_db = []
+
 
 # Dependency to get current user
 def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     # Mock authentication - replace with real auth
     return users_db[0] if users_db else None
+
 
 # User endpoints
 @v1_router.get("/users/me", response_model=User)
@@ -74,6 +94,7 @@ async def get_current_user_info(current_user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=401, detail="Not authenticated")
     return current_user
 
+
 @v1_router.get("/users/{user_id}", response_model=User)
 async def get_user(user_id: int):
     """Get user by ID."""
@@ -82,10 +103,12 @@ async def get_user(user_id: int):
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
+
 @v1_router.get("/users", response_model=list[User])
 async def list_users(skip: int = 0, limit: int = 100):
     """List all users."""
-    return users_db[skip:skip + limit]
+    return users_db[skip : skip + limit]
+
 
 @v1_router.post("/users", response_model=User)
 async def create_user(user: UserCreate):
@@ -94,16 +117,18 @@ async def create_user(user: UserCreate):
         "id": len(users_db) + 1,
         "username": user.username,
         "email": user.email,
-        "is_active": True
+        "is_active": True,
     }
     users_db.append(new_user)
     return new_user
+
 
 # Message endpoints
 @v1_router.get("/messages", response_model=list[Message])
 async def get_messages(skip: int = 0, limit: int = 100):
     """Get all messages."""
-    return messages_db[skip:skip + limit]
+    return messages_db[skip : skip + limit]
+
 
 @v1_router.get("/messages/{message_id}", response_model=Message)
 async def get_message(message_id: int):
@@ -113,8 +138,11 @@ async def get_message(message_id: int):
         raise HTTPException(status_code=404, detail="Message not found")
     return message
 
+
 @v1_router.post("/messages", response_model=Message)
-async def create_message(message: MessageCreate, current_user: dict = Depends(get_current_user)):
+async def create_message(
+    message: MessageCreate, current_user: dict = Depends(get_current_user)
+):
     """Create a new message."""
     if not current_user:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -124,15 +152,19 @@ async def create_message(message: MessageCreate, current_user: dict = Depends(ge
         "content": message.content,
         "sender_id": current_user["id"],
         "recipient_id": message.recipient_id,
-        "timestamp": "2025-07-30T12:00:00"
+        "timestamp": "2025-07-30T12:00:00",
     }
     messages_db.append(new_message)
     return new_message
 
+
 @v1_router.post("/messages/send")
-async def send_message(message: MessageCreate, current_user: dict = Depends(get_current_user)):
+async def send_message(
+    message: MessageCreate, current_user: dict = Depends(get_current_user)
+):
     """Send a message (alias for create_message)."""
     return await create_message(message, current_user)
+
 
 # File endpoints
 @v1_router.get("/files")
@@ -140,22 +172,25 @@ async def list_files():
     """List all uploaded files."""
     return files_db
 
+
 @v1_router.post("/files/upload")
 async def upload_file(file: UploadFile = File(...)):
     """Upload a file."""
     file_info = {
         "filename": file.filename,
         "content_type": file.content_type,
-        "size": 0  # Mock size for now
+        "size": 0,  # Mock size for now
     }
     files_db.append(file_info)
     return {"message": "File uploaded successfully", "file": file_info}
+
 
 # Admin endpoints
 @v1_router.get("/admin/users")
 async def admin_list_users():
     """Admin endpoint to list all users."""
     return {"users": users_db, "total": len(users_db)}
+
 
 @v1_router.get("/admin/stats")
 async def admin_stats():
@@ -164,8 +199,9 @@ async def admin_stats():
         "total_users": len(users_db),
         "total_messages": len(messages_db),
         "total_files": len(files_db),
-        "system_status": "healthy"
+        "system_status": "healthy",
     }
+
 
 @v1_router.delete("/admin/users/{user_id}")
 async def admin_delete_user(user_id: int):
@@ -174,18 +210,22 @@ async def admin_delete_user(user_id: int):
     users_db = [u for u in users_db if u["id"] != user_id]
     return {"message": f"User {user_id} deleted"}
 
+
 # Additional endpoints for testing
 @v1_router.get("/health")
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy", "timestamp": "2025-07-30T12:00:00"}
 
+
 @v1_router.get("/test")
 async def test_endpoint():
     """Test endpoint for connectivity."""
     return {"message": "API v1 is working"}
 
+
 logger.info("[CHECK] API v1 router initialized with all endpoints")
+
 
 # Root-level endpoints for backward compatibility
 @root_router.get("/users/me", response_model=User)
@@ -195,6 +235,7 @@ async def get_current_user_root(current_user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=401, detail="Not authenticated")
     return current_user
 
+
 @root_router.get("/users/{user_id}", response_model=User)
 async def get_user_root(user_id: int):
     """Get user by ID at root level."""
@@ -203,10 +244,12 @@ async def get_user_root(user_id: int):
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
+
 @root_router.get("/users", response_model=list[User])
 async def list_users_root(skip: int = 0, limit: int = 100):
     """List all users at root level."""
-    return users_db[skip:skip + limit]
+    return users_db[skip : skip + limit]
+
 
 @root_router.post("/users", response_model=User)
 async def create_user_root(user: UserCreate):
@@ -215,15 +258,17 @@ async def create_user_root(user: UserCreate):
         "id": len(users_db) + 1,
         "username": user.username,
         "email": user.email,
-        "is_active": True
+        "is_active": True,
     }
     users_db.append(new_user)
     return new_user
 
+
 @root_router.get("/messages", response_model=list[Message])
 async def get_messages_root(skip: int = 0, limit: int = 100):
     """Get all messages at root level."""
-    return messages_db[skip:skip + limit]
+    return messages_db[skip : skip + limit]
+
 
 @root_router.get("/messages/{message_id}", response_model=Message)
 async def get_message_root(message_id: int):
@@ -233,8 +278,11 @@ async def get_message_root(message_id: int):
         raise HTTPException(status_code=404, detail="Message not found")
     return message
 
+
 @root_router.post("/messages", response_model=Message)
-async def create_message_root(message: MessageCreate, current_user: dict = Depends(get_current_user)):
+async def create_message_root(
+    message: MessageCreate, current_user: dict = Depends(get_current_user)
+):
     """Create a new message at root level."""
     if not current_user:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -244,20 +292,25 @@ async def create_message_root(message: MessageCreate, current_user: dict = Depen
         "content": message.content,
         "sender_id": current_user["id"],
         "recipient_id": message.recipient_id,
-        "timestamp": "2025-07-30T12:00:00"
+        "timestamp": "2025-07-30T12:00:00",
     }
     messages_db.append(new_message)
     return new_message
 
+
 @root_router.post("/messages/send")
-async def send_message_root(message: MessageCreate, current_user: dict = Depends(get_current_user)):
+async def send_message_root(
+    message: MessageCreate, current_user: dict = Depends(get_current_user)
+):
     """Send a message at root level."""
     return await create_message_root(message, current_user)
+
 
 @root_router.get("/files")
 async def list_files_root():
     """List all uploaded files at root level."""
     return files_db
+
 
 @root_router.post("/files/upload")
 async def upload_file_root(file: UploadFile = File(...)):
@@ -265,15 +318,17 @@ async def upload_file_root(file: UploadFile = File(...)):
     file_info = {
         "filename": file.filename,
         "content_type": file.content_type,
-        "size": 0  # Mock size for now
+        "size": 0,  # Mock size for now
     }
     files_db.append(file_info)
     return {"message": "File uploaded successfully", "file": file_info}
+
 
 @root_router.get("/admin/users")
 async def admin_list_users_root():
     """Admin endpoint to list all users at root level."""
     return {"users": users_db, "total": len(users_db)}
+
 
 @root_router.get("/admin/stats")
 async def admin_stats_root():
@@ -282,8 +337,9 @@ async def admin_stats_root():
         "total_users": len(users_db),
         "total_messages": len(messages_db),
         "total_files": len(files_db),
-        "system_status": "healthy"
+        "system_status": "healthy",
     }
+
 
 @root_router.delete("/admin/users/{user_id}")
 async def admin_delete_user_root(user_id: int):
@@ -291,5 +347,6 @@ async def admin_delete_user_root(user_id: int):
     global users_db
     users_db = [u for u in users_db if u["id"] != user_id]
     return {"message": f"User {user_id} deleted"}
+
 
 logger.info("[CHECK] Root-level endpoints added for backward compatibility")

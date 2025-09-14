@@ -38,10 +38,13 @@ class BackupRepository:
 
         try:
             from plexichat.core.database.manager import database_manager
+
             self.db_manager = database_manager
         except ImportError:
             self.db_manager = None
-            self.logger.error("Failed to import database_manager. Backup repository will be non-functional.")
+            self.logger.error(
+                "Failed to import database_manager. Backup repository will be non-functional."
+            )
 
         # Caching - using unified cache now
         try:
@@ -50,6 +53,7 @@ class BackupRepository:
                 cache_get,
                 cache_set,
             )
+
             self.cache_get = cache_get
             self.cache_set = cache_set
             self.cache_delete = cache_delete
@@ -67,7 +71,7 @@ class BackupRepository:
             "total_queries": 0,
             "cache_hits": 0,
             "cache_misses": 0,
-            "failed_operations": 0
+            "failed_operations": 0,
         }
         self._db_initialized = False
 
@@ -79,7 +83,9 @@ class BackupRepository:
         try:
             await self._create_tables()
             self._db_initialized = True
-            self.logger.info("Backup repository database tables initialized successfully.")
+            self.logger.info(
+                "Backup repository database tables initialized successfully."
+            )
         except Exception as e:
             self.logger.error(f"Failed to initialize backup repository tables: {e}")
             self._db_initialized = False
@@ -108,7 +114,7 @@ class BackupRepository:
             "storage_locations": "TEXT",
             "recovery_info": "TEXT",
             "version": "INTEGER DEFAULT 1",
-            "last_modified": "TEXT NOT NULL"
+            "last_modified": "TEXT NOT NULL",
         }
         await self.db_manager.ensure_table_exists("backup_metadata", schema_metadata)
 
@@ -123,7 +129,7 @@ class BackupRepository:
             "storage_location": "TEXT NOT NULL",
             "storage_path": "TEXT NOT NULL",
             "created_at": "TEXT NOT NULL",
-            "verified_at": "TEXT"
+            "verified_at": "TEXT",
             # FOREIGN KEY would need to be handled by the application logic if not supported by ensure_table_exists
         }
         await self.db_manager.ensure_table_exists("backup_shards", schema_shards)
@@ -139,9 +145,11 @@ class BackupRepository:
             "duration_seconds": "REAL",
             "user_id": "TEXT",
             "details": "TEXT",
-            "error_message": "TEXT"
+            "error_message": "TEXT",
         }
-        await self.db_manager.ensure_table_exists("backup_operations", schema_operations)
+        await self.db_manager.ensure_table_exists(
+            "backup_operations", schema_operations
+        )
 
         # User quotas table
         schema_quotas = {
@@ -151,7 +159,7 @@ class BackupRepository:
             "backup_count": "INTEGER DEFAULT 0",
             "last_backup": "TEXT",
             "created_at": "TEXT NOT NULL",
-            "updated_at": "TEXT NOT NULL"
+            "updated_at": "TEXT NOT NULL",
         }
         await self.db_manager.ensure_table_exists("user_quotas", schema_quotas)
 
@@ -162,7 +170,7 @@ class BackupRepository:
             "metric_name": "TEXT NOT NULL",
             "metric_value": "REAL NOT NULL",
             "metadata": "TEXT",
-            "created_at": "TEXT NOT NULL"
+            "created_at": "TEXT NOT NULL",
         }
         await self.db_manager.ensure_table_exists("backup_analytics", schema_analytics)
 
@@ -171,32 +179,44 @@ class BackupRepository:
         try:
             await self._initialize_database()  # Ensure tables exist
 
-            if hasattr(metadata, '__dict__'):
-                metadata_dict = asdict(metadata) if hasattr(metadata, '__dataclass_fields__') else metadata.__dict__
+            if hasattr(metadata, "__dict__"):
+                metadata_dict = (
+                    asdict(metadata)
+                    if hasattr(metadata, "__dataclass_fields__")
+                    else metadata.__dict__
+                )
             else:
                 metadata_dict = metadata
 
             backup_data = {
-                'backup_id': metadata_dict.get('backup_id'),
-                'backup_type': str(metadata_dict.get('backup_type', '')),
-                'security_level': str(metadata_dict.get('security_level', '')),
-                'status': str(metadata_dict.get('status', '')),
-                'user_id': metadata_dict.get('user_id'),
-                'original_size': metadata_dict.get('original_size', 0),
-                'compressed_size': metadata_dict.get('compressed_size', 0),
-                'encrypted_size': metadata_dict.get('encrypted_size', 0),
-                'compression_ratio': metadata_dict.get('compression_ratio', 0.0),
-                'shard_count': metadata_dict.get('shard_count', 0),
-                'checksum': metadata_dict.get('checksum', ''),
-                'created_at': self._safe_datetime_to_string(metadata_dict.get('created_at')),
-                'completed_at': self._safe_datetime_to_string(metadata_dict.get('completed_at')),
-                'expires_at': self._safe_datetime_to_string(metadata_dict.get('expires_at')),
-                'tags': json.dumps(metadata_dict.get('tags', [])),
-                'metadata': json.dumps(metadata_dict.get('metadata', {})),
-                'storage_locations': json.dumps(metadata_dict.get('storage_locations', [])),
-                'recovery_info': json.dumps(metadata_dict.get('recovery_info', {})),
-                'version': metadata_dict.get('version', 1),
-                'last_modified': datetime.now(UTC).isoformat()
+                "backup_id": metadata_dict.get("backup_id"),
+                "backup_type": str(metadata_dict.get("backup_type", "")),
+                "security_level": str(metadata_dict.get("security_level", "")),
+                "status": str(metadata_dict.get("status", "")),
+                "user_id": metadata_dict.get("user_id"),
+                "original_size": metadata_dict.get("original_size", 0),
+                "compressed_size": metadata_dict.get("compressed_size", 0),
+                "encrypted_size": metadata_dict.get("encrypted_size", 0),
+                "compression_ratio": metadata_dict.get("compression_ratio", 0.0),
+                "shard_count": metadata_dict.get("shard_count", 0),
+                "checksum": metadata_dict.get("checksum", ""),
+                "created_at": self._safe_datetime_to_string(
+                    metadata_dict.get("created_at")
+                ),
+                "completed_at": self._safe_datetime_to_string(
+                    metadata_dict.get("completed_at")
+                ),
+                "expires_at": self._safe_datetime_to_string(
+                    metadata_dict.get("expires_at")
+                ),
+                "tags": json.dumps(metadata_dict.get("tags", [])),
+                "metadata": json.dumps(metadata_dict.get("metadata", {})),
+                "storage_locations": json.dumps(
+                    metadata_dict.get("storage_locations", [])
+                ),
+                "recovery_info": json.dumps(metadata_dict.get("recovery_info", {})),
+                "version": metadata_dict.get("version", 1),
+                "last_modified": datetime.now(UTC).isoformat(),
             }
 
             async with self.db_manager.get_session() as session:
@@ -212,12 +232,16 @@ class BackupRepository:
                         :created_at, :completed_at, :expires_at, :tags, :metadata, :storage_locations,
                         :recovery_info, :version, :last_modified)
                     """,
-                    backup_data
+                    backup_data,
                 )
                 await session.commit()
 
             if self.cache_set:
-                await self.cache_set(f"backup_meta_{backup_data['backup_id']}", backup_data, ttl=self.cache_ttl)
+                await self.cache_set(
+                    f"backup_meta_{backup_data['backup_id']}",
+                    backup_data,
+                    ttl=self.cache_ttl,
+                )
 
             self.repository_stats["total_backups"] += 1
             return True
@@ -244,28 +268,37 @@ class BackupRepository:
             async with self.db_manager.get_session() as session:
                 row = await session.fetchone(
                     "SELECT * FROM backup_metadata WHERE backup_id = :backup_id",
-                    {"backup_id": backup_id}
+                    {"backup_id": backup_id},
                 )
 
                 if row:
                     metadata = dict(row)
-                    metadata['tags'] = json.loads(metadata.get('tags', '[]'))
-                    metadata['metadata'] = json.loads(metadata.get('metadata', '{}'))
-                    metadata['storage_locations'] = json.loads(metadata.get('storage_locations', '[]'))
-                    metadata['recovery_info'] = json.loads(metadata.get('recovery_info', '{}'))
+                    metadata["tags"] = json.loads(metadata.get("tags", "[]"))
+                    metadata["metadata"] = json.loads(metadata.get("metadata", "{}"))
+                    metadata["storage_locations"] = json.loads(
+                        metadata.get("storage_locations", "[]")
+                    )
+                    metadata["recovery_info"] = json.loads(
+                        metadata.get("recovery_info", "{}")
+                    )
 
                     if self.cache_set:
-                        await self.cache_set(f"backup_meta_{backup_id}", metadata, ttl=self.cache_ttl)
+                        await self.cache_set(
+                            f"backup_meta_{backup_id}", metadata, ttl=self.cache_ttl
+                        )
                     return metadata
 
                 return None
         except Exception as e:
-            self.logger.error(f"Failed to get backup metadata for {backup_id}: {e!s}", exc_info=True)
+            self.logger.error(
+                f"Failed to get backup metadata for {backup_id}: {e!s}", exc_info=True
+            )
             self.repository_stats["failed_operations"] += 1
             return None
 
-    async def list_backups_async(self, filters: dict[str, Any] | None = None,
-                               limit: int = 100, offset: int = 0) -> list[dict[str, Any]]:
+    async def list_backups_async(
+        self, filters: dict[str, Any] | None = None, limit: int = 100, offset: int = 0
+    ) -> list[dict[str, Any]]:
         """List backups with advanced filtering using the unified DB manager."""
         try:
             await self._initialize_database()
@@ -275,20 +308,22 @@ class BackupRepository:
             where_clauses = []
             if filters:
                 for key, value in filters.items():
-                    if key in ['user_id', 'status', 'backup_type']:
+                    if key in ["user_id", "status", "backup_type"]:
                         where_clauses.append(f"{key} = :{key}")
                         params[key] = value
-                    elif key == 'created_after':
+                    elif key == "created_after":
                         where_clauses.append("created_at > :created_after")
-                        params['created_after'] = value
-                    elif key == 'created_before':
+                        params["created_after"] = value
+                    elif key == "created_before":
                         where_clauses.append("created_at < :created_before")
-                        params['created_before'] = value
+                        params["created_before"] = value
 
-            where_clause = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+            where_clause = (
+                f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+            )
             query = f"SELECT * FROM backup_metadata {where_clause} ORDER BY created_at DESC LIMIT :limit OFFSET :offset"
-            params['limit'] = limit
-            params['offset'] = offset
+            params["limit"] = limit
+            params["offset"] = offset
 
             async with self.db_manager.get_session() as session:
                 rows = await session.fetchall(query, params)
@@ -296,10 +331,14 @@ class BackupRepository:
                 backups = []
                 for row in rows:
                     metadata = dict(row)
-                    metadata['tags'] = json.loads(metadata.get('tags', '[]'))
-                    metadata['metadata'] = json.loads(metadata.get('metadata', '{}'))
-                    metadata['storage_locations'] = json.loads(metadata.get('storage_locations', '[]'))
-                    metadata['recovery_info'] = json.loads(metadata.get('recovery_info', '{}'))
+                    metadata["tags"] = json.loads(metadata.get("tags", "[]"))
+                    metadata["metadata"] = json.loads(metadata.get("metadata", "{}"))
+                    metadata["storage_locations"] = json.loads(
+                        metadata.get("storage_locations", "[]")
+                    )
+                    metadata["recovery_info"] = json.loads(
+                        metadata.get("recovery_info", "{}")
+                    )
                     backups.append(metadata)
                 return backups
 
@@ -314,7 +353,9 @@ class BackupRepository:
             await self._initialize_database()
             async with self.db_manager.get_session() as session:
                 await session.delete("backup_shards", where={"backup_id": backup_id})
-                await session.delete("backup_operations", where={"backup_id": backup_id})
+                await session.delete(
+                    "backup_operations", where={"backup_id": backup_id}
+                )
                 await session.delete("backup_metadata", where={"backup_id": backup_id})
                 await session.commit()
 
@@ -323,11 +364,16 @@ class BackupRepository:
             return True
 
         except Exception as e:
-            self.logger.error(f"Failed to delete backup metadata for {backup_id}: {e!s}", exc_info=True)
+            self.logger.error(
+                f"Failed to delete backup metadata for {backup_id}: {e!s}",
+                exc_info=True,
+            )
             self.repository_stats["failed_operations"] += 1
             return False
 
-    async def find_backup_by_hash_async(self, content_hash: str) -> dict[str, Any] | None:
+    async def find_backup_by_hash_async(
+        self, content_hash: str
+    ) -> dict[str, Any] | None:
         """Find backup by content hash using the unified DB manager."""
         try:
             await self._initialize_database()
@@ -339,10 +385,14 @@ class BackupRepository:
 
                 if row:
                     metadata = dict(row)
-                    metadata['tags'] = json.loads(metadata.get('tags', '[]'))
-                    metadata['metadata'] = json.loads(metadata.get('metadata', '{}'))
-                    metadata['storage_locations'] = json.loads(metadata.get('storage_locations', '[]'))
-                    metadata['recovery_info'] = json.loads(metadata.get('recovery_info', '{}'))
+                    metadata["tags"] = json.loads(metadata.get("tags", "[]"))
+                    metadata["metadata"] = json.loads(metadata.get("metadata", "{}"))
+                    metadata["storage_locations"] = json.loads(
+                        metadata.get("storage_locations", "[]")
+                    )
+                    metadata["recovery_info"] = json.loads(
+                        metadata.get("recovery_info", "{}")
+                    )
                     return metadata
 
                 return None
@@ -358,13 +408,13 @@ class BackupRepository:
                 return False
 
             # Basic integrity checks
-            required_fields = ['backup_id', 'backup_type', 'status', 'created_at']
+            required_fields = ["backup_id", "backup_type", "status", "created_at"]
             for field in required_fields:
                 if not metadata.get(field):
                     return False
 
             # Check if backup_id matches
-            if metadata['backup_id'] != backup_id:
+            if metadata["backup_id"] != backup_id:
                 return False
 
             return True
@@ -380,12 +430,3 @@ class BackupRepository:
         if isinstance(dt, datetime):
             return dt.isoformat()
         return str(dt) if dt else None
-
-
-
-
-
-
-
-
-

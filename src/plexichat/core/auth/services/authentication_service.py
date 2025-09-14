@@ -84,7 +84,10 @@ class AuthenticationService(IAuthenticationService):
                     # Mark sessions as inactive
                     await session.execute(
                         "UPDATE sessions SET is_active = 0, updated_at = :current_time WHERE expires_at < :expires_at AND is_active = 1",
-                        {"current_time": current_time_str, "expires_at": current_time_str},
+                        {
+                            "current_time": current_time_str,
+                            "expires_at": current_time_str,
+                        },
                     )
 
                     for row in expired_sessions_result:
@@ -118,7 +121,9 @@ class AuthenticationService(IAuthenticationService):
                     expired_count += len(expired_challenges_result)
 
             if expired_count > 0:
-                logger.info(f"Cleaned up {expired_count} expired authentication records")
+                logger.info(
+                    f"Cleaned up {expired_count} expired authentication records"
+                )
 
         except Exception as e:
             logger.error(f"Error cleaning up expired data: {e}")
@@ -135,7 +140,9 @@ class AuthenticationService(IAuthenticationService):
             context = SecurityContext(ip_address=ip_address, endpoint="auth/login")
 
             # Check rate limits using unified security module's validate_request method
-            validation_result = await self.unified_security.validate_request(None, context)
+            validation_result = await self.unified_security.validate_request(
+                None, context
+            )
             is_valid, error_message, security_event = validation_result
 
             if (
@@ -163,7 +170,8 @@ class AuthenticationService(IAuthenticationService):
             await self.unified_security.validate_request(None, context)
 
             logger.warning(
-                "[SECURITY] Failed authentication attempt recorded", ip_address=ip_address
+                "[SECURITY] Failed authentication attempt recorded",
+                ip_address=ip_address,
             )
 
             # Log audit event
@@ -239,7 +247,9 @@ class AuthenticationService(IAuthenticationService):
                 # Check if user is locked
                 if user_data["is_locked"]:
                     lockout_until = user_data.get("lockout_until")
-                    if lockout_until and datetime.fromisoformat(lockout_until) > datetime.now(UTC):
+                    if lockout_until and datetime.fromisoformat(
+                        lockout_until
+                    ) > datetime.now(UTC):
                         await self._record_failed_attempt(
                             username, ip_address, "account_locked"
                         )
@@ -274,7 +284,10 @@ class AuthenticationService(IAuthenticationService):
                     else:
                         await session.execute(
                             "UPDATE user_credentials SET failed_attempts = :attempts WHERE user_id = :user_id",
-                            {"attempts": failed_attempts, "user_id": user_data["user_id"]},
+                            {
+                                "attempts": failed_attempts,
+                                "user_id": user_data["user_id"],
+                            },
                         )
 
                     await self._record_failed_attempt(
@@ -307,13 +320,17 @@ class AuthenticationService(IAuthenticationService):
                 user_agent=user_agent,
                 details={
                     "username": username,
-                    "device_type": device_info.device_type.value if device_info else "unknown",
+                    "device_type": (
+                        device_info.device_type.value if device_info else "unknown"
+                    ),
                 },
                 severity="info",
             )
 
             auth_time = time.time() - start_time
-            logger.info(f"User {username} authenticated successfully in {auth_time:.3f}s")
+            logger.info(
+                f"User {username} authenticated successfully in {auth_time:.3f}s"
+            )
 
             return AuthResult(
                 success=True,
@@ -450,7 +467,10 @@ class AuthenticationService(IAuthenticationService):
                         AuditEventType.PASSWORD_CHANGE,
                         user_id=user_id,
                         ip_address=ip_address,
-                        details={"result": "failed", "reason": "invalid_current_password"},
+                        details={
+                            "result": "failed",
+                            "reason": "invalid_current_password",
+                        },
                         severity="warning",
                     )
                     return False, "Invalid current password"
@@ -495,9 +515,7 @@ class AuthenticationService(IAuthenticationService):
         """Lock a user account."""
         try:
             lockout_duration = duration_seconds or self.lockout_duration
-            lockout_until = datetime.now(UTC) + timedelta(
-                seconds=lockout_duration
-            )
+            lockout_until = datetime.now(UTC) + timedelta(seconds=lockout_duration)
 
             async with self.db_manager.get_session() as session:
                 await session.execute(
@@ -506,7 +524,9 @@ class AuthenticationService(IAuthenticationService):
                 )
 
                 logger.warning(
-                    "[SECURITY] User account locked", user_id=user_id, duration=lockout_duration
+                    "[SECURITY] User account locked",
+                    user_id=user_id,
+                    duration=lockout_duration,
                 )
 
                 return True
@@ -545,7 +565,9 @@ class AuthenticationService(IAuthenticationService):
                     return None
 
                 user_data = dict(user_result)
-                user_data["roles"] = json.loads(user_data["roles"]) if user_data["roles"] else []
+                user_data["roles"] = (
+                    json.loads(user_data["roles"]) if user_data["roles"] else []
+                )
 
                 return user_data
 
@@ -566,7 +588,9 @@ class AuthenticationService(IAuthenticationService):
                 )
 
                 if not user_result:
-                    logger.warning(f"Attempted to deactivate non-existent user: {user_id}")
+                    logger.warning(
+                        f"Attempted to deactivate non-existent user: {user_id}"
+                    )
                     return False
 
                 # Deactivate user
@@ -656,7 +680,9 @@ class AuthenticationService(IAuthenticationService):
 
     def _hash_password(self, password: str, salt: str) -> str:
         """Hash password with salt using PBKDF2."""
-        return hashlib.pbkdf2_hmac("sha256", password.encode(), salt.encode(), 100000).hex()
+        return hashlib.pbkdf2_hmac(
+            "sha256", password.encode(), salt.encode(), 100000
+        ).hex()
 
     async def create_mfa_challenge(
         self,
@@ -755,7 +781,11 @@ class AuthenticationService(IAuthenticationService):
                         AuditEventType.MFA_VERIFY,
                         user_id=challenge_result["user_id"],
                         ip_address=ip_address,
-                        details={"challenge_id": challenge_id, "method": method.value, "result": "success"},
+                        details={
+                            "challenge_id": challenge_id,
+                            "method": method.value,
+                            "result": "success",
+                        },
                         severity="info",
                     )
                 else:
@@ -763,7 +793,11 @@ class AuthenticationService(IAuthenticationService):
                         AuditEventType.MFA_VERIFY,
                         user_id=challenge_result["user_id"],
                         ip_address=ip_address,
-                        details={"challenge_id": challenge_id, "method": method.value, "result": "failed"},
+                        details={
+                            "challenge_id": challenge_id,
+                            "method": method.value,
+                            "result": "failed",
+                        },
                         severity="warning",
                     )
 
@@ -774,7 +808,10 @@ class AuthenticationService(IAuthenticationService):
             return False
 
     async def get_login_attempts(
-        self, username: str | None = None, ip_address: str | None = None, hours: int = 24
+        self,
+        username: str | None = None,
+        ip_address: str | None = None,
+        hours: int = 24,
     ) -> list[dict[str, Any]]:
         """Get recent login attempts for analysis."""
         try:
@@ -783,7 +820,9 @@ class AuthenticationService(IAuthenticationService):
             if username:
                 events = await self.audit_service.get_user_events(username)
             else:
-                events = await self.audit_service.get_events_by_ip(ip_address or "", limit=100)
+                events = await self.audit_service.get_events_by_ip(
+                    ip_address or "", limit=100
+                )
 
             return [
                 {

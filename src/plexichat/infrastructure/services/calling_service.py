@@ -128,6 +128,7 @@ class EncryptionMethod:
 @dataclass
 class CallQuality:
     """Real-time call quality metrics."""
+
     latency_ms: float
     packet_loss: float
     bandwidth_kbps: float
@@ -145,32 +146,29 @@ class EncryptionManager:
     @staticmethod
     def generate_key_pair() -> tuple[str, str]:
         """Generate RSA key pair for key exchange (base64 PEMs)."""
-        private_key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=2048
-        )
+        private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
 
         private_pem = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
+            encryption_algorithm=serialization.NoEncryption(),
         )
 
         public_key = private_key.public_key()
         public_pem = public_key.public_bytes(
             encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
         )
 
         return (
-            base64.b64encode(private_pem).decode('utf-8'),
-            base64.b64encode(public_pem).decode('utf-8')
+            base64.b64encode(private_pem).decode("utf-8"),
+            base64.b64encode(public_pem).decode("utf-8"),
         )
 
     @staticmethod
     def generate_session_key() -> str:
         """Generate AES session key for call encryption (base64)."""
-        return base64.b64encode(secrets.token_bytes(32)).decode('utf-8')
+        return base64.b64encode(secrets.token_bytes(32)).decode("utf-8")
 
     @staticmethod
     def encrypt_session_key(session_key: str, public_key_pem: str) -> str:
@@ -180,23 +178,28 @@ class EncryptionManager:
             from plexichat.core.security.quantum_encryption import (
                 get_quantum_manager,  # type: ignore
             )
+
             qm = get_quantum_manager()
         except Exception:
             qm = None
 
-        session_key_bytes = base64.b64decode(session_key.encode('utf-8'))
+        session_key_bytes = base64.b64decode(session_key.encode("utf-8"))
 
         if qm:
             # Use HTTP traffic encryption layer to protect the session key envelope for signaling
             try:
-                encrypted_bytes = qm.encrypt_http_traffic(session_key_bytes, endpoint="session_key")
-                return base64.b64encode(encrypted_bytes).decode('utf-8')
+                encrypted_bytes = qm.encrypt_http_traffic(
+                    session_key_bytes, endpoint="session_key"
+                )
+                return base64.b64encode(encrypted_bytes).decode("utf-8")
             except Exception as e:
-                logger.warning(f"Quantum encryption used but failed; falling back to RSA. Error: {e}")
+                logger.warning(
+                    f"Quantum encryption used but failed; falling back to RSA. Error: {e}"
+                )
 
         # Fallback to RSA OAEP
         try:
-            public_key_bytes = base64.b64decode(public_key_pem.encode('utf-8'))
+            public_key_bytes = base64.b64decode(public_key_pem.encode("utf-8"))
             public_key = serialization.load_pem_public_key(public_key_bytes)
 
             encrypted = public_key.encrypt(
@@ -204,11 +207,11 @@ class EncryptionManager:
                 padding.OAEP(
                     mgf=padding.MGF1(algorithm=hashes.SHA256()),
                     algorithm=hashes.SHA256(),
-                    label=None
-                )
+                    label=None,
+                ),
             )
 
-            return base64.b64encode(encrypted).decode('utf-8')
+            return base64.b64encode(encrypted).decode("utf-8")
         except Exception as e:
             logger.error(f"Failed to encrypt session key with RSA: {e}")
             raise
@@ -221,25 +224,27 @@ class EncryptionManager:
             from plexichat.core.security.quantum_encryption import (
                 get_quantum_manager,  # type: ignore
             )
+
             qm = get_quantum_manager()
         except Exception:
             qm = None
 
-        encrypted_bytes = base64.b64decode(encrypted_key.encode('utf-8'))
+        encrypted_bytes = base64.b64decode(encrypted_key.encode("utf-8"))
 
         if qm:
             try:
-                payload, _ts = qm.decrypt_http_traffic(encrypted_bytes, endpoint="session_key")
-                return base64.b64encode(payload).decode('utf-8')
+                payload, _ts = qm.decrypt_http_traffic(
+                    encrypted_bytes, endpoint="session_key"
+                )
+                return base64.b64encode(payload).decode("utf-8")
             except Exception:
                 # fallthrough to RSA
                 pass
 
         try:
-            private_key_bytes = base64.b64decode(private_key_pem.encode('utf-8'))
+            private_key_bytes = base64.b64decode(private_key_pem.encode("utf-8"))
             private_key = serialization.load_pem_private_key(
-                private_key_bytes,
-                password=None
+                private_key_bytes, password=None
             )
 
             decrypted = private_key.decrypt(
@@ -247,11 +252,11 @@ class EncryptionManager:
                 padding.OAEP(
                     mgf=padding.MGF1(algorithm=hashes.SHA256()),
                     algorithm=hashes.SHA256(),
-                    label=None
-                )
+                    label=None,
+                ),
             )
 
-            return base64.b64encode(decrypted).decode('utf-8')
+            return base64.b64encode(decrypted).decode("utf-8")
         except Exception as e:
             logger.error(f"Failed to decrypt session key: {e}")
             raise
@@ -279,7 +284,7 @@ class WebRTCManager:
         self.ice_servers = [
             {"urls": "stun:stun.l.google.com:19302"},
             {"urls": "stun:stun1.l.google.com:19302"},
-            {"urls": "stun:stun2.l.google.com:19302"}
+            {"urls": "stun:stun2.l.google.com:19302"},
         ]
         self.turn_servers: list[TurnServer] = []  # ideally loaded from config
         self.ice_candidate_seq = 0
@@ -297,11 +302,15 @@ class WebRTCManager:
                 turn_entries.append(entry)
         return {
             "iceServers": self.ice_servers + turn_entries,
-            "iceCandidatePoolSize": 10
+            "iceCandidatePoolSize": 10,
         }
 
-    def add_turn_server(self, url: str, username: str | None = None, credential: str | None = None):
-        self.turn_servers.append(TurnServer(url=url, username=username, credential=credential))
+    def add_turn_server(
+        self, url: str, username: str | None = None, credential: str | None = None
+    ):
+        self.turn_servers.append(
+            TurnServer(url=url, username=username, credential=credential)
+        )
 
     def validate_sdp(self, sdp: str) -> bool:
         """Basic plus hardened validation for SDP content."""
@@ -319,7 +328,9 @@ class WebRTCManager:
             return False
         return True
 
-    def enhance_sdp_security(self, sdp: str, dtls_fingerprint: str | None = None) -> str:
+    def enhance_sdp_security(
+        self, sdp: str, dtls_fingerprint: str | None = None
+    ) -> str:
         """Enhance SDP with security features such as DTLS fingerprint and setup lines."""
         if dtls_fingerprint:
             # ensure given fingerprint is present
@@ -335,7 +346,8 @@ class WebRTCManager:
             # Modern browsers use DTLS-SRTP, but keep an informational crypto line
             # Generate a proper SRTP crypto key for the SDP
             import secrets
-            crypto_key = base64.b64encode(secrets.token_bytes(30)).decode('utf-8')
+
+            crypto_key = base64.b64encode(secrets.token_bytes(30)).decode("utf-8")
             sdp += f"\na=crypto:1 AES_CM_128_HMAC_SHA1_80 inline:{crypto_key}"
         return sdp
 
@@ -347,7 +359,7 @@ class WebRTCManager:
             candidate = {
                 "candidate": f"candidate:{self.ice_candidate_seq} 1 udp 2122260223 192.0.2.{self.ice_candidate_seq} 54400 typ host",
                 "sdpMid": "0",
-                "sdpMLineIndex": 0
+                "sdpMLineIndex": 0,
             }
             candidates.append(candidate)
         return candidates
@@ -367,13 +379,15 @@ class WebRTCManager:
                 patched_lines.append(f"b=AS:{max(128, int(bandwidth_kbps * 0.7))}")
         return "\n".join(patched_lines)
 
-    def prefer_codecs(self, sdp: str, audio_codecs: list[str] = None, video_codecs: list[str] = None) -> str:
+    def prefer_codecs(
+        self, sdp: str, audio_codecs: list[str] = None, video_codecs: list[str] = None
+    ) -> str:
         """Simple heuristic to place preferred codecs first in SDP"""
         # This is a best-effort, not a full SDP parser
         # If no preferences provided, return original
         if not audio_codecs and not video_codecs:
             return sdp
-        for codec in (audio_codecs or []):
+        for codec in audio_codecs or []:
             sdp = sdp.replace(codec + "/", codec + "/")
         return sdp
 
@@ -396,13 +410,15 @@ class MediaServerManager:
             "capacity": 100,
             "current_load": 0,
             "last_heartbeat": time.time(),
-            "healthy": True
+            "healthy": True,
         }
 
     async def allocate_server_for_call(self, call_id: str) -> str | None:
         """Pick a healthy media server with available capacity."""
         # Basic load-based allocation
-        candidates = sorted(self.servers.values(), key=lambda s: (not s["healthy"], s["current_load"]))
+        candidates = sorted(
+            self.servers.values(), key=lambda s: (not s["healthy"], s["current_load"])
+        )
         for srv in candidates:
             if srv["healthy"] and srv["current_load"] < srv["capacity"]:
                 srv["current_load"] += 1
@@ -417,9 +433,13 @@ class MediaServerManager:
             return
         srv = self.servers[server_id]
         srv["current_load"] = max(0, srv["current_load"] - 1)
-        logger.debug(f"Released media server {server_id}, new load {srv['current_load']}")
+        logger.debug(
+            f"Released media server {server_id}, new load {srv['current_load']}"
+        )
 
-    def register_server(self, server_id: str, host: str, port: int, capacity: int = 100):
+    def register_server(
+        self, server_id: str, host: str, port: int, capacity: int = 100
+    ):
         self.servers[server_id] = {
             "id": server_id,
             "host": host,
@@ -427,7 +447,7 @@ class MediaServerManager:
             "capacity": capacity,
             "current_load": 0,
             "last_heartbeat": time.time(),
-            "healthy": True
+            "healthy": True,
         }
 
     def heartbeat(self, server_id: str):
@@ -507,7 +527,7 @@ class CallingService:
             "call_failures": 0,
             "recordings_made": 0,
             "avg_call_duration_seconds": 0,
-            "quality_samples": 0
+            "quality_samples": 0,
         }
         # Rate limiting: user_id -> list of initiation timestamps
         self._initiation_attempts: dict[int, list[float]] = {}
@@ -516,7 +536,7 @@ class CallingService:
             "anonymous": 10,
             "authenticated": 60,
             "premium": 600,
-            "admin": 120
+            "admin": 120,
         }
         # Presence and websocket manager
         self.ws_manager = WebSocketManager(self)
@@ -541,7 +561,7 @@ class CallingService:
         call_type: str,
         video_quality: str = "720p",
         audio_quality: str = "high",
-        requester_token: str | None = None
+        requester_token: str | None = None,
     ) -> CallSession:
         """Initiate a new encrypted call with media server allocation and signaling envelope.
 
@@ -557,8 +577,14 @@ class CallingService:
             if requester_token:
                 try:
                     ok, payload = await self._verify_token_async(requester_token)
-                    if not ok or not payload or int(payload.get("user_id", -1)) != initiator_id:
-                        logger.warning("Token authentication failed or mismatch for initiator")
+                    if (
+                        not ok
+                        or not payload
+                        or int(payload.get("user_id", -1)) != initiator_id
+                    ):
+                        logger.warning(
+                            "Token authentication failed or mismatch for initiator"
+                        )
                         # We don't strictly fail here to keep backwards compatibility,
                         # but log the event for audit.
                 except Exception as e:
@@ -573,7 +599,9 @@ class CallingService:
             master_key_hash = hashlib.sha256(master_key.encode()).hexdigest()
 
             # Allocate a media server
-            media_server_id = await self.media_manager.allocate_server_for_call(call_uuid)
+            media_server_id = await self.media_manager.allocate_server_for_call(
+                call_uuid
+            )
 
             # Generate DTLS keypair and fingerprint for the call and store in session
             dtls_priv_b64, dtls_pub_b64 = self._generate_dtls_keypair()
@@ -598,7 +626,7 @@ class CallingService:
                 session_key=master_key,
                 dtls_fingerprint=dtls_fingerprint,
                 dtls_private_key_b64=dtls_priv_b64,
-                dtls_public_key_b64=dtls_pub_b64
+                dtls_public_key_b64=dtls_pub_b64,
             )
 
             # Persist in-memory
@@ -606,9 +634,13 @@ class CallingService:
             self.call_participants[call_uuid] = []
 
             # Create initiator participant and keys
-            initiator_private_key, initiator_public_key = self.encryption_manager.generate_key_pair()
+            initiator_private_key, initiator_public_key = (
+                self.encryption_manager.generate_key_pair()
+            )
 
-            encrypted_key_for_initiator = self.encryption_manager.encrypt_session_key(master_key, initiator_public_key)
+            encrypted_key_for_initiator = self.encryption_manager.encrypt_session_key(
+                master_key, initiator_public_key
+            )
 
             initiator_participant = CallParticipant(
                 call_session_id=call_session.id,
@@ -619,23 +651,29 @@ class CallingService:
                 public_key=initiator_public_key,
                 session_key_encrypted=encrypted_key_for_initiator,
                 joined_at=datetime.now(UTC),
-                metrics={}
+                metrics={},
             )
 
             self.call_participants[call_uuid].append(initiator_participant)
 
             # Start periodic session key rotation task for this call
-            self._start_key_rotation_for_call(call_uuid, interval_seconds=call_session.key_rotation_interval_seconds)
+            self._start_key_rotation_for_call(
+                call_uuid, interval_seconds=call_session.key_rotation_interval_seconds
+            )
 
             # Send invitations to target users asynchronously
             for user_id in target_user_ids:
                 # fire-and-forget invitation send
-                asyncio.get_event_loop().create_task(self._send_call_invitation(call_session, initiator_id, user_id))
+                asyncio.get_event_loop().create_task(
+                    self._send_call_invitation(call_session, initiator_id, user_id)
+                )
 
             # Update metrics
             self.metrics["calls_initiated"] += 1
 
-            logger.info(f"Initiated encrypted {call_type} call {call_uuid} with media_server={media_server_id}, dtls_fp={dtls_fingerprint}")
+            logger.info(
+                f"Initiated encrypted {call_type} call {call_uuid} with media_server={media_server_id}, dtls_fp={dtls_fingerprint}"
+            )
 
             return call_session
 
@@ -648,7 +686,7 @@ class CallingService:
         call_id: str,
         user_id: int,
         offer_sdp: str | None = None,
-        token: str | None = None
+        token: str | None = None,
     ) -> CallOffer:
         """Join an existing call: register participant, provide ICE and encrypted session key, generate offer SDP.
 
@@ -659,7 +697,9 @@ class CallingService:
             if token:
                 ok, payload = await self._verify_token_async(token)
                 if not ok or not payload:
-                    logger.warning(f"Token verification failed for join_call user {user_id}")
+                    logger.warning(
+                        f"Token verification failed for join_call user {user_id}"
+                    )
                     raise PermissionError("Invalid authentication token for join_call")
                 # optionally enforce that token user matches user_id
                 t_uid = int(payload.get("user_id")) if payload.get("user_id") else None
@@ -681,7 +721,9 @@ class CallingService:
             # Retrieve the master key securely from vault in production. For now, simulate retrieval.
             master_key = self._retrieve_master_key_for_call(call_id)
 
-            encrypted_session_key = self.encryption_manager.encrypt_session_key(master_key, public_key)
+            encrypted_session_key = self.encryption_manager.encrypt_session_key(
+                master_key, public_key
+            )
 
             participant = CallParticipant(
                 call_session_id=call_session.id,
@@ -692,17 +734,23 @@ class CallingService:
                 public_key=public_key,
                 session_key_encrypted=encrypted_session_key,
                 joined_at=datetime.now(UTC),
-                metrics={}
+                metrics={},
             )
 
             self.call_participants[call_id].append(participant)
 
             # Generate an offer SDP (mock or proxied). Enhance with security and bandwidth hints.
             sdp = offer_sdp or self._generate_default_sdp()
-            sdp = self.webrtc_manager.enhance_sdp_security(sdp, dtls_fingerprint=call_session.dtls_fingerprint)
+            sdp = self.webrtc_manager.enhance_sdp_security(
+                sdp, dtls_fingerprint=call_session.dtls_fingerprint
+            )
             # Provide initial bandwidth hints based on configured quality
-            estimated_bandwidth = self._bandwidth_for_quality(call_session.video_quality)
-            sdp = self.webrtc_manager.apply_bandwidth_constraints(sdp, estimated_bandwidth)
+            estimated_bandwidth = self._bandwidth_for_quality(
+                call_session.video_quality
+            )
+            sdp = self.webrtc_manager.apply_bandwidth_constraints(
+                sdp, estimated_bandwidth
+            )
 
             # Simulate ICE candidate gathering
             ice_candidates = self.webrtc_manager.create_simulated_ice_candidates(2)
@@ -712,10 +760,12 @@ class CallingService:
                 offer_sdp=sdp,
                 ice_candidates=ice_candidates,
                 encryption_key=encrypted_session_key,
-                public_key=public_key
+                public_key=public_key,
             )
 
-            logger.info(f"User {user_id} joined encrypted call {call_id} and received offer (dtls_fp={call_session.dtls_fingerprint})")
+            logger.info(
+                f"User {user_id} joined encrypted call {call_id} and received offer (dtls_fp={call_session.dtls_fingerprint})"
+            )
 
             return call_offer
 
@@ -724,11 +774,7 @@ class CallingService:
             raise
 
     async def answer_call(
-        self,
-        call_id: str,
-        user_id: int,
-        answer_sdp: str,
-        token: str | None = None
+        self, call_id: str, user_id: int, answer_sdp: str, token: str | None = None
     ) -> CallAnswer:
         """Answer a call: validate, secure the SDP, and return encrypted key for signaling."""
         try:
@@ -736,8 +782,12 @@ class CallingService:
             if token:
                 ok, payload = await self._verify_token_async(token)
                 if not ok or not payload:
-                    logger.warning(f"Token verification failed for answer_call user {user_id}")
-                    raise PermissionError("Invalid authentication token for answer_call")
+                    logger.warning(
+                        f"Token verification failed for answer_call user {user_id}"
+                    )
+                    raise PermissionError(
+                        "Invalid authentication token for answer_call"
+                    )
                 t_uid = int(payload.get("user_id")) if payload.get("user_id") else None
                 if t_uid and t_uid != user_id:
                     logger.warning("Token user mismatch for answer_call")
@@ -751,10 +801,19 @@ class CallingService:
 
             call_session = self.active_calls[call_id]
 
-            secure_sdp = self.webrtc_manager.enhance_sdp_security(answer_sdp, dtls_fingerprint=call_session.dtls_fingerprint)
+            secure_sdp = self.webrtc_manager.enhance_sdp_security(
+                answer_sdp, dtls_fingerprint=call_session.dtls_fingerprint
+            )
 
             # Find participant
-            participant = next((p for p in self.call_participants.get(call_id, []) if p.user_id == user_id), None)
+            participant = next(
+                (
+                    p
+                    for p in self.call_participants.get(call_id, [])
+                    if p.user_id == user_id
+                ),
+                None,
+            )
             if not participant:
                 raise ValueError(f"Participant {user_id} not found in call {call_id}")
 
@@ -764,14 +823,16 @@ class CallingService:
             # Optionally add bandwidth hints based on current measured metrics
             participant_metrics = participant.metrics or {}
             measured_bw = participant_metrics.get("bandwidth_kbps", 512)
-            secure_sdp = self.webrtc_manager.apply_bandwidth_constraints(secure_sdp, measured_bw)
+            secure_sdp = self.webrtc_manager.apply_bandwidth_constraints(
+                secure_sdp, measured_bw
+            )
 
             call_answer = CallAnswer(
                 call_id=call_id,
                 answer_sdp=secure_sdp,
                 ice_candidates=self.webrtc_manager.create_simulated_ice_candidates(2),
                 encryption_key=participant.session_key_encrypted,
-                public_key=participant.public_key
+                public_key=participant.public_key,
             )
 
             # Update metrics
@@ -797,7 +858,9 @@ class CallingService:
             call_session.ended_at = datetime.now(UTC)
 
             if call_session.started_at:
-                duration = (call_session.ended_at - call_session.started_at).total_seconds()
+                duration = (
+                    call_session.ended_at - call_session.started_at
+                ).total_seconds()
                 call_session.duration_seconds = int(duration)
 
             # Update participants
@@ -816,7 +879,9 @@ class CallingService:
 
             # Release media server
             if call_session.media_server_id:
-                await self.media_manager.release_server_for_call(call_session.media_server_id)
+                await self.media_manager.release_server_for_call(
+                    call_session.media_server_id
+                )
 
             # Optionally finalize recording
             if call_id in self._recordings and self._recordings[call_id].get("active"):
@@ -842,7 +907,9 @@ class CallingService:
             avg = self.metrics.get("avg_call_duration_seconds", 0)
             dur = call_session.duration_seconds or 0
             new_samples = samples + 1
-            self.metrics["avg_call_duration_seconds"] = (avg * samples + dur) / new_samples
+            self.metrics["avg_call_duration_seconds"] = (
+                avg * samples + dur
+            ) / new_samples
             self.metrics["quality_samples"] = new_samples
 
             logger.info(f"Ended encrypted call {call_id} by user {user_id}")
@@ -869,7 +936,7 @@ class CallingService:
                     bandwidth_kbps=1024.0,
                     audio_quality=0.98,
                     video_quality=0.95,
-                    connection_stability=0.99
+                    connection_stability=0.99,
                 )
 
             # Compute averages
@@ -888,23 +955,27 @@ class CallingService:
                 bandwidth_kbps=avg(bws),
                 audio_quality=avg(audio_scores),
                 video_quality=avg(video_scores),
-                connection_stability=avg(stability)
+                connection_stability=avg(stability),
             )
 
             # Optionally run an adaptation step
-            asyncio.get_event_loop().create_task(self._adjust_media_parameters(call_id, quality))
+            asyncio.get_event_loop().create_task(
+                self._adjust_media_parameters(call_id, quality)
+            )
 
             # Track quality samples for monitoring
-            self.metrics.setdefault("recent_quality", []).append({
-                "call_id": call_id,
-                "timestamp": time.time(),
-                "quality": {
-                    "latency_ms": quality.latency_ms,
-                    "packet_loss": quality.packet_loss,
-                    "bandwidth_kbps": quality.bandwidth_kbps,
-                    "video_quality": quality.video_quality
+            self.metrics.setdefault("recent_quality", []).append(
+                {
+                    "call_id": call_id,
+                    "timestamp": time.time(),
+                    "quality": {
+                        "latency_ms": quality.latency_ms,
+                        "packet_loss": quality.packet_loss,
+                        "bandwidth_kbps": quality.bandwidth_kbps,
+                        "video_quality": quality.video_quality,
+                    },
                 }
-            })
+            )
             # Keep only last N samples
             recent = self.metrics.get("recent_quality", [])
             if len(recent) > 1000:
@@ -919,7 +990,9 @@ class CallingService:
     # -----------------------
     # Recording support
     # -----------------------
-    async def start_recording(self, call_id: str, initiator_user_id: int, encrypt_with_qm: bool = True) -> dict[str, Any]:
+    async def start_recording(
+        self, call_id: str, initiator_user_id: int, encrypt_with_qm: bool = True
+    ) -> dict[str, Any]:
         """Start optional recording for a call. Recording is simulated; in production this would be media server driven."""
         if call_id not in self.active_calls:
             raise ValueError("Call not found")
@@ -938,7 +1011,7 @@ class CallingService:
             "started_at": datetime.now(UTC),
             "active": True,
             "filename": filename,
-            "encrypted_with_qm": False
+            "encrypted_with_qm": False,
         }
 
         # Try to reserve recording with backup manager if available
@@ -946,6 +1019,7 @@ class CallingService:
             from plexichat.features.backup.backup_manager import (
                 get_backup_manager,  # type: ignore
             )
+
             bm = get_backup_manager()
             # notify backup system (best-effort)
             try:
@@ -965,12 +1039,15 @@ class CallingService:
                 from plexichat.core.security.quantum_encryption import (
                     get_quantum_manager,  # type: ignore
                 )
+
                 qm = get_quantum_manager()
                 # Just mark as using QM; actual streaming encryption would be done in media pipeline
                 rec_meta["encrypted_with_qm"] = True
                 # Suggest key rotation on start to provide fresh keys for recording
                 try:
-                    asyncio.get_event_loop().create_task(qm.rotate_http_keys(f"recording:{rec_meta['id']}"))
+                    asyncio.get_event_loop().create_task(
+                        qm.rotate_http_keys(f"recording:{rec_meta['id']}")
+                    )
                 except Exception:
                     # best-effort
                     pass
@@ -983,7 +1060,9 @@ class CallingService:
 
     async def stop_recording(self, call_id: str) -> dict[str, Any] | None:
         """Stop a recording and finalize storage and optional backup integration."""
-        if call_id not in self._recordings or not self._recordings[call_id].get("active"):
+        if call_id not in self._recordings or not self._recordings[call_id].get(
+            "active"
+        ):
             return None
         try:
             await self._finalize_recording(call_id)
@@ -1011,21 +1090,25 @@ class CallingService:
                 from plexichat.core.security.quantum_encryption import (
                     get_quantum_manager,  # type: ignore
                 )
+
                 qm = get_quantum_manager()
                 # Use QM's HTTP traffic encryption as a pragmatic wrapper for recorded blobs
                 try:
-                    encrypted_payload = qm.encrypt_http_traffic(encrypted_payload, endpoint=f"recording:{rec_meta['id']}")
+                    encrypted_payload = qm.encrypt_http_traffic(
+                        encrypted_payload, endpoint=f"recording:{rec_meta['id']}"
+                    )
                 except Exception:
                     # fallback to classical encrypt using AESGCM
                     try:
                         from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
                         key_b64 = self.encryption_manager.generate_session_key()
                         key = base64.b64decode(key_b64)
                         aesgcm = AESGCM(key)
                         nonce = secrets.token_bytes(12)
                         c = aesgcm.encrypt(nonce, encrypted_payload, None)
                         encrypted_payload = nonce + c
-                        rec_meta["wrapped_key"] = base64.b64encode(key).decode('utf-8')
+                        rec_meta["wrapped_key"] = base64.b64encode(key).decode("utf-8")
                     except Exception:
                         pass
             else:
@@ -1041,6 +1124,7 @@ class CallingService:
                 from plexichat.features.backup.backup_manager import (
                     get_backup_manager,  # type: ignore
                 )
+
                 bm = get_backup_manager()
                 # store object (best-effort)
                 try:
@@ -1059,6 +1143,7 @@ class CallingService:
                 # fallback: write to local file
                 try:
                     import os
+
                     os.makedirs(self._recordings_path, exist_ok=True)
                     with open(filename, "wb") as f:
                         f.write(encrypted_payload)
@@ -1076,10 +1161,7 @@ class CallingService:
     # Internal helpers
     # -----------------------
     async def _send_call_invitation(
-        self,
-        call_session: CallSession,
-        inviter_id: int,
-        invitee_id: int
+        self, call_session: CallSession, inviter_id: int, invitee_id: int
     ):
         """Construct and (simulated) send a call invitation to user."""
         invitation = CallInvitation(
@@ -1087,25 +1169,34 @@ class CallingService:
             inviter_id=inviter_id,
             invitee_id=invitee_id,
             status="pending",
-            expires_at=datetime.now(UTC) + timedelta(minutes=2)
+            expires_at=datetime.now(UTC) + timedelta(minutes=2),
         )
         # In real system, push notification / websocket message should be sent.
         # If invitee connected via websocket, send directly
         try:
-            await self.ws_manager.broadcast_to_user(invitee_id, {
-                "type": "call_invitation",
-                "payload": {
-                    "call_id": call_session.call_id,
-                    "session_id": call_session.id,
-                    "from": inviter_id,
-                    "expires_at": invitation.expires_at.isoformat() if invitation.expires_at else None
-                }
-            })
+            await self.ws_manager.broadcast_to_user(
+                invitee_id,
+                {
+                    "type": "call_invitation",
+                    "payload": {
+                        "call_id": call_session.call_id,
+                        "session_id": call_session.id,
+                        "from": inviter_id,
+                        "expires_at": (
+                            invitation.expires_at.isoformat()
+                            if invitation.expires_at
+                            else None
+                        ),
+                    },
+                },
+            )
         except Exception:
             # ignore broadcast failures
             pass
 
-        logger.info(f"Sent call invitation to user {invitee_id} for call {call_session.call_id} (invitation={invitation})")
+        logger.info(
+            f"Sent call invitation to user {invitee_id} for call {call_session.call_id} (invitation={invitation})"
+        )
 
     def _generate_default_sdp(self) -> str:
         """Generate default SDP for testing and initial offers."""
@@ -1144,6 +1235,7 @@ a=rtpmap:96 VP8/90000"""
             from plexichat.core.security.quantum_encryption import (
                 get_quantum_manager,  # type: ignore
             )
+
             qm = get_quantum_manager()
             # We create a symmetric key and let QM manage traffic encryption contexts
             key_b64 = self.encryption_manager.generate_session_key()
@@ -1162,17 +1254,13 @@ a=rtpmap:96 VP8/90000"""
         # Here we simulate by generating a stable key based on call_id hash (for test purposes only)
         digest = hashlib.sha256(call_id.encode("utf-8")).digest()
         # Expand to 32 bytes by hashing with a random salt (deterministic salt makes it reproducible)
-        return base64.b64encode(hashlib.sha256(digest + b"stable_salt").digest()).decode('utf-8')
+        return base64.b64encode(
+            hashlib.sha256(digest + b"stable_salt").digest()
+        ).decode("utf-8")
 
     def _bandwidth_for_quality(self, quality_label: str) -> int:
         """Map video quality to approximate bandwidth requirement in kbps."""
-        mapping = {
-            "360p": 500,
-            "480p": 800,
-            "720p": 1500,
-            "1080p": 3000,
-            "4k": 10000
-        }
+        mapping = {"360p": 500, "480p": 800, "720p": 1500, "1080p": 3000, "4k": 10000}
         return mapping.get(quality_label, 800)
 
     async def _adjust_media_parameters(self, call_id: str, quality: CallQuality):
@@ -1192,7 +1280,10 @@ a=rtpmap:96 VP8/90000"""
                     new_video_quality = "480p"
                 elif call_session.video_quality == "480p":
                     new_video_quality = "360p"
-            elif quality.bandwidth_kbps > 2500 and call_session.video_quality in ("480p", "720p"):
+            elif quality.bandwidth_kbps > 2500 and call_session.video_quality in (
+                "480p",
+                "720p",
+            ):
                 # step up
                 if call_session.video_quality == "480p":
                     new_video_quality = "720p"
@@ -1203,7 +1294,9 @@ a=rtpmap:96 VP8/90000"""
             if new_video_quality != call_session.video_quality:
                 old = call_session.video_quality
                 call_session.video_quality = new_video_quality
-                logger.info(f"Adjusted video quality for call {call_id} from {old} to {new_video_quality}")
+                logger.info(
+                    f"Adjusted video quality for call {call_id} from {old} to {new_video_quality}"
+                )
                 # In production, signal media server to adjust simulcast layers / encodings
 
         except Exception as e:
@@ -1293,7 +1386,9 @@ a=rtpmap:96 VP8/90000"""
     # -----------------------
     # Secure signaling helpers
     # -----------------------
-    async def create_encrypted_offer(self, call_id: str, user_id: int, preferred_bandwidth_kbps: int = 1500) -> CallOffer:
+    async def create_encrypted_offer(
+        self, call_id: str, user_id: int, preferred_bandwidth_kbps: int = 1500
+    ) -> CallOffer:
         """Create an encrypted offer envelope for secure signaling, suitable for sending over untrusted channels."""
         if call_id not in self.active_calls:
             raise ValueError("Call not found")
@@ -1301,14 +1396,25 @@ a=rtpmap:96 VP8/90000"""
         call_session = self.active_calls[call_id]
 
         # Find participant
-        participant = next((p for p in self.call_participants.get(call_id, []) if p.user_id == user_id), None)
+        participant = next(
+            (
+                p
+                for p in self.call_participants.get(call_id, [])
+                if p.user_id == user_id
+            ),
+            None,
+        )
         if not participant:
             raise ValueError("Participant not found")
 
         # Prepare SDP and apply bandwidth hints
         sdp = self._generate_default_sdp()
-        sdp = self.webrtc_manager.enhance_sdp_security(sdp, dtls_fingerprint=call_session.dtls_fingerprint)
-        sdp = self.webrtc_manager.apply_bandwidth_constraints(sdp, preferred_bandwidth_kbps)
+        sdp = self.webrtc_manager.enhance_sdp_security(
+            sdp, dtls_fingerprint=call_session.dtls_fingerprint
+        )
+        sdp = self.webrtc_manager.apply_bandwidth_constraints(
+            sdp, preferred_bandwidth_kbps
+        )
 
         # Encrypt the SDP envelope itself using quantum manager if available or using AES+RSA wrap
         payload = sdp.encode("utf-8")
@@ -1319,6 +1425,7 @@ a=rtpmap:96 VP8/90000"""
             from plexichat.core.security.quantum_encryption import (
                 get_quantum_manager,  # type: ignore
             )
+
             qm = get_quantum_manager()
             try:
                 encrypted_payload = qm.encrypt_http_traffic(payload, endpoint=call_id)
@@ -1328,10 +1435,13 @@ a=rtpmap:96 VP8/90000"""
                 raise
         except Exception:
             # Fallback: encrypt payload with session key (simulated) by wrapping AES key with participant's public RSA key
-            session_key = call_session.session_key or self._generate_master_key_for_session()
+            session_key = (
+                call_session.session_key or self._generate_master_key_for_session()
+            )
             try:
                 # symmetric AES-GCM encryption using session_key
                 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
                 key = base64.b64decode(session_key)
                 aesgcm = AESGCM(key)
                 nonce = secrets.token_bytes(12)
@@ -1340,12 +1450,17 @@ a=rtpmap:96 VP8/90000"""
                 encrypted_b64 = base64.b64encode(encrypted_payload).decode("utf-8")
                 # rotate session_key to be enveloped if possible (we include current wrapped key for signaling)
                 try:
-                    wrapped = self.encryption_manager.encrypt_session_key(session_key, participant.public_key or "")
+                    wrapped = self.encryption_manager.encrypt_session_key(
+                        session_key, participant.public_key or ""
+                    )
                 except Exception:
                     wrapped = ""
             except Exception:
                 # As ultimate fallback return plaintext base64 (logged)
-                logger.warning("Falling back to plaintext envelope for SDP (not secure) for call %s", call_id)
+                logger.warning(
+                    "Falling back to plaintext envelope for SDP (not secure) for call %s",
+                    call_id,
+                )
                 encrypted_b64 = base64.b64encode(payload).decode("utf-8")
                 wrapped = ""
 
@@ -1354,13 +1469,15 @@ a=rtpmap:96 VP8/90000"""
             offer_sdp=encrypted_b64,
             ice_candidates=self.webrtc_manager.create_simulated_ice_candidates(2),
             encryption_key=participant.session_key_encrypted or "",
-            public_key=participant.public_key or ""
+            public_key=participant.public_key or "",
         )
 
     # -----------------------
     # WebSocket signaling helper (framework-agnostic entrypoint)
     # -----------------------
-    async def websocket_signaling_handler(self, websocket: Any, path: str | None = None):
+    async def websocket_signaling_handler(
+        self, websocket: Any, path: str | None = None
+    ):
         """Framework-agnostic websocket handler for signaling.
 
         Expected message format (JSON):
@@ -1387,7 +1504,11 @@ a=rtpmap:96 VP8/90000"""
                         ok, token_payload = await self._verify_token_async(token)
                         authenticated = ok
                         if ok:
-                            user_id = int(token_payload.get("user_id")) if token_payload.get("user_id") else None
+                            user_id = (
+                                int(token_payload.get("user_id"))
+                                if token_payload.get("user_id")
+                                else None
+                            )
                         break
         except Exception:
             pass
@@ -1413,19 +1534,31 @@ a=rtpmap:96 VP8/90000"""
                     token = msg.get("token")
                     ok, token_payload = await self._verify_token_async(token)
                     if not ok:
-                        await websocket.send(json.dumps({"type": "auth_result", "success": False}))
+                        await websocket.send(
+                            json.dumps({"type": "auth_result", "success": False})
+                        )
                         continue
                     authenticated = True
-                    user_id = int(token_payload.get("user_id")) if token_payload.get("user_id") else None
+                    user_id = (
+                        int(token_payload.get("user_id"))
+                        if token_payload.get("user_id")
+                        else None
+                    )
                     # register connection
                     if user_id is not None:
                         await self.ws_manager.register(user_id, websocket)
-                    await websocket.send(json.dumps({"type": "auth_result", "success": True, "user_id": user_id}))
+                    await websocket.send(
+                        json.dumps(
+                            {"type": "auth_result", "success": True, "user_id": user_id}
+                        )
+                    )
                     continue
 
                 # require authentication for most message types
                 if not authenticated or user_id is None:
-                    await websocket.send(json.dumps({"type": "error", "message": "not_authenticated"}))
+                    await websocket.send(
+                        json.dumps({"type": "error", "message": "not_authenticated"})
+                    )
                     continue
 
                 if mtype == "presence":
@@ -1435,62 +1568,128 @@ a=rtpmap:96 VP8/90000"""
 
                 if mtype in ("offer", "answer", "candidate"):
                     call_id = msg.get("call_id")
-                    payload = msg.get("sdp") if mtype in ("offer", "answer") else msg.get("candidate")
+                    payload = (
+                        msg.get("sdp")
+                        if mtype in ("offer", "answer")
+                        else msg.get("candidate")
+                    )
                     # basic validation and forwarding to participants except sender
                     if call_id not in self.active_calls:
-                        await websocket.send(json.dumps({"type": "error", "message": "call_not_found"}))
+                        await websocket.send(
+                            json.dumps({"type": "error", "message": "call_not_found"})
+                        )
                         continue
 
                     # Validate SDP when present
                     if mtype in ("offer", "answer"):
                         if not self.webrtc_manager.validate_sdp(payload):
-                            await websocket.send(json.dumps({"type": "error", "message": "invalid_sdp"}))
+                            await websocket.send(
+                                json.dumps({"type": "error", "message": "invalid_sdp"})
+                            )
                             continue
                         # Enhance for security; include dtls fingerprint when available
                         call_session = self.active_calls.get(call_id)
-                        payload = self.webrtc_manager.enhance_sdp_security(payload, dtls_fingerprint=(call_session.dtls_fingerprint if call_session else None))
+                        payload = self.webrtc_manager.enhance_sdp_security(
+                            payload,
+                            dtls_fingerprint=(
+                                call_session.dtls_fingerprint if call_session else None
+                            ),
+                        )
 
                     # Forward to other participants via websockets if connected
-                    recipients = [p.user_id for p in self.call_participants.get(call_id, []) if p.user_id != user_id]
+                    recipients = [
+                        p.user_id
+                        for p in self.call_participants.get(call_id, [])
+                        if p.user_id != user_id
+                    ]
                     for rid in recipients:
-                        await self.ws_manager.broadcast_to_user(rid, {
-                            "type": "signaling",
-                            "subtype": mtype,
-                            "call_id": call_id,
-                            "from": user_id,
-                            "payload": payload
-                        })
+                        await self.ws_manager.broadcast_to_user(
+                            rid,
+                            {
+                                "type": "signaling",
+                                "subtype": mtype,
+                                "call_id": call_id,
+                                "from": user_id,
+                                "payload": payload,
+                            },
+                        )
                     continue
 
                 if mtype == "start_record":
                     call_id = msg.get("call_id")
                     try:
-                        rec_meta = await self.start_recording(call_id, user_id, encrypt_with_qm=True)
-                        await websocket.send(json.dumps({"type": "start_record_result", "success": True, "recording": rec_meta}))
+                        rec_meta = await self.start_recording(
+                            call_id, user_id, encrypt_with_qm=True
+                        )
+                        await websocket.send(
+                            json.dumps(
+                                {
+                                    "type": "start_record_result",
+                                    "success": True,
+                                    "recording": rec_meta,
+                                }
+                            )
+                        )
                     except Exception as e:
-                        await websocket.send(json.dumps({"type": "start_record_result", "success": False, "error": str(e)}))
+                        await websocket.send(
+                            json.dumps(
+                                {
+                                    "type": "start_record_result",
+                                    "success": False,
+                                    "error": str(e),
+                                }
+                            )
+                        )
                     continue
 
                 if mtype == "stop_record":
                     call_id = msg.get("call_id")
                     try:
                         rec_meta = await self.stop_recording(call_id)
-                        await websocket.send(json.dumps({"type": "stop_record_result", "success": True, "recording": rec_meta}))
+                        await websocket.send(
+                            json.dumps(
+                                {
+                                    "type": "stop_record_result",
+                                    "success": True,
+                                    "recording": rec_meta,
+                                }
+                            )
+                        )
                     except Exception as e:
-                        await websocket.send(json.dumps({"type": "stop_record_result", "success": False, "error": str(e)}))
+                        await websocket.send(
+                            json.dumps(
+                                {
+                                    "type": "stop_record_result",
+                                    "success": False,
+                                    "error": str(e),
+                                }
+                            )
+                        )
                     continue
 
                 if mtype == "hangup":
                     call_id = msg.get("call_id")
                     try:
                         ok = await self.end_call(call_id, user_id)
-                        await websocket.send(json.dumps({"type": "hangup_result", "success": ok}))
+                        await websocket.send(
+                            json.dumps({"type": "hangup_result", "success": ok})
+                        )
                     except Exception as e:
-                        await websocket.send(json.dumps({"type": "hangup_result", "success": False, "error": str(e)}))
+                        await websocket.send(
+                            json.dumps(
+                                {
+                                    "type": "hangup_result",
+                                    "success": False,
+                                    "error": str(e),
+                                }
+                            )
+                        )
                     continue
 
                 # unknown type
-                await websocket.send(json.dumps({"type": "error", "message": "unknown_message_type"}))
+                await websocket.send(
+                    json.dumps({"type": "error", "message": "unknown_message_type"})
+                )
 
         except asyncio.CancelledError:
             # connection closed / cleanup
@@ -1518,7 +1717,7 @@ a=rtpmap:96 VP8/90000"""
                 "type": "presence_update",
                 "user_id": user_id,
                 "status": status,
-                "timestamp": datetime.now(UTC).isoformat()
+                "timestamp": datetime.now(UTC).isoformat(),
             }
             await self.ws_manager.broadcast_to_all(payload)
         except Exception as e:
@@ -1527,13 +1726,16 @@ a=rtpmap:96 VP8/90000"""
     # -----------------------
     # Security & rate limiting helpers
     # -----------------------
-    async def _verify_token_async(self, token: str) -> tuple[bool, dict[str, Any] | None]:
+    async def _verify_token_async(
+        self, token: str
+    ) -> tuple[bool, dict[str, Any] | None]:
         """Verify JWT token using the SecuritySystem TokenManager if available."""
         try:
             # Prefer the centralized security manager API if available
             from plexichat.core.security.security_manager import (
                 get_security_system,  # type: ignore
             )
+
             sec = get_security_system()
             ok, payload = sec.token_manager.verify_token(token)
             return ok, payload
@@ -1580,7 +1782,9 @@ a=rtpmap:96 VP8/90000"""
         attempts.append(now_ts)
         self._initiation_attempts[user_id] = attempts
         if len(attempts) > limit:
-            logger.warning(f"User {user_id} exceeded initiation limit ({len(attempts)}/{limit})")
+            logger.warning(
+                f"User {user_id} exceeded initiation limit ({len(attempts)}/{limit})"
+            )
             return False
         return True
 
@@ -1595,7 +1799,7 @@ a=rtpmap:96 VP8/90000"""
     def _compute_fingerprint_from_public_b64(self, public_b64: str) -> str:
         """Compute a sha-256 fingerprint from base64-encoded public key to include in SDP."""
         try:
-            pub_bytes = base64.b64decode(public_b64.encode('utf-8'))
+            pub_bytes = base64.b64decode(public_b64.encode("utf-8"))
             digest = hashlib.sha256(pub_bytes).digest()
             # format as colon separated hex pairs uppercase
             fp = ":".join(f"{b:02X}" for b in digest)
@@ -1633,7 +1837,9 @@ a=rtpmap:96 VP8/90000"""
 
             task = asyncio.get_event_loop().create_task(rotation_loop())
             call_session._rotation_task = task
-            logger.debug(f"Started key rotation task for call {call_id} interval={interval_seconds}s")
+            logger.debug(
+                f"Started key rotation task for call {call_id} interval={interval_seconds}s"
+            )
         except Exception as e:
             logger.error(f"Failed to start key rotation for {call_id}: {e}")
 
@@ -1651,6 +1857,7 @@ a=rtpmap:96 VP8/90000"""
                 from plexichat.core.security.quantum_encryption import (
                     get_quantum_manager,  # type: ignore
                 )
+
                 qm = get_quantum_manager()
                 try:
                     # rotate any internal http keys used for this session
@@ -1665,26 +1872,34 @@ a=rtpmap:96 VP8/90000"""
             for participant in list(self.call_participants.get(call_id, [])):
                 try:
                     if participant.public_key:
-                        wrapped = self.encryption_manager.encrypt_session_key(new_key, participant.public_key)
+                        wrapped = self.encryption_manager.encrypt_session_key(
+                            new_key, participant.public_key
+                        )
                         participant.session_key_encrypted = wrapped
                         # Notify participant via websocket about key rotation (best-effort)
                         try:
-                            await self.ws_manager.broadcast_to_user(participant.user_id, {
-                                "type": "key_rotation",
-                                "call_id": call_id,
-                                "payload": {
-                                    "rotated_at": datetime.now(UTC).isoformat(),
-                                    "note": "Session key rotated for forward secrecy"
-                                }
-                            })
+                            await self.ws_manager.broadcast_to_user(
+                                participant.user_id,
+                                {
+                                    "type": "key_rotation",
+                                    "call_id": call_id,
+                                    "payload": {
+                                        "rotated_at": datetime.now(UTC).isoformat(),
+                                        "note": "Session key rotated for forward secrecy",
+                                    },
+                                },
+                            )
                         except Exception:
                             pass
                 except Exception as e:
-                    logger.warning(f"Failed to wrap new session key for participant {participant.user_id} in call {call_id}: {e}")
+                    logger.warning(
+                        f"Failed to wrap new session key for participant {participant.user_id} in call {call_id}: {e}"
+                    )
 
             logger.info(f"Rotated session keys for call {call_id}")
         except Exception as e:
             logger.error(f"Error rotating session keys for {call_id}: {e}")
+
 
 # Global service instance
 calling_service = CallingService()

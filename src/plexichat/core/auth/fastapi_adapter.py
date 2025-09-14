@@ -166,9 +166,7 @@ class FastAPIAuthAdapter:
 
         return current_user
 
-    def require_user_or_admin(
-        self, target_user_id: str | int
-    ) -> Callable[..., Any]:
+    def require_user_or_admin(self, target_user_id: str | int) -> Callable[..., Any]:
         """
         Create a dependency that requires user to be the target user or an admin.
 
@@ -435,7 +433,9 @@ async def require_admin(
     return await adapter.require_admin(current_user)
 
 
-def require_user_or_admin(target_user_id: str | int) -> Callable[..., Awaitable[dict[str, Any]]]:
+def require_user_or_admin(
+    target_user_id: str | int,
+) -> Callable[..., Awaitable[dict[str, Any]]]:
     """Create FastAPI dependency that requires user to be target user or admin."""
     adapter = get_auth_adapter()
     return adapter.require_user_or_admin(target_user_id)
@@ -449,7 +449,9 @@ async def get_user_permissions(
     return await adapter.get_user_permissions(current_user)
 
 
-def rate_limit(action: str, limit: int, window_seconds: int = 60) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+def rate_limit(
+    action: str, limit: int, window_seconds: int = 60
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Rate limiting decorator for FastAPI endpoints."""
     adapter = get_auth_adapter()
     return adapter.rate_limit(action, limit, window_seconds)

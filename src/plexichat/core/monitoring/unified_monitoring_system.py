@@ -113,7 +113,7 @@ class UnifiedMonitoringSystem(MonitorBase):
             "system_health_status",
             1.0,  # 1.0 = healthy, 0.0 = unhealthy
             "status",
-            {"status": "healthy"}
+            {"status": "healthy"},
         )
 
     def record_metric(
@@ -141,9 +141,7 @@ class UnifiedMonitoringSystem(MonitorBase):
         # Check alert rules
         self._check_alerts(metric)
 
-    def get_metrics(
-        self, name: str, since: datetime | None = None
-    ) -> list[MetricData]:
+    def get_metrics(self, name: str, since: datetime | None = None) -> list[MetricData]:
         """Get metrics by name."""
         if name not in self.metrics:
             return []
@@ -213,7 +211,9 @@ class UnifiedMonitoringSystem(MonitorBase):
             {
                 "user_id": user_id or "anonymous",
                 "session_id": session_id or "unknown",
-                **{k: str(v) for k, v in data.items()},  # Convert all values to strings for tags
+                **{
+                    k: str(v) for k, v in data.items()
+                },  # Convert all values to strings for tags
             },
         )
 

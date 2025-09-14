@@ -29,6 +29,7 @@ from plexichat.core.security.comprehensive_security_manager import (
 try:
     from plexichat.core.authentication import get_auth_manager
 except Exception:
+
     def get_auth_manager():
         return None
 
@@ -41,6 +42,7 @@ class PerformanceMetrics:
 
 class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
     """Enhanced security middleware with comprehensive protection."""
+
     def __init__(self, app: Any, config: dict[str, Any] | None = None) -> None:
         super().__init__(app)
         self.config = config or {}
@@ -60,7 +62,9 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
         except Exception:
             # As a last resort, create a very small shim to avoid raising at import time.
             import logging
+
             fallback = logging.getLogger(__name__)
+
             # provide minimal methods expected by code so attributes exist
             class FallbackLogger:
                 def __init__(self, inner):
@@ -92,13 +96,17 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
                     self._inner.info(f"PERF: {operation} took {duration}ms {kwargs}")
 
                 def request(self, method, path, status_code, duration, **kwargs):
-                    self._inner.info(f"{method} {path} {status_code} ({duration:.2f}ms) {kwargs}")
+                    self._inner.info(
+                        f"{method} {path} {status_code} ({duration:.2f}ms) {kwargs}"
+                    )
 
             self.logger = FallbackLogger(fallback)
 
         # Auth manager
         try:
-            self.auth_manager = get_auth_manager() if callable(get_auth_manager) else None
+            self.auth_manager = (
+                get_auth_manager() if callable(get_auth_manager) else None
+            )
         except Exception:
             self.auth_manager = None
 
@@ -114,24 +122,32 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
             "/docs",
             "/redoc",
             "/openapi.json",
-            "/favicon.ico"
+            "/favicon.ico",
         }
 
         # Log initialization using unified logger
         try:
             # Set initial context with component info
             try:
-                self.logger.set_context(component="enhanced_security_middleware", enabled=self.enabled)
+                self.logger.set_context(
+                    component="enhanced_security_middleware", enabled=self.enabled
+                )
             except Exception:
                 # If logger doesn't support set_context, ignore
                 pass
 
             # Use unified logger info and include metadata in kwargs
-            self.logger.info("Enhanced Security Middleware initialized", component="enhanced_security_middleware", enabled=self.enabled)
+            self.logger.info(
+                "Enhanced Security Middleware initialized",
+                component="enhanced_security_middleware",
+                enabled=self.enabled,
+            )
         except Exception:
             # Ensure no exception propagates on init logging
             try:
-                self.logger.info("Enhanced Security Middleware initialized (fallback logging)")
+                self.logger.info(
+                    "Enhanced Security Middleware initialized (fallback logging)"
+                )
             except Exception:
                 # last resort: ignore
                 pass
@@ -150,7 +166,7 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
                 request_id=f"req_{int(time.time() * 1000)}_{self.request_count}",
                 endpoint=str(request.url.path),
                 method=request.method,
-                ip_address=self._get_client_ip(request)
+                ip_address=self._get_client_ip(request),
             )
         except Exception:
             # Non-fatal: continue without structured context
@@ -173,17 +189,23 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
 
             # Authorization check
             if auth_result.get("authenticated"):
-                authz_result = await self._check_authorization(request, auth_result.get("user"))
+                authz_result = await self._check_authorization(
+                    request, auth_result.get("user")
+                )
                 if not authz_result.get("authorized", False):
                     # Log unauthorized attempt as security event
                     await self._log_security_event(
                         "access_denied",
                         {
-                            "user_id": auth_result.get("user", {}).get("user_id") if isinstance(auth_result.get("user"), dict) else None,
+                            "user_id": (
+                                auth_result.get("user", {}).get("user_id")
+                                if isinstance(auth_result.get("user"), dict)
+                                else None
+                            ),
                             "endpoint": str(request.url.path),
                             "method": request.method,
-                            "reason": "Insufficient permissions"
-                        }
+                            "reason": "Insufficient permissions",
+                        },
                     )
                     return self._create_auth_error_response("Insufficient permissions")
 
@@ -223,7 +245,7 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
             return real_ip
 
         # Use client IP from connection
-        if hasattr(request, 'client') and request.client:
+        if hasattr(request, "client") and request.client:
             try:
                 return request.client.host
             except Exception:
@@ -263,21 +285,31 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
                 try:
                     self.logger.security(
                         f"Request blocked: {request.method} {request.url.path}",
-                        reason=(error_info or {}).get("error", "Unknown") if isinstance(error_info, dict) else str(error_info),
+                        reason=(
+                            (error_info or {}).get("error", "Unknown")
+                            if isinstance(error_info, dict)
+                            else str(error_info)
+                        ),
                         endpoint=str(request.url.path),
                         method=request.method,
-                        ip=self._get_client_ip(request)
+                        ip=self._get_client_ip(request),
                     )
                 except Exception:
                     try:
-                        self.logger.warning(f"Security event - Request blocked: {request.method} {request.url.path} - {error_info}")
+                        self.logger.warning(
+                            f"Security event - Request blocked: {request.method} {request.url.path} - {error_info}"
+                        )
                     except Exception:
                         pass
 
                 return {
                     "allowed": False,
-                    "reason": (error_info or {}).get("error", "Security policy violation") if isinstance(error_info, dict) else str(error_info),
-                    "details": error_info or {}
+                    "reason": (
+                        (error_info or {}).get("error", "Security policy violation")
+                        if isinstance(error_info, dict)
+                        else str(error_info)
+                    ),
+                    "details": error_info or {},
                 }
 
             return {"allowed": True, "context": context}
@@ -285,7 +317,11 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             # Use unified logging if available
             try:
-                self.logger.error(f"Security validation error: {e}", endpoint=str(request.url.path), error=str(e))
+                self.logger.error(
+                    f"Security validation error: {e}",
+                    endpoint=str(request.url.path),
+                    error=str(e),
+                )
             except Exception:
                 # Ensure no exception while logging tears down flow
                 try:
@@ -318,20 +354,29 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
                     valid, payload = validation[0], validation[1]
                 else:
                     # Older return style: payload or None
-                    valid, payload = (bool(validation), validation if isinstance(validation, dict) else None)
+                    valid, payload = (
+                        bool(validation),
+                        validation if isinstance(validation, dict) else None,
+                    )
 
                 if valid and payload:
                     # Normalize user data
                     user_info = {
-                        "user_id": payload.get("user_id") or payload.get("sub") or payload.get("id"),
-                        "permissions": set(payload.get("permissions", [])) if payload.get("permissions") else set(),
-                        "session_id": payload.get("session_id") or payload.get("jti")
+                        "user_id": payload.get("user_id")
+                        or payload.get("sub")
+                        or payload.get("id"),
+                        "permissions": (
+                            set(payload.get("permissions", []))
+                            if payload.get("permissions")
+                            else set()
+                        ),
+                        "session_id": payload.get("session_id") or payload.get("jti"),
                     }
                     # Update logging context
                     try:
                         self.logger.set_context(
                             user_id=str(user_info.get("user_id", "")),
-                            session_id=user_info.get("session_id", "")
+                            session_id=user_info.get("session_id", ""),
                         )
                     except Exception:
                         pass
@@ -351,12 +396,12 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
                     user_info = {
                         "user_id": getattr(session_obj, "user_id", None),
                         "permissions": getattr(session_obj, "permissions", set()),
-                        "session_id": getattr(session_obj, "session_id", None)
+                        "session_id": getattr(session_obj, "session_id", None),
                     }
                     try:
                         self.logger.set_context(
                             user_id=str(user_info.get("user_id", "")),
-                            session_id=user_info.get("session_id", "")
+                            session_id=user_info.get("session_id", ""),
                         )
                     except Exception:
                         pass
@@ -375,7 +420,9 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
 
         return {"authenticated": False, "user": None}
 
-    async def _check_authorization(self, request: Request, user_data: dict) -> dict[str, Any]:
+    async def _check_authorization(
+        self, request: Request, user_data: dict
+    ) -> dict[str, Any]:
         """Check request authorization."""
         if not self.security_manager:
             return {"authorized": True}
@@ -384,24 +431,32 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
 
         try:
             # security_manager.check_endpoint_access is expected to accept endpoint and user info
-            authorized = await self.security_manager.check_endpoint_access(endpoint, user_data)
+            authorized = await self.security_manager.check_endpoint_access(
+                endpoint, user_data
+            )
 
             if not authorized:
                 await self._log_security_event(
                     "access_denied",
                     {
-                        "user_id": user_data.get("user_id") if isinstance(user_data, dict) else None,
+                        "user_id": (
+                            user_data.get("user_id")
+                            if isinstance(user_data, dict)
+                            else None
+                        ),
                         "endpoint": endpoint,
                         "method": request.method,
-                        "reason": "Insufficient permissions"
-                    }
+                        "reason": "Insufficient permissions",
+                    },
                 )
 
             return {"authorized": bool(authorized)}
 
         except Exception as e:
             try:
-                self.logger.security(f"Authorization check error: {e}", endpoint=endpoint, error=str(e))
+                self.logger.security(
+                    f"Authorization check error: {e}", endpoint=endpoint, error=str(e)
+                )
             except Exception:
                 try:
                     self.logger.error(f"Authorization check error: {e}")
@@ -410,7 +465,9 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
             # Deny by default on authorization errors to be safe
             return {"authorized": False}
 
-    async def _log_request_success(self, request: Request, response: Response, start_time: float):
+    async def _log_request_success(
+        self, request: Request, response: Response, start_time: float
+    ):
         """Log successful request."""
         duration = (time.time() - start_time) * 1000  # milliseconds
 
@@ -418,47 +475,70 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
             # Attempt to fetch response size if possible
             response_size = 0
             try:
-                response_size = len(response.body) if hasattr(response, "body") and response.body is not None else 0
+                response_size = (
+                    len(response.body)
+                    if hasattr(response, "body") and response.body is not None
+                    else 0
+                )
             except Exception:
                 response_size = 0
 
             # Log as an HTTP request (structured)
             try:
-                self.logger.request(request.method, request.url.path, getattr(response, "status_code", "unknown"), duration,
-                                    response_size=response_size,
-                                    user_agent=request.headers.get("User-Agent", "unknown"))
+                self.logger.request(
+                    request.method,
+                    request.url.path,
+                    getattr(response, "status_code", "unknown"),
+                    duration,
+                    response_size=response_size,
+                    user_agent=request.headers.get("User-Agent", "unknown"),
+                )
             except Exception:
                 # Fallback to info
-                self.logger.info(f"{request.method} {request.url.path} -> {getattr(response, 'status_code', 'unknown')} ({duration:.2f}ms)")
+                self.logger.info(
+                    f"{request.method} {request.url.path} -> {getattr(response, 'status_code', 'unknown')} ({duration:.2f}ms)"
+                )
 
             # Record performance metric via unified logger
             try:
                 operation = f"{request.method} {request.url.path}"
-                self.logger.performance(operation, duration, status_code=getattr(response, "status_code", None))
+                self.logger.performance(
+                    operation,
+                    duration,
+                    status_code=getattr(response, "status_code", None),
+                )
             except Exception:
                 pass
 
         except Exception:
             # Ensure no logging error affects response
             try:
-                self.logger.info(f"{request.method} {request.url.path} -> {getattr(response, 'status_code', 'unknown')} ({duration:.2f}ms)")
+                self.logger.info(
+                    f"{request.method} {request.url.path} -> {getattr(response, 'status_code', 'unknown')} ({duration:.2f}ms)"
+                )
             except Exception:
                 pass
 
-    async def _log_request_error(self, request: Request, error: Exception | None, start_time: float):
+    async def _log_request_error(
+        self, request: Request, error: Exception | None, start_time: float
+    ):
         """Log request error."""
         duration = (time.time() - start_time) * 1000  # milliseconds
 
         try:
             # Log an error for the request
             try:
-                self.logger.error(f"{request.method} {request.url.path} -> ERROR: {str(error) if error else 'HTTPException'}",
-                                  error_type=type(error).__name__ if error else "HTTPException",
-                                  error_message=str(error) if error else "",
-                                  user_agent=request.headers.get("User-Agent", "unknown"))
+                self.logger.error(
+                    f"{request.method} {request.url.path} -> ERROR: {str(error) if error else 'HTTPException'}",
+                    error_type=type(error).__name__ if error else "HTTPException",
+                    error_message=str(error) if error else "",
+                    user_agent=request.headers.get("User-Agent", "unknown"),
+                )
             except Exception:
                 try:
-                    self.logger.warning(f"{request.method} {request.url.path} -> ERROR: {str(error) if error else 'HTTPException'}")
+                    self.logger.warning(
+                        f"{request.method} {request.url.path} -> ERROR: {str(error) if error else 'HTTPException'}"
+                    )
                 except Exception:
                     pass
 
@@ -471,17 +551,25 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
 
         except Exception:
             try:
-                self.logger.error(f"{request.method} {request.url.path} -> ERROR: {str(error) if error else 'HTTPException'}")
+                self.logger.error(
+                    f"{request.method} {request.url.path} -> ERROR: {str(error) if error else 'HTTPException'}"
+                )
             except Exception:
                 pass
 
     async def _log_security_event(self, event_type: str, details: dict[str, Any]):
         """Log security event."""
         try:
-            self.logger.security(f"Security event: {event_type}", event_type=event_type, **(details or {}))
+            self.logger.security(
+                f"Security event: {event_type}",
+                event_type=event_type,
+                **(details or {}),
+            )
         except Exception:
             try:
-                self.logger.warning(f"Security event: {event_type} - {json.dumps(details)}")
+                self.logger.warning(
+                    f"Security event: {event_type} - {json.dumps(details)}"
+                )
             except Exception:
                 pass
 
@@ -500,7 +588,9 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
             pass
         return None
 
-    def _create_security_response(self, validation_result: dict[str, Any]) -> JSONResponse:
+    def _create_security_response(
+        self, validation_result: dict[str, Any]
+    ) -> JSONResponse:
         """Create security error response."""
         error_details = validation_result.get("details", {})
 
@@ -517,8 +607,8 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
                 "error": message,
                 "reason": validation_result.get("reason", "Security policy violation"),
                 "timestamp": datetime.now(UTC).isoformat(),
-                "request_id": self._get_request_id()
-            }
+                "request_id": self._get_request_id(),
+            },
         )
 
     def _create_auth_error_response(self, message: str) -> JSONResponse:
@@ -528,25 +618,29 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
             content={
                 "error": message,
                 "timestamp": datetime.now(UTC).isoformat(),
-                "request_id": self._get_request_id()
-            }
+                "request_id": self._get_request_id(),
+            },
         )
 
-    def _create_error_response(self, message: str, status_code: int = 500) -> JSONResponse:
+    def _create_error_response(
+        self, message: str, status_code: int = 500
+    ) -> JSONResponse:
         """Create generic error response."""
         return JSONResponse(
             status_code=status_code,
             content={
                 "error": message,
                 "timestamp": datetime.now(UTC).isoformat(),
-                "request_id": self._get_request_id()
-            }
+                "request_id": self._get_request_id(),
+            },
         )
 
     def _add_security_headers(self, response: Response) -> Response:
         """Add security headers to response."""
         try:
-            if self.security_manager and hasattr(self.security_manager, "get_security_headers"):
+            if self.security_manager and hasattr(
+                self.security_manager, "get_security_headers"
+            ):
                 security_headers = self.security_manager.get_security_headers() or {}
                 for header_name, header_value in security_headers.items():
                     # Set header only if value is not None
@@ -569,12 +663,13 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
             "blocked_requests": self.blocked_requests,
             "threat_detections": self.threat_detections,
             "block_rate": self.blocked_requests / max(self.request_count, 1),
-            "threat_rate": self.threat_detections / max(self.request_count, 1)
+            "threat_rate": self.threat_detections / max(self.request_count, 1),
         }
 
 
 class SecurityAuditMiddleware(BaseHTTPMiddleware):
     """Additional middleware for security auditing."""
+
     def __init__(self, app):
         super().__init__(app)
         try:
@@ -586,7 +681,9 @@ class SecurityAuditMiddleware(BaseHTTPMiddleware):
             self.logger = get_logger(__name__)
         except Exception:
             import logging
+
             fallback = logging.getLogger(__name__)
+
             class FallbackLogger:
                 def __init__(self, inner):
                     self._inner = inner
@@ -612,25 +709,42 @@ class SecurityAuditMiddleware(BaseHTTPMiddleware):
             "user_agent": request.headers.get("User-Agent", "unknown"),
             "referer": request.headers.get("Referer"),
             "content_type": request.headers.get("Content-Type"),
-            "content_length": request.headers.get("Content-Length", 0)
+            "content_length": request.headers.get("Content-Length", 0),
         }
 
         # Check for sensitive endpoints
         sensitive_patterns = [
-            "/admin", "/api/v1/admin", "/system", "/api/v1/system",
-            "/auth", "/login", "/register", "/password", "/token"
+            "/admin",
+            "/api/v1/admin",
+            "/system",
+            "/api/v1/system",
+            "/auth",
+            "/login",
+            "/register",
+            "/password",
+            "/token",
         ]
 
-        is_sensitive = any(pattern in audit_info["path"] for pattern in sensitive_patterns)
+        is_sensitive = any(
+            pattern in audit_info["path"] for pattern in sensitive_patterns
+        )
 
         try:
             if is_sensitive:
                 try:
-                    self.logger.audit(f"Sensitive endpoint access: {audit_info['method']} {audit_info['path']}", metadata=audit_info, tags=["audit", "sensitive_access"])
+                    self.logger.audit(
+                        f"Sensitive endpoint access: {audit_info['method']} {audit_info['path']}",
+                        metadata=audit_info,
+                        tags=["audit", "sensitive_access"],
+                    )
                 except Exception:
-                    self.logger.info(f"Sensitive endpoint access: {audit_info['method']} {audit_info['path']}")
+                    self.logger.info(
+                        f"Sensitive endpoint access: {audit_info['method']} {audit_info['path']}"
+                    )
         except Exception:
-            self.logger.info(f"Sensitive endpoint access (failed structured log): {audit_info['method']} {audit_info['path']}")
+            self.logger.info(
+                f"Sensitive endpoint access (failed structured log): {audit_info['method']} {audit_info['path']}"
+            )
 
         # Process request
         response = await call_next(request)
@@ -642,13 +756,25 @@ class SecurityAuditMiddleware(BaseHTTPMiddleware):
                     response_info = {
                         **audit_info,
                         "response_status": getattr(response, "status_code", None),
-                        "response_size": len(response.body) if hasattr(response, 'body') and response.body is not None else 0
+                        "response_size": (
+                            len(response.body)
+                            if hasattr(response, "body") and response.body is not None
+                            else 0
+                        ),
                     }
-                    self.logger.audit(f"Sensitive endpoint response: {getattr(response, 'status_code', None)}", metadata=response_info, tags=["audit", "sensitive_response"])
+                    self.logger.audit(
+                        f"Sensitive endpoint response: {getattr(response, 'status_code', None)}",
+                        metadata=response_info,
+                        tags=["audit", "sensitive_response"],
+                    )
                 except Exception:
-                    self.logger.info(f"Sensitive endpoint response: {getattr(response, 'status_code', None)}")
+                    self.logger.info(
+                        f"Sensitive endpoint response: {getattr(response, 'status_code', None)}"
+                    )
         except Exception:
-            self.logger.info(f"Sensitive endpoint response (fallback): {getattr(response, 'status_code', None)}")
+            self.logger.info(
+                f"Sensitive endpoint response (fallback): {getattr(response, 'status_code', None)}"
+            )
 
         return response
 
@@ -662,7 +788,7 @@ class SecurityAuditMiddleware(BaseHTTPMiddleware):
         if real_ip:
             return real_ip
 
-        if hasattr(request, 'client') and request.client:
+        if hasattr(request, "client") and request.client:
             try:
                 return request.client.host
             except Exception:

@@ -461,7 +461,14 @@ class AuditBlockchain:
     ) -> bool:
         """Check if event matches search criteria."""
         for key, value in criteria.items():
-            if (key == "event_type" and event.event_type != value) or (key == "user_id" and event.user_id != value) or (key == "source_ip" and event.source_ip != value) or (key == "start_time" and event.timestamp < value) or (key == "end_time" and event.timestamp > value) or (key == "severity" and event.severity.value < value):
+            if (
+                (key == "event_type" and event.event_type != value)
+                or (key == "user_id" and event.user_id != value)
+                or (key == "source_ip" and event.source_ip != value)
+                or (key == "start_time" and event.timestamp < value)
+                or (key == "end_time" and event.timestamp > value)
+                or (key == "severity" and event.severity.value < value)
+            ):
                 return False
 
         return True

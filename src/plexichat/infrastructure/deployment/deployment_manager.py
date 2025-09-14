@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DeploymentConfig:
     """Deployment configuration."""
+
     environment: str
     version: str
     docker_image: str
@@ -38,6 +39,7 @@ class DeploymentConfig:
 @dataclass
 class DeploymentResult:
     """Deployment execution result."""
+
     deployment_id: str
     environment: str
     version: str
@@ -89,7 +91,7 @@ class DocumentationGenerator:
             "info": {
                 "title": "PlexiChat API",
                 "version": "1.0.0",
-                "description": "PlexiChat messaging platform API"
+                "description": "PlexiChat messaging platform API",
             },
             "paths": {},
             "components": {
@@ -98,14 +100,14 @@ class DocumentationGenerator:
                     "bearerAuth": {
                         "type": "http",
                         "scheme": "bearer",
-                        "bearerFormat": "JWT"
+                        "bearerFormat": "JWT",
                     }
-                }
-            }
+                },
+            },
         }
 
         spec_path = os.path.join(self.output_dir, "openapi.yaml")
-        with open(spec_path, 'w') as f:
+        with open(spec_path, "w") as f:
             yaml.dump(openapi_spec, f, default_flow_style=False)
 
     async def _generate_api_reference(self):
@@ -139,7 +141,7 @@ All API endpoints require authentication using JWT tokens.
 """
 
         reference_path = os.path.join(self.output_dir, "api_reference.md")
-        with open(reference_path, 'w') as f:
+        with open(reference_path, "w") as f:
             f.write(reference_content)
 
     async def _generate_sdk_docs(self):
@@ -171,7 +173,7 @@ messages = client.messages.list(channel_id="channel-123")
 """
 
         sdk_path = os.path.join(self.output_dir, "sdk_documentation.md")
-        with open(sdk_path, 'w') as f:
+        with open(sdk_path, "w") as f:
             f.write(sdk_content)
 
 
@@ -186,9 +188,10 @@ class ContainerManager:
         try:
             result = subprocess.run(
                 ["docker", "--version"],
-                check=False, capture_output=True,
+                check=False,
+                capture_output=True,
                 text=True,
-                timeout=10
+                timeout=10,
             )
             return result.returncode == 0
         except (subprocess.TimeoutExpired, FileNotFoundError):
@@ -204,9 +207,13 @@ class ContainerManager:
             logger.info(f"Building Docker image: {image_tag}")
 
             process = await asyncio.create_subprocess_exec(
-                "docker", "build", "-t", image_tag, dockerfile_path,
+                "docker",
+                "build",
+                "-t",
+                image_tag,
+                dockerfile_path,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
 
             stdout, stderr = await process.communicate()
@@ -232,9 +239,11 @@ class ContainerManager:
             logger.info(f"Pushing Docker image: {image_tag}")
 
             process = await asyncio.create_subprocess_exec(
-                "docker", "push", image_tag,
+                "docker",
+                "push",
+                image_tag,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
 
             stdout, stderr = await process.communicate()
@@ -262,9 +271,10 @@ class KubernetesDeployer:
         try:
             result = subprocess.run(
                 ["kubectl", "version", "--client"],
-                check=False, capture_output=True,
+                check=False,
+                capture_output=True,
                 text=True,
-                timeout=10
+                timeout=10,
             )
             return result.returncode == 0
         except (subprocess.TimeoutExpired, FileNotFoundError):
@@ -280,7 +290,7 @@ class KubernetesDeployer:
             environment=config.environment,
             version=config.version,
             status="in_progress",
-            start_time=start_time
+            start_time=start_time,
         )
 
         try:
@@ -322,15 +332,15 @@ class KubernetesDeployer:
                 "labels": {
                     "app": "plexichat",
                     "environment": config.environment,
-                    "version": config.version
-                }
+                    "version": config.version,
+                },
             },
             "spec": {
                 "replicas": config.replicas,
                 "selector": {
                     "matchLabels": {
                         "app": "plexichat",
-                        "environment": config.environment
+                        "environment": config.environment,
                     }
                 },
                 "template": {
@@ -338,53 +348,60 @@ class KubernetesDeployer:
                         "labels": {
                             "app": "plexichat",
                             "environment": config.environment,
-                            "version": config.version
+                            "version": config.version,
                         }
                     },
                     "spec": {
-                        "containers": [{
-                            "name": "plexichat",
-                            "image": config.docker_image,
-                            "ports": [{"containerPort": 8000}],
-                            "env": [
-                                {"name": k, "value": v}
-                                for k, v in config.environment_variables.items()
-                            ],
-                            "livenessProbe": {
-                                "httpGet": {
-                                    "path": config.health_check_path,
-                                    "port": 8000
+                        "containers": [
+                            {
+                                "name": "plexichat",
+                                "image": config.docker_image,
+                                "ports": [{"containerPort": 8000}],
+                                "env": [
+                                    {"name": k, "value": v}
+                                    for k, v in config.environment_variables.items()
+                                ],
+                                "livenessProbe": {
+                                    "httpGet": {
+                                        "path": config.health_check_path,
+                                        "port": 8000,
+                                    },
+                                    "initialDelaySeconds": 30,
+                                    "periodSeconds": 10,
                                 },
-                                "initialDelaySeconds": 30,
-                                "periodSeconds": 10
-                            },
-                            "readinessProbe": {
-                                "httpGet": {
-                                    "path": config.readiness_probe_path,
-                                    "port": 8000
+                                "readinessProbe": {
+                                    "httpGet": {
+                                        "path": config.readiness_probe_path,
+                                        "port": 8000,
+                                    },
+                                    "initialDelaySeconds": 5,
+                                    "periodSeconds": 5,
                                 },
-                                "initialDelaySeconds": 5,
-                                "periodSeconds": 5
                             }
-                        }]
-                    }
-                }
-            }
+                        ]
+                    },
+                },
+            },
         }
 
     async def _apply_manifest(self, manifest: dict[str, Any]) -> bool:
         """Apply Kubernetes manifest."""
         try:
             # Write manifest to temporary file
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".yaml", delete=False
+            ) as f:
                 yaml.dump(manifest, f)
                 manifest_path = f.name
 
             # Apply manifest using kubectl
             process = await asyncio.create_subprocess_exec(
-                "kubectl", "apply", "-f", manifest_path,
+                "kubectl",
+                "apply",
+                "-f",
+                manifest_path,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
 
             stdout, stderr = await process.communicate()
@@ -413,7 +430,9 @@ class DeploymentManager:
         logger.info(f"Starting deployment for {config.environment} v{config.version}")
 
         # Build and push container image
-        build_success = await self.container_manager.build_image(".", config.docker_image)
+        build_success = await self.container_manager.build_image(
+            ".", config.docker_image
+        )
         if not build_success:
             result = DeploymentResult(
                 deployment_id=f"deploy-{int(time.time())}",
@@ -422,7 +441,7 @@ class DeploymentManager:
                 status="failed",
                 start_time=datetime.now(),
                 end_time=datetime.now(),
-                error_message="Failed to build Docker image"
+                error_message="Failed to build Docker image",
             )
             self.deployment_history.append(result)
             return result
@@ -436,7 +455,7 @@ class DeploymentManager:
                 status="failed",
                 start_time=datetime.now(),
                 end_time=datetime.now(),
-                error_message="Failed to push Docker image"
+                error_message="Failed to push Docker image",
             )
             self.deployment_history.append(result)
             return result
@@ -454,9 +473,7 @@ class DeploymentManager:
     def get_deployment_history(self, limit: int = 10) -> list[DeploymentResult]:
         """Get deployment history."""
         return sorted(
-            self.deployment_history,
-            key=lambda d: d.start_time,
-            reverse=True
+            self.deployment_history, key=lambda d: d.start_time, reverse=True
         )[:limit]
 
 
@@ -470,5 +487,5 @@ __all__ = [
     "DeploymentResult",
     "DocumentationGenerator",
     "KubernetesDeployer",
-    "deployment_manager"
+    "deployment_manager",
 ]

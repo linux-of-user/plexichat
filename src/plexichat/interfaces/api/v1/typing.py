@@ -4,7 +4,6 @@ Typing API Endpoints
 REST API endpoints for typing indicators.
 """
 
-
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
@@ -21,24 +20,34 @@ from plexichat.core.services.typing_service import typing_service
 def get_current_user():
     return {"id": "mock_user_id", "username": "mock_user"}
 
+
 router = APIRouter(prefix="/typing", tags=["Typing"])
+
 
 class TypingStartRequest(BaseModel):
     """Request model for starting typing."""
+
     channel_id: str
+
 
 class TypingStopRequest(BaseModel):
     """Request model for stopping typing."""
+
     channel_id: str
+
 
 class TypingStatusResponse(BaseModel):
     """Response model for typing status."""
+
     channel_id: str
     typing_users: list[str]
     count: int
 
+
 @router.post("/start")
-async def start_typing(request: TypingStartRequest, current_user: dict = Depends(get_current_user)):
+async def start_typing(
+    request: TypingStartRequest, current_user: dict = Depends(get_current_user)
+):
     """Start typing indicator in a channel."""
     try:
         user_id = current_user["id"]
@@ -47,13 +56,20 @@ async def start_typing(request: TypingStartRequest, current_user: dict = Depends
         if not success:
             raise HTTPException(status_code=400, detail="Failed to start typing")
 
-        return {"message": "Typing started", "user_id": user_id, "channel_id": request.channel_id}
+        return {
+            "message": "Typing started",
+            "user_id": user_id,
+            "channel_id": request.channel_id,
+        }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {e!s}")
 
+
 @router.post("/stop")
-async def stop_typing(request: TypingStopRequest, current_user: dict = Depends(get_current_user)):
+async def stop_typing(
+    request: TypingStopRequest, current_user: dict = Depends(get_current_user)
+):
     """Stop typing indicator in a channel."""
     try:
         user_id = current_user["id"]
@@ -62,13 +78,20 @@ async def stop_typing(request: TypingStopRequest, current_user: dict = Depends(g
         if not success:
             raise HTTPException(status_code=400, detail="Failed to stop typing")
 
-        return {"message": "Typing stopped", "user_id": user_id, "channel_id": request.channel_id}
+        return {
+            "message": "Typing stopped",
+            "user_id": user_id,
+            "channel_id": request.channel_id,
+        }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {e!s}")
 
+
 @router.get("/status/{channel_id}")
-async def get_typing_status(channel_id: str, current_user: dict = Depends(get_current_user)):
+async def get_typing_status(
+    channel_id: str, current_user: dict = Depends(get_current_user)
+):
     """Get typing status for a channel."""
     try:
         # Check if user has access to channel (simplified check)
@@ -77,13 +100,12 @@ async def get_typing_status(channel_id: str, current_user: dict = Depends(get_cu
         typing_users = await typing_service.get_typing_users(channel_id)
 
         return TypingStatusResponse(
-            channel_id=channel_id,
-            typing_users=typing_users,
-            count=len(typing_users)
+            channel_id=channel_id, typing_users=typing_users, count=len(typing_users)
         )
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {e!s}")
+
 
 @router.post("/cleanup")
 async def cleanup_expired_typing_states(current_user: dict = Depends(get_current_user)):
@@ -105,8 +127,10 @@ async def cleanup_expired_typing_states(current_user: dict = Depends(get_current
 
 # Admin Configuration Endpoints
 
+
 class TypingConfigUpdate(BaseModel):
     """Request model for updating typing configuration."""
+
     enabled: bool = None
     timeout_seconds: int = None
     cleanup_interval_seconds: int = None
@@ -123,6 +147,7 @@ class TypingConfigUpdate(BaseModel):
 
 class TypingConfigResponse(BaseModel):
     """Response model for typing configuration."""
+
     enabled: bool
     timeout_seconds: int
     cleanup_interval_seconds: int
@@ -148,16 +173,22 @@ async def get_typing_config(current_user: dict = Depends(get_current_user)):
         config = {
             "enabled": get_config("typing.enabled", True),
             "timeout_seconds": get_config("typing.timeout_seconds", 3),
-            "cleanup_interval_seconds": get_config("typing.cleanup_interval_seconds", 30),
-            "max_concurrent_typing_users": get_config("typing.max_concurrent_typing_users", 100),
+            "cleanup_interval_seconds": get_config(
+                "typing.cleanup_interval_seconds", 30
+            ),
+            "max_concurrent_typing_users": get_config(
+                "typing.max_concurrent_typing_users", 100
+            ),
             "debounce_delay_seconds": get_config("typing.debounce_delay_seconds", 0.5),
             "cache_ttl_seconds": get_config("typing.cache_ttl_seconds", 60),
             "broadcast_batch_size": get_config("typing.broadcast_batch_size", 10),
-            "broadcast_interval_seconds": get_config("typing.broadcast_interval_seconds", 0.1),
+            "broadcast_interval_seconds": get_config(
+                "typing.broadcast_interval_seconds", 0.1
+            ),
             "enable_persistence": get_config("typing.enable_persistence", True),
             "max_typing_history_days": get_config("typing.max_typing_history_days", 7),
             "enable_metrics": get_config("typing.enable_metrics", True),
-            "enable_debug_logging": get_config("typing.enable_debug_logging", False)
+            "enable_debug_logging": get_config("typing.enable_debug_logging", False),
         }
 
         return TypingConfigResponse(**config)
@@ -170,8 +201,7 @@ async def get_typing_config(current_user: dict = Depends(get_current_user)):
 
 @router.put("/admin/config", response_model=TypingConfigResponse)
 async def update_typing_config(
-    config_update: TypingConfigUpdate,
-    current_user: dict = Depends(get_current_user)
+    config_update: TypingConfigUpdate, current_user: dict = Depends(get_current_user)
 ):
     """Update typing configuration (admin endpoint)."""
     try:
@@ -216,8 +246,8 @@ async def get_typing_metrics(current_user: dict = Depends(get_current_user)):
                 "timeout": typing_service.typing_timeout,
                 "debounce_delay": typing_service.debounce_delay,
                 "max_concurrent_users": typing_service.max_concurrent_users,
-                "debug_logging": typing_service.enable_debug_logging
-            }
+                "debug_logging": typing_service.enable_debug_logging,
+            },
         }
 
         return metrics
@@ -241,7 +271,9 @@ async def invalidate_typing_cache(current_user: dict = Depends(get_current_user)
         if success:
             return {"message": "Typing cache invalidated successfully"}
         else:
-            raise HTTPException(status_code=500, detail="Failed to invalidate typing cache")
+            raise HTTPException(
+                status_code=500, detail="Failed to invalidate typing cache"
+            )
 
     except HTTPException:
         raise

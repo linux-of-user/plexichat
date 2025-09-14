@@ -27,6 +27,7 @@ Defines strict interfaces and contracts for all modules/plugins to ensure:
 
 logger = get_logger(__name__)
 
+
 class ModuleCapability(Enum):
     """Module capability types."""
 
@@ -76,6 +77,7 @@ class ModuleCapability(Enum):
 
 class ModulePriority(Enum):
     """Module loading and execution priority."""
+
     CRITICAL = 1  # Core system modules (auth, database)
     HIGH = 2  # Important features (messaging, security)
     NORMAL = 3  # Standard features (plugins, extensions)
@@ -85,6 +87,7 @@ class ModulePriority(Enum):
 
 class ModuleState(Enum):
     """Module lifecycle states."""
+
     UNLOADED = "unloaded"
     LOADING = "loading"
     LOADED = "loaded"
@@ -99,6 +102,7 @@ class ModuleState(Enum):
 @dataclass
 class ModulePermissions:
     """Module permission requirements."""
+
     capabilities: list[ModuleCapability] = field(default_factory=list)
     network_access: bool = False
     file_system_access: bool = False
@@ -120,6 +124,7 @@ class ModulePermissions:
 @dataclass
 class ModuleMetrics:
     """Module performance and usage metrics."""
+
     load_time: float | None = None
     initialization_time: float | None = None
     memory_usage_mb: float = 0.0
@@ -142,6 +147,7 @@ class ModuleMetrics:
 @dataclass
 class ModuleConfiguration:
     """Module configuration structure."""
+
     enabled: bool = True
     auto_start: bool = True
     priority: ModulePriority = ModulePriority.NORMAL
@@ -157,6 +163,7 @@ class ModuleConfiguration:
 @runtime_checkable
 class IModuleLifecycle(Protocol):
     """Module lifecycle interface."""
+
     async def initialize(self) -> bool:
         """Initialize the module. Return True if successful."""
         ...
@@ -195,6 +202,7 @@ class IModuleLifecycle(Protocol):
 @runtime_checkable
 class IModuleConfiguration(Protocol):
     """Module configuration interface."""
+
     def get_config_schema(self) -> dict[str, Any]:
         """Get configuration schema for validation."""
         ...
@@ -215,6 +223,7 @@ class IModuleConfiguration(Protocol):
 @runtime_checkable
 class IModuleAPI(Protocol):
     """Module API interface for inter-module communication."""
+
     def get_api_version(self) -> str:
         """Get API version."""
         ...
@@ -254,6 +263,7 @@ class IModuleAPI(Protocol):
 @runtime_checkable
 class IModuleSecurity(Protocol):
     """Module security interface."""
+
     def get_required_permissions(self) -> ModulePermissions:
         """Get required permissions."""
         ...
@@ -278,6 +288,7 @@ class BaseModule(ABC):
     All modules must inherit from this class to ensure
     consistent behavior and interface compliance.
     """
+
     def __init__(self, name: str, version: str = "1.0.0"):
         self.name = name
         self.version = version
@@ -431,7 +442,9 @@ class BaseModule(ABC):
             if "enabled" in config and not isinstance(config["enabled"], bool):
                 return False
 
-            if "timeout_seconds" in config and not isinstance(config["timeout_seconds"], int):
+            if "timeout_seconds" in config and not isinstance(
+                config["timeout_seconds"], int
+            ):
                 return False
 
             return True

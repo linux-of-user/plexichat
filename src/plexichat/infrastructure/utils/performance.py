@@ -34,10 +34,14 @@ logger = logging.getLogger(__name__)
 
 # Initialize EXISTING performance systems
 performance_logger = get_performance_logger() if get_performance_logger else None
-optimization_engine = PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
+optimization_engine = (
+    PerformanceOptimizationEngine() if PerformanceOptimizationEngine else None
+)
+
 
 class PerformanceTracker:
     """Performance tracking using EXISTING systems."""
+
     def __init__(self):
         self.performance_logger = performance_logger
         self.optimization_engine = optimization_engine
@@ -56,7 +60,9 @@ class PerformanceTracker:
 
             # Log to EXISTING performance logger
             if self.performance_logger:
-                self.performance_logger.record_metric(f"{operation}_duration", duration, "seconds")
+                self.performance_logger.record_metric(
+                    f"{operation}_duration", duration, "seconds"
+                )
 
             return duration
         return 0.0
@@ -73,11 +79,14 @@ class PerformanceTracker:
         """Get current metrics."""
         return self.metrics.copy()
 
+
 # Global performance tracker
 performance_tracker = PerformanceTracker()
 
+
 def async_track_performance(operation_name: str):
     """Decorator to track async function performance."""
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -104,13 +113,18 @@ def async_track_performance(operation_name: str):
             finally:
                 # Track duration
                 duration = time.time() - start_time
-                performance_tracker.record_metric(f"{operation_name}_duration", duration, "seconds")
+                performance_tracker.record_metric(
+                    f"{operation_name}_duration", duration, "seconds"
+                )
 
         return wrapper
+
     return decorator
+
 
 def track_performance(operation_name: str):
     """Decorator to track sync function performance."""
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -137,13 +151,18 @@ def track_performance(operation_name: str):
             finally:
                 # Track duration
                 duration = time.time() - start_time
-                performance_tracker.record_metric(f"{operation_name}_duration", duration, "seconds")
+                performance_tracker.record_metric(
+                    f"{operation_name}_duration", duration, "seconds"
+                )
 
         return wrapper
+
     return decorator
+
 
 class PerformanceOptimizer:
     """Performance optimizer using EXISTING systems."""
+
     def __init__(self):
         self.optimization_engine = optimization_engine
         self.performance_logger = performance_logger
@@ -176,29 +195,36 @@ class PerformanceOptimizer:
             logger.error(f"Cache get error: {e}")
             return None
 
+
 # Global performance optimizer
 performance_optimizer = PerformanceOptimizer()
+
 
 # Convenience functions
 def start_timer(operation: str):
     """Start timing operation."""
     performance_tracker.start_timer(operation)
 
+
 def end_timer(operation: str) -> float:
     """End timing operation."""
     return performance_tracker.end_timer(operation)
+
 
 def record_metric(name: str, value: Any, unit: str = "count"):
     """Record performance metric."""
     performance_tracker.record_metric(name, value, unit)
 
+
 def get_performance_metrics() -> dict[str, Any]:
     """Get current performance metrics."""
     return performance_tracker.get_metrics()
 
+
 # Cache decorator
 def cache_result(ttl: int = 300, key_func: Callable | None = None):
     """Decorator to cache function results."""
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
@@ -229,11 +255,14 @@ def cache_result(ttl: int = 300, key_func: Callable | None = None):
             return func(*args, **kwargs)
 
         return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
+
     return decorator
+
 
 # Rate limiting
 class RateLimiter:
     """Simple rate limiter."""
+
     def __init__(self):
         self.requests: dict[str, list] = {}
 
@@ -245,7 +274,9 @@ class RateLimiter:
             self.requests[key] = []
 
         # Clean old requests
-        self.requests[key] = [req_time for req_time in self.requests[key] if now - req_time < window]
+        self.requests[key] = [
+            req_time for req_time in self.requests[key] if now - req_time < window
+        ]
 
         # Check limit
         if len(self.requests[key]) >= limit:
@@ -255,11 +286,14 @@ class RateLimiter:
         self.requests[key].append(now)
         return True
 
+
 # Global rate limiter
 rate_limiter = RateLimiter()
 
+
 def rate_limit(limit: int, window: int = 60, key_func: Callable | None = None):
     """Rate limiting decorator."""
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
@@ -271,9 +305,10 @@ def rate_limit(limit: int, window: int = 60, key_func: Callable | None = None):
 
             if not rate_limiter.is_allowed(rate_key, limit, window):
                 from fastapi import HTTPException, status
+
                 raise HTTPException(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail="Rate limit exceeded"
+                    detail="Rate limit exceeded",
                 )
 
             return await func(*args, **kwargs)
@@ -292,7 +327,9 @@ def rate_limit(limit: int, window: int = 60, key_func: Callable | None = None):
             return func(*args, **kwargs)
 
         return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
+
     return decorator
+
 
 # Memory monitoring
 def get_memory_usage() -> dict[str, Any]:
@@ -305,12 +342,13 @@ def get_memory_usage() -> dict[str, Any]:
             "rss": memory_info.rss,
             "vms": memory_info.vms,
             "percent": process.memory_percent(),
-            "available": psutil.virtual_memory().available
+            "available": psutil.virtual_memory().available,
         }
     except ImportError:
         return {"error": "psutil not available"}
     except Exception as e:
         return {"error": str(e)}
+
 
 # CPU monitoring
 def get_cpu_usage() -> dict[str, Any]:
@@ -319,12 +357,13 @@ def get_cpu_usage() -> dict[str, Any]:
         return {
             "percent": psutil.cpu_percent(interval=1),
             "count": psutil.cpu_count(),
-            "load_avg": psutil.getloadavg() if hasattr(psutil, 'getloadavg') else None
+            "load_avg": psutil.getloadavg() if hasattr(psutil, "getloadavg") else None,
         }
     except ImportError:
         return {"error": "psutil not available"}
     except Exception as e:
         return {"error": str(e)}
+
 
 # System monitoring
 def get_system_stats() -> dict[str, Any]:
@@ -333,5 +372,5 @@ def get_system_stats() -> dict[str, Any]:
         "memory": get_memory_usage(),
         "cpu": get_cpu_usage(),
         "performance_metrics": get_performance_metrics(),
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }

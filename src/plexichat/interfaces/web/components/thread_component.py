@@ -28,7 +28,9 @@ class ThreadComponent:
         """
 
         for thread in threads:
-            active_class = "active" if thread['thread_id'] == self.current_thread else ""
+            active_class = (
+                "active" if thread["thread_id"] == self.current_thread else ""
+            )
             html += f"""
                 <div class="thread-item {active_class}" onclick="selectThread('{thread['thread_id']}')">
                     <div class="thread-info">
@@ -100,7 +102,7 @@ class ThreadComponent:
 
     def render_thread_message(self, message: dict) -> str:
         """Render a single thread message."""
-        timestamp = datetime.fromisoformat(message['timestamp'].replace('Z', '+00:00'))
+        timestamp = datetime.fromisoformat(message["timestamp"].replace("Z", "+00:00"))
         formatted_time = timestamp.strftime("%H:%M")
 
         html = f"""
@@ -133,7 +135,7 @@ class ThreadComponent:
                     {emoji} {count}
                 </span>
             """
-        html += '</div>'
+        html += "</div>"
         return html
 
     def render_create_thread_modal(self) -> str:

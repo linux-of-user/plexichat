@@ -31,7 +31,10 @@ templates = Jinja2Templates(directory="src/plexichat/interfaces/web/templates")
 # Security
 security = HTTPBearer()
 
-async def verify_admin_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+
+async def verify_admin_token(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+):
     """Verify admin authentication token."""
     try:
         token = credentials.credentials
@@ -42,12 +45,14 @@ async def verify_admin_token(credentials: HTTPAuthorizationCredentials = Depends
         logger.error(f"Token verification failed: {e}")
         raise HTTPException(status_code=401, detail="Invalid authentication")
 
+
 def verify_admin_session(token: str) -> bool:
     """Verify admin session token."""
     try:
         return True  # Simplified for now
     except Exception:
         return False
+
 
 # Try to import plugin security manager and PermissionType; fall back to None if not present
 try:
@@ -61,6 +66,7 @@ except Exception:
     core_plugin_security_manager = None
     CorePermissionType = None
 
+
 # -----------------------------------------------------------------------------
 # Adapter to unify access to the plugin security manager (core or fallback)
 # -----------------------------------------------------------------------------
@@ -70,6 +76,7 @@ class _FallbackSecurityManager:
     This is intentionally minimal: it stores data in memory and provides the same
     surface required by the router endpoints.
     """
+
     def __init__(self):
         self._permission_requests: dict[str, list[dict[str, Any]]] = {}
         self._approved_permissions: dict[str, set] = {}
@@ -77,7 +84,9 @@ class _FallbackSecurityManager:
         self._quarantined: set = set()
         self._policies: dict[str, dict[str, Any]] = {}
 
-    def request_permission(self, plugin_name: str, permission_type: str, justification: str):
+    def request_permission(
+        self, plugin_name: str, permission_type: str, justification: str
+    ):
         req = {
             "plugin_name": plugin_name,
             "permission_type": permission_type,
@@ -86,12 +95,14 @@ class _FallbackSecurityManager:
             "status": "pending",
         }
         self._permission_requests.setdefault(plugin_name, []).append(req)
-        self._audit_events.append({
-            "event_type": "permission_request",
-            "plugin_name": plugin_name,
-            "permission_type": permission_type,
-            "description": f"Permission requested: {permission_type}",
-        })
+        self._audit_events.append(
+            {
+                "event_type": "permission_request",
+                "plugin_name": plugin_name,
+                "permission_type": permission_type,
+                "description": f"Permission requested: {permission_type}",
+            }
+        )
         return req
 
     def get_pending_permission_requests(self) -> list[dict[str, Any]]:
@@ -102,38 +113,56 @@ class _FallbackSecurityManager:
                     out.append(r)
         return out
 
-    def approve_permission(self, plugin_name: str, permission_type: str, approved_by: str, expires_in_days: int | None = None) -> bool:
+    def approve_permission(
+        self,
+        plugin_name: str,
+        permission_type: str,
+        approved_by: str,
+        expires_in_days: int | None = None,
+    ) -> bool:
         found = False
         for r in self._permission_requests.get(plugin_name, []):
-            if r.get("permission_type") == permission_type and r.get("status") == "pending":
+            if (
+                r.get("permission_type") == permission_type
+                and r.get("status") == "pending"
+            ):
                 r["status"] = "approved"
                 r["approved_by"] = approved_by
                 found = True
                 break
         self._approved_permissions.setdefault(plugin_name, set()).add(permission_type)
-        self._audit_events.append({
-            "event_type": "permission_granted",
-            "plugin_name": plugin_name,
-            "permission_type": permission_type,
-            "approved_by": approved_by,
-            "expires_in_days": expires_in_days,
-        })
+        self._audit_events.append(
+            {
+                "event_type": "permission_granted",
+                "plugin_name": plugin_name,
+                "permission_type": permission_type,
+                "approved_by": approved_by,
+                "expires_in_days": expires_in_days,
+            }
+        )
         return found
 
-    def deny_permission(self, plugin_name: str, permission_type: str, denied_by: str) -> bool:
+    def deny_permission(
+        self, plugin_name: str, permission_type: str, denied_by: str
+    ) -> bool:
         found = False
         for r in self._permission_requests.get(plugin_name, []):
-            if r.get("permission_type") == permission_type and r.get("status") == "pending":
+            if (
+                r.get("permission_type") == permission_type
+                and r.get("status") == "pending"
+            ):
                 r["status"] = "denied"
                 r["denied_by"] = denied_by
                 found = True
                 break
-        self._audit_events.append({
-            "event_type": "permission_denied",
-            "plugin_name": plugin_name,
-            "permission_type": permission_type,
-            "denied_by": denied_by,
-        })
+        self._audit_events.append(
+            {
+                "event_type": "permission_denied",
+                "plugin_name": plugin_name,
+                "permission_type": permission_type,
+                "denied_by": denied_by,
+            }
+        )
         return found
 
     def has_permission(self, plugin_name: str, permission_type: str) -> bool:
@@ -143,13 +172,17 @@ class _FallbackSecurityManager:
         pending = []
         for r in self._permission_requests.get(plugin_name, []):
             if r.get("status") == "pending":
-                pending.append({
-                    "permission_type": r.get("permission_type"),
-                    "justification": r.get("justification"),
-                    "status": r.get("status")
-                })
+                pending.append(
+                    {
+                        "permission_type": r.get("permission_type"),
+                        "justification": r.get("justification"),
+                        "status": r.get("status"),
+                    }
+                )
         return {
-            "approved_permissions": list(self._approved_permissions.get(plugin_name, [])),
+            "approved_permissions": list(
+                self._approved_permissions.get(plugin_name, [])
+            ),
             "pending_requests": pending,
             "is_quarantined": plugin_name in self._quarantined,
         }
@@ -165,55 +198,72 @@ class _FallbackSecurityManager:
             "recent_audit_events": len(self._audit_events),
         }
 
-    def get_audit_events(self, plugin_name: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
-        events = [e for e in self._audit_events if (plugin_name is None or e.get("plugin_name") == plugin_name)]
+    def get_audit_events(
+        self, plugin_name: str | None = None, limit: int = 100
+    ) -> list[dict[str, Any]]:
+        events = [
+            e
+            for e in self._audit_events
+            if (plugin_name is None or e.get("plugin_name") == plugin_name)
+        ]
         return events[-limit:]
 
     def set_security_policy(self, plugin_name: str, policy: dict[str, Any]):
         self._policies[plugin_name] = policy
-        self._audit_events.append({
-            "event_type": "policy_updated",
-            "plugin_name": plugin_name,
-            "description": "Policy updated",
-            "policy": policy
-        })
+        self._audit_events.append(
+            {
+                "event_type": "policy_updated",
+                "plugin_name": plugin_name,
+                "description": "Policy updated",
+                "policy": policy,
+            }
+        )
         return True
 
     def quarantine_plugin(self, plugin_name: str, reason: str, quarantined_by: str):
         self._quarantined.add(plugin_name)
         self._approved_permissions.pop(plugin_name, None)
-        self._audit_events.append({
-            "event_type": "plugin_quarantined",
-            "plugin_name": plugin_name,
-            "reason": reason,
-            "quarantined_by": quarantined_by
-        })
+        self._audit_events.append(
+            {
+                "event_type": "plugin_quarantined",
+                "plugin_name": plugin_name,
+                "reason": reason,
+                "quarantined_by": quarantined_by,
+            }
+        )
         return True
 
     def release_from_quarantine(self, plugin_name: str, released_by: str):
         if plugin_name in self._quarantined:
             self._quarantined.remove(plugin_name)
-            self._audit_events.append({
-                "event_type": "plugin_released",
-                "plugin_name": plugin_name,
-                "released_by": released_by
-            })
+            self._audit_events.append(
+                {
+                    "event_type": "plugin_released",
+                    "plugin_name": plugin_name,
+                    "released_by": released_by,
+                }
+            )
             return True
         return False
 
     def create_sandbox(self, plugin_name: str) -> bool:
         # Minimal semantic: record an audit event
-        self._audit_events.append({
-            "event_type": "sandbox_created",
-            "plugin_name": plugin_name,
-            "description": f"Sandbox created for {plugin_name}"
-        })
+        self._audit_events.append(
+            {
+                "event_type": "sandbox_created",
+                "plugin_name": plugin_name,
+                "description": f"Sandbox created for {plugin_name}",
+            }
+        )
         return True
+
 
 # Choose manager: core if available else fallback adapter
 if core_plugin_security_manager is not None:
+
     class SecurityAdapter:
         """Adapter that forwards calls to the core plugin security manager."""
+
         def __init__(self, core_mgr):
             self._core = core_mgr
 
@@ -238,7 +288,13 @@ if core_plugin_security_manager is not None:
                 logger.exception("Error getting pending requests from core manager")
                 return []
 
-        def approve_permission(self, plugin_name: str, permission: str, approved_by: str, expires_in_days: int | None = None):
+        def approve_permission(
+            self,
+            plugin_name: str,
+            permission: str,
+            approved_by: str,
+            expires_in_days: int | None = None,
+        ):
             try:
                 # Map permission string to CorePermissionType if available
                 if CorePermissionType:
@@ -247,12 +303,18 @@ if core_plugin_security_manager is not None:
                     except Exception:
                         # Try by value
                         try:
-                            p_enum = next(pt for pt in CorePermissionType if pt.value == permission)
+                            p_enum = next(
+                                pt
+                                for pt in CorePermissionType
+                                if pt.value == permission
+                            )
                         except Exception:
                             p_enum = permission
                 else:
                     p_enum = permission
-                return self._core.approve_permission(plugin_name, p_enum, approved_by, expires_in_days)
+                return self._core.approve_permission(
+                    plugin_name, p_enum, approved_by, expires_in_days
+                )
             except Exception:
                 logger.exception("Error approving permission via core manager")
                 return False
@@ -264,7 +326,11 @@ if core_plugin_security_manager is not None:
                         p_enum = CorePermissionType(permission)
                     except Exception:
                         try:
-                            p_enum = next(pt for pt in CorePermissionType if pt.value == permission)
+                            p_enum = next(
+                                pt
+                                for pt in CorePermissionType
+                                if pt.value == permission
+                            )
                         except Exception:
                             p_enum = permission
                 else:
@@ -278,7 +344,11 @@ if core_plugin_security_manager is not None:
             try:
                 events = getattr(self._core, "_audit_events", None)
                 if events is not None:
-                    filtered = [e for e in events if (plugin_name is None or e.plugin_name == plugin_name)]
+                    filtered = [
+                        e
+                        for e in events
+                        if (plugin_name is None or e.plugin_name == plugin_name)
+                    ]
                     # Convert dataclass events to dicts if necessary
                     out = []
                     for e in filtered[-limit:]:
@@ -339,6 +409,7 @@ else:
 # Web UI endpoints enhancements for plugin security and permission management
 # -----------------------------------------------------------------------------
 
+
 @router.get("/", response_class=HTMLResponse)
 async def plugins_home(request: Request, token: str = Depends(verify_admin_token)):
     """Plugin marketplace home page with security summary included."""
@@ -351,78 +422,117 @@ async def plugins_home(request: Request, token: str = Depends(verify_admin_token
         except Exception:
             security_summary = {}
 
-        return templates.TemplateResponse("plugins/marketplace.html", {
-            "request": request,
-            "title": "Plugin Marketplace",
-            "installed_plugins": installed_plugins,
-            "available_plugins": available_plugins,
-            "repositories": repositories,
-            "admin_authenticated": True,
-            "security_summary": security_summary
-        })
+        return templates.TemplateResponse(
+            "plugins/marketplace.html",
+            {
+                "request": request,
+                "title": "Plugin Marketplace",
+                "installed_plugins": installed_plugins,
+                "available_plugins": available_plugins,
+                "repositories": repositories,
+                "admin_authenticated": True,
+                "security_summary": security_summary,
+            },
+        )
     except Exception as e:
         logger.error(f"Plugin marketplace error: {e}")
         raise HTTPException(status_code=500, detail="Plugin marketplace error")
 
+
 # Existing endpoints above remain unchanged...
 
+
 @router.get("/security", response_class=HTMLResponse)
-async def plugin_security_dashboard(request: Request, token: str = Depends(verify_admin_token)):
+async def plugin_security_dashboard(
+    request: Request, token: str = Depends(verify_admin_token)
+):
     """Render the plugin security dashboard for admins."""
     try:
         security_summary = security_adapter.get_security_summary()
-        pending = security_adapter.get_pending_permission_requests() if hasattr(security_adapter, "get_pending_permission_requests") else []
-        return templates.TemplateResponse("admin/security_dashboard.html", {
-            "request": request,
-            "title": "Plugin Security Dashboard",
-            "security_summary": security_summary,
-            "pending_requests": pending,
-            "admin_authenticated": True
-        })
+        pending = (
+            security_adapter.get_pending_permission_requests()
+            if hasattr(security_adapter, "get_pending_permission_requests")
+            else []
+        )
+        return templates.TemplateResponse(
+            "admin/security_dashboard.html",
+            {
+                "request": request,
+                "title": "Plugin Security Dashboard",
+                "security_summary": security_summary,
+                "pending_requests": pending,
+                "admin_authenticated": True,
+            },
+        )
     except Exception as e:
         logger.error(f"Failed to render security dashboard: {e}")
         # If template missing or error, return JSON fallback
-        return JSONResponse({"error": "Failed to render security dashboard", "details": str(e)}, status_code=500)
+        return JSONResponse(
+            {"error": "Failed to render security dashboard", "details": str(e)},
+            status_code=500,
+        )
+
 
 @router.get("/{plugin_name}/security", response_class=HTMLResponse)
-async def plugin_security_page(request: Request, plugin_name: str, token: str = Depends(verify_admin_token)):
+async def plugin_security_page(
+    request: Request, plugin_name: str, token: str = Depends(verify_admin_token)
+):
     """Render security details and controls for a specific plugin."""
     try:
         plugin_permissions = security_adapter.get_plugin_permissions(plugin_name)
-        audit_events = security_adapter.get_audit_events(plugin_name) if hasattr(security_adapter, "get_audit_events") else []
+        audit_events = (
+            security_adapter.get_audit_events(plugin_name)
+            if hasattr(security_adapter, "get_audit_events")
+            else []
+        )
         # Determine sandbox status (best-effort)
         sandbox_status = {"exists": False}
         try:
             # If core manager supports sandboxes, attempt to query
             # Core SecureSandbox may not provide a simple API; this is best-effort
-            sandbox_status["exists"] = hasattr(core_plugin_security_manager, "_sandboxes") and plugin_name in getattr(core_plugin_security_manager, "_sandboxes", {})
+            sandbox_status["exists"] = hasattr(
+                core_plugin_security_manager, "_sandboxes"
+            ) and plugin_name in getattr(core_plugin_security_manager, "_sandboxes", {})
         except Exception:
             sandbox_status["exists"] = False
 
-        return templates.TemplateResponse("admin/plugin_security.html", {
-            "request": request,
-            "title": f"Plugin Security: {plugin_name}",
-            "plugin_name": plugin_name,
-            "plugin_permissions": plugin_permissions,
-            "audit_events": audit_events,
-            "sandbox_status": sandbox_status,
-            "admin_authenticated": True
-        })
+        return templates.TemplateResponse(
+            "admin/plugin_security.html",
+            {
+                "request": request,
+                "title": f"Plugin Security: {plugin_name}",
+                "plugin_name": plugin_name,
+                "plugin_permissions": plugin_permissions,
+                "audit_events": audit_events,
+                "sandbox_status": sandbox_status,
+                "admin_authenticated": True,
+            },
+        )
     except Exception as e:
         logger.error(f"Failed to render plugin security page for {plugin_name}: {e}")
-        return JSONResponse({"error": "Failed to render plugin security page", "details": str(e)}, status_code=500)
+        return JSONResponse(
+            {"error": "Failed to render plugin security page", "details": str(e)},
+            status_code=500,
+        )
+
 
 # API endpoints for permissions and audit
+
 
 @router.get("/api/permissions/pending", response_class=JSONResponse)
 async def api_pending_permissions(token: str = Depends(verify_admin_token)):
     """Return pending plugin permission requests."""
     try:
-        pending = security_adapter.get_pending_permission_requests() if hasattr(security_adapter, "get_pending_permission_requests") else []
+        pending = (
+            security_adapter.get_pending_permission_requests()
+            if hasattr(security_adapter, "get_pending_permission_requests")
+            else []
+        )
         return {"pending_requests": pending}
     except Exception as e:
         logger.error(f"Failed to fetch pending permission requests: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch pending requests")
+
 
 @router.post("/api/permissions/approve")
 async def api_approve_permission(
@@ -431,18 +541,27 @@ async def api_approve_permission(
     permission_type: str = Form(...),
     expires_in_days: int | None = Form(None),
     approved_by: str = Form("admin"),
-    token: str = Depends(verify_admin_token)
+    token: str = Depends(verify_admin_token),
 ):
     """Approve a plugin permission request."""
     try:
-        success = security_adapter.approve_permission(plugin_name, permission_type, approved_by, expires_in_days)
+        success = security_adapter.approve_permission(
+            plugin_name, permission_type, approved_by, expires_in_days
+        )
         if success:
-            return {"success": True, "message": f"Permission {permission_type} approved for {plugin_name}"}
+            return {
+                "success": True,
+                "message": f"Permission {permission_type} approved for {plugin_name}",
+            }
         else:
-            return {"success": False, "message": f"No pending permission {permission_type} found for {plugin_name}"}
+            return {
+                "success": False,
+                "message": f"No pending permission {permission_type} found for {plugin_name}",
+            }
     except Exception as e:
         logger.error(f"Error approving permission: {e}")
         return {"success": False, "message": str(e)}
+
 
 @router.post("/api/permissions/deny")
 async def api_deny_permission(
@@ -450,18 +569,27 @@ async def api_deny_permission(
     plugin_name: str = Form(...),
     permission_type: str = Form(...),
     denied_by: str = Form("admin"),
-    token: str = Depends(verify_admin_token)
+    token: str = Depends(verify_admin_token),
 ):
     """Deny a plugin permission request."""
     try:
-        success = security_adapter.deny_permission(plugin_name, permission_type, denied_by)
+        success = security_adapter.deny_permission(
+            plugin_name, permission_type, denied_by
+        )
         if success:
-            return {"success": True, "message": f"Permission {permission_type} denied for {plugin_name}"}
+            return {
+                "success": True,
+                "message": f"Permission {permission_type} denied for {plugin_name}",
+            }
         else:
-            return {"success": False, "message": f"No pending permission {permission_type} found for {plugin_name}"}
+            return {
+                "success": False,
+                "message": f"No pending permission {permission_type} found for {plugin_name}",
+            }
     except Exception as e:
         logger.error(f"Error denying permission: {e}")
         return {"success": False, "message": str(e)}
+
 
 @router.get("/api/security/status", response_class=JSONResponse)
 async def api_security_status(token: str = Depends(verify_admin_token)):
@@ -473,22 +601,32 @@ async def api_security_status(token: str = Depends(verify_admin_token)):
         logger.error(f"Failed to get security status: {e}")
         raise HTTPException(status_code=500, detail="Failed to get security status")
 
+
 @router.get("/api/audit", response_class=JSONResponse)
-async def api_audit_logs(plugin_name: str | None = None, limit: int = 100, token: str = Depends(verify_admin_token)):
+async def api_audit_logs(
+    plugin_name: str | None = None,
+    limit: int = 100,
+    token: str = Depends(verify_admin_token),
+):
     """Return audit logs for security events (optionally filtered by plugin)."""
     try:
-        events = security_adapter.get_audit_events(plugin_name, limit) if hasattr(security_adapter, "get_audit_events") else []
+        events = (
+            security_adapter.get_audit_events(plugin_name, limit)
+            if hasattr(security_adapter, "get_audit_events")
+            else []
+        )
         return {"audit_events": events}
     except Exception as e:
         logger.error(f"Failed to fetch audit logs: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch audit logs")
+
 
 @router.post("/api/policy/update")
 async def api_update_policy(
     request: Request,
     plugin_name: str = Form(...),
     policy_json: str = Form(...),
-    token: str = Depends(verify_admin_token)
+    token: str = Depends(verify_admin_token),
 ):
     """Update security policy for a plugin. policy_json should be a JSON string."""
     try:
@@ -498,14 +636,22 @@ async def api_update_policy(
             logger.error(f"Invalid policy JSON: {e}")
             return {"success": False, "message": "Invalid policy JSON"}
 
-        success = security_adapter.set_security_policy(plugin_name, policy) if hasattr(security_adapter, "set_security_policy") else False
+        success = (
+            security_adapter.set_security_policy(plugin_name, policy)
+            if hasattr(security_adapter, "set_security_policy")
+            else False
+        )
         if success:
-            return {"success": True, "message": f"Security policy updated for {plugin_name}"}
+            return {
+                "success": True,
+                "message": f"Security policy updated for {plugin_name}",
+            }
         else:
             return {"success": False, "message": "Failed to update security policy"}
     except Exception as e:
         logger.error(f"Error updating policy: {e}")
         return {"success": False, "message": str(e)}
+
 
 @router.post("/api/quarantine")
 async def api_quarantine_plugin(
@@ -514,7 +660,7 @@ async def api_quarantine_plugin(
     action: str = Form(...),  # "quarantine" or "release"
     reason: str | None = Form("admin action"),
     actor: str = Form("admin"),
-    token: str = Depends(verify_admin_token)
+    token: str = Depends(verify_admin_token),
 ):
     """Quarantine or release a plugin based on action."""
     try:
@@ -522,30 +668,46 @@ async def api_quarantine_plugin(
             return {"success": False, "message": "Invalid action"}
 
         if action == "quarantine":
-            success = security_adapter.quarantine_plugin(plugin_name, reason, actor) if hasattr(security_adapter, "quarantine_plugin") else False
+            success = (
+                security_adapter.quarantine_plugin(plugin_name, reason, actor)
+                if hasattr(security_adapter, "quarantine_plugin")
+                else False
+            )
             if success:
                 return {"success": True, "message": f"Plugin {plugin_name} quarantined"}
             else:
                 return {"success": False, "message": "Failed to quarantine plugin"}
         else:
-            success = security_adapter.release_from_quarantine(plugin_name, actor) if hasattr(security_adapter, "release_from_quarantine") else False
+            success = (
+                security_adapter.release_from_quarantine(plugin_name, actor)
+                if hasattr(security_adapter, "release_from_quarantine")
+                else False
+            )
             if success:
-                return {"success": True, "message": f"Plugin {plugin_name} released from quarantine"}
+                return {
+                    "success": True,
+                    "message": f"Plugin {plugin_name} released from quarantine",
+                }
             else:
                 return {"success": False, "message": "Failed to release plugin"}
     except Exception as e:
         logger.error(f"Error managing quarantine: {e}")
         return {"success": False, "message": str(e)}
 
+
 @router.post("/api/sandbox/create")
 async def api_create_sandbox(
     request: Request,
     plugin_name: str = Form(...),
-    token: str = Depends(verify_admin_token)
+    token: str = Depends(verify_admin_token),
 ):
     """Create a secure sandbox for a plugin (admin-triggered)."""
     try:
-        success = security_adapter.create_sandbox(plugin_name) if hasattr(security_adapter, "create_sandbox") else False
+        success = (
+            security_adapter.create_sandbox(plugin_name)
+            if hasattr(security_adapter, "create_sandbox")
+            else False
+        )
         if success:
             return {"success": True, "message": f"Sandbox created for {plugin_name}"}
         else:
@@ -554,9 +716,11 @@ async def api_create_sandbox(
         logger.error(f"Failed to create sandbox for {plugin_name}: {e}")
         return {"success": False, "message": str(e)}
 
+
 # -----------------------------------------------------------------------------
 # Helper functions (existing ones retained; helper additions below)
 # -----------------------------------------------------------------------------
+
 
 def get_installed_plugins() -> list[dict[str, Any]]:
     """Get list of installed plugins."""
@@ -568,7 +732,7 @@ def get_installed_plugins() -> list[dict[str, Any]]:
 
         if plugins_dir.exists():
             for plugin_dir in plugins_dir.iterdir():
-                if plugin_dir.is_dir() and not plugin_dir.name.startswith('_'):
+                if plugin_dir.is_dir() and not plugin_dir.name.startswith("_"):
                     plugin_info = load_plugin_info(plugin_dir)
                     if plugin_info:
                         installed.append(plugin_info)
@@ -578,6 +742,7 @@ def get_installed_plugins() -> list[dict[str, Any]]:
         logger.error(f"Failed to get installed plugins: {e}")
         return []
 
+
 def load_plugin_info(plugin_dir: Path) -> dict[str, Any] | None:
     """Load plugin information from plugin directory."""
     try:
@@ -586,8 +751,8 @@ def load_plugin_info(plugin_dir: Path) -> dict[str, Any] | None:
         if plugin_json.exists():
             with open(plugin_json) as f:
                 info = json.load(f)
-                info['installed'] = True
-                info['path'] = str(plugin_dir)
+                info["installed"] = True
+                info["path"] = str(plugin_dir)
                 return info
 
         # Fallback to basic info
@@ -597,11 +762,12 @@ def load_plugin_info(plugin_dir: Path) -> dict[str, Any] | None:
             "description": f"Plugin: {plugin_dir.name}",
             "installed": True,
             "enabled": True,
-            "path": str(plugin_dir)
+            "path": str(plugin_dir),
         }
     except Exception as e:
         logger.error(f"Failed to load plugin info for {plugin_dir}: {e}")
         return None
+
 
 async def get_available_plugins() -> list[dict[str, Any]]:
     """Get list of available plugins from all repositories."""
@@ -618,6 +784,7 @@ async def get_available_plugins() -> list[dict[str, Any]]:
     except Exception as e:
         logger.error(f"Failed to get available plugins: {e}")
         return []
+
 
 async def fetch_plugins_from_repo(repo_name: str) -> list[dict[str, Any]]:
     """Fetch plugins from a specific repository."""
@@ -638,7 +805,7 @@ async def fetch_plugins_from_repo(repo_name: str) -> list[dict[str, Any]]:
                 "type": "ai_provider",
                 "repository": repo_name,
                 "installed": False,
-                "download_url": f"{repo_info['url']}/releases/download/v1.2.0/openai-provider.zip"
+                "download_url": f"{repo_info['url']}/releases/download/v1.2.0/openai-provider.zip",
             },
             {
                 "name": "discord-bridge",
@@ -648,7 +815,7 @@ async def fetch_plugins_from_repo(repo_name: str) -> list[dict[str, Any]]:
                 "type": "integration",
                 "repository": repo_name,
                 "installed": False,
-                "download_url": f"{repo_info['url']}/releases/download/v1.0.5/discord-bridge.zip"
+                "download_url": f"{repo_info['url']}/releases/download/v1.0.5/discord-bridge.zip",
             },
             {
                 "name": "advanced-security",
@@ -658,14 +825,15 @@ async def fetch_plugins_from_repo(repo_name: str) -> list[dict[str, Any]]:
                 "type": "security",
                 "repository": repo_name,
                 "installed": False,
-                "download_url": f"{repo_info['url']}/releases/download/v2.1.0/advanced-security.zip"
-            }
+                "download_url": f"{repo_info['url']}/releases/download/v2.1.0/advanced-security.zip",
+            },
         ]
 
         return mock_plugins
     except Exception as e:
         logger.error(f"Failed to fetch plugins from {repo_name}: {e}")
         return []
+
 
 def get_plugin_repositories() -> list[dict[str, Any]]:
     """Get list of plugin repositories."""
@@ -682,18 +850,19 @@ def get_plugin_repositories() -> list[dict[str, Any]]:
                 "name": "official",
                 "url": "https://github.com/linux-of-user/plexichat-plugins",
                 "enabled": True,
-                "description": "Official PlexiChat plugins"
+                "description": "Official PlexiChat plugins",
             },
             {
                 "name": "community",
                 "url": "https://github.com/plexichat-community/plugins",
                 "enabled": False,
-                "description": "Community contributed plugins"
-            }
+                "description": "Community contributed plugins",
+            },
         ]
     except Exception as e:
         logger.error(f"Failed to get repositories: {e}")
         return []
+
 
 async def install_plugin_from_repo(plugin_name: str, repo: str) -> bool:
     """Install a plugin from repository."""
@@ -705,6 +874,7 @@ async def install_plugin_from_repo(plugin_name: str, repo: str) -> bool:
         logger.error(f"Failed to install plugin {plugin_name}: {e}")
         return False
 
+
 async def uninstall_plugin(plugin_name: str) -> bool:
     """Uninstall a plugin."""
     try:
@@ -714,6 +884,7 @@ async def uninstall_plugin(plugin_name: str) -> bool:
     except Exception as e:
         logger.error(f"Failed to uninstall plugin {plugin_name}: {e}")
         return False
+
 
 async def enable_plugin(plugin_name: str) -> bool:
     """Enable a plugin."""
@@ -725,6 +896,7 @@ async def enable_plugin(plugin_name: str) -> bool:
         logger.error(f"Failed to enable plugin {plugin_name}: {e}")
         return False
 
+
 async def disable_plugin(plugin_name: str) -> bool:
     """Disable a plugin."""
     try:
@@ -734,6 +906,7 @@ async def disable_plugin(plugin_name: str) -> bool:
     except Exception as e:
         logger.error(f"Failed to disable plugin {plugin_name}: {e}")
         return False
+
 
 def add_plugin_repository(name: str, url: str) -> bool:
     """Add a custom plugin repository."""
@@ -750,14 +923,14 @@ def add_plugin_repository(name: str, url: str) -> bool:
             "name": name,
             "url": url,
             "enabled": True,
-            "description": f"Custom repository: {name}"
+            "description": f"Custom repository: {name}",
         }
 
         registry["repositories"].append(new_repo)
 
         # Save updated registry
         registry_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(registry_file, 'w') as f:
+        with open(registry_file, "w") as f:
             json.dump(registry, f, indent=2)
 
         logger.info(f"Added repository {name}: {url}")

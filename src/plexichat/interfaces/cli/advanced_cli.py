@@ -28,30 +28,32 @@ Comprehensive CLI enhancement with:
 - Beautiful output formatting
 """
 
+
 # Color system for beautiful output
 class CLIColors:
     """Enhanced color system for CLI output."""
-    RESET = '\033[0m'
-    BOLD = '\033[1m'
-    DIM = '\033[2m'
+
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    DIM = "\033[2m"
 
     # Standard colors
-    RED = '\033[31m'
-    GREEN = '\033[32m'
-    YELLOW = '\033[33m'
-    BLUE = '\033[34m'
-    MAGENTA = '\033[35m'
-    CYAN = '\033[36m'
-    WHITE = '\033[37m'
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    BLUE = "\033[34m"
+    MAGENTA = "\033[35m"
+    CYAN = "\033[36m"
+    WHITE = "\033[37m"
 
     # Bright colors
-    BRIGHT_RED = '\033[91m'
-    BRIGHT_GREEN = '\033[92m'
-    BRIGHT_YELLOW = '\033[93m'
-    BRIGHT_BLUE = '\033[94m'
-    BRIGHT_MAGENTA = '\033[95m'
-    BRIGHT_CYAN = '\033[96m'
-    BRIGHT_WHITE = '\033[97m'
+    BRIGHT_RED = "\033[91m"
+    BRIGHT_GREEN = "\033[92m"
+    BRIGHT_YELLOW = "\033[93m"
+    BRIGHT_BLUE = "\033[94m"
+    BRIGHT_MAGENTA = "\033[95m"
+    BRIGHT_CYAN = "\033[96m"
+    BRIGHT_WHITE = "\033[97m"
 
     # Semantic colors
     SUCCESS = BRIGHT_GREEN
@@ -67,6 +69,7 @@ class CLIColors:
 @dataclass
 class CLICommand:
     """Enhanced CLI command definition."""
+
     name: str
     description: str
     category: str
@@ -83,6 +86,7 @@ class CLICommand:
 
 class EnhancedCLISystem:
     """Enhanced CLI system with comprehensive command management."""
+
     def __init__(self):
         self.commands: dict[str, CLICommand] = {}
         self.categories: dict[str, list[str]] = {}
@@ -91,19 +95,31 @@ class EnhancedCLISystem:
         self.favorites: list[str] = []
 
         self.config = {
-            'show_colors': True,
-            'show_examples': True,
-            'show_timing': True,
-            'auto_complete': True,
-            'save_history': True,
-            'max_history': 1000
+            "show_colors": True,
+            "show_examples": True,
+            "show_timing": True,
+            "auto_complete": True,
+            "save_history": True,
+            "max_history": 1000,
         }
 
         self.categories = {
-            'system': [], 'database': [], 'security': [], 'plugins': [],
-            'admin': [], 'monitoring': [], 'backup': [], 'network': [],
-            'ai': [], 'testing': [], 'development': [], 'maintenance': [],
-            'analytics': [], 'automation': [], 'integration': [], 'interface': []
+            "system": [],
+            "database": [],
+            "security": [],
+            "plugins": [],
+            "admin": [],
+            "monitoring": [],
+            "backup": [],
+            "network": [],
+            "ai": [],
+            "testing": [],
+            "development": [],
+            "maintenance": [],
+            "analytics": [],
+            "automation": [],
+            "integration": [],
+            "interface": [],
         }
 
         self._register_enhanced_commands()
@@ -133,56 +149,147 @@ class EnhancedCLISystem:
             self.aliases[alias] = command.name
 
     def _register_system_commands(self):
-        self.register_command(CLICommand(
-            name="status", description="Show comprehensive system status", category="system",
-            handler=self._handle_status, aliases=["st", "info"],
-            options=[{"name": "--detailed"}, {"name": "--json"}, {"name": "--refresh", "type": int}],
-            examples=["status", "status --detailed", "status --json", "status --refresh 5"]
-        ))
-        self.register_command(CLICommand(
-            name="health", description="Perform comprehensive health check", category="system",
-            handler=self._handle_health, aliases=["hc", "check"],
-            options=[{"name": "--fix"}, {"name": "--report"}, {"name": "--categories"}],
-            examples=["health", "health --fix", "health --report", "health --categories security,database"]
-        ))
-        self.register_command(CLICommand(
-            name="system-config", description="Advanced system configuration management", category="system",
-            handler=self._handle_system_config, aliases=["config", "settings"],
-            options=[{"name": "--edit"}, {"name": "--backup"}, {"name": "--restore"}, {"name": "--validate"}],
-            examples=["system-config", "system-config --edit", "system-config --backup"]
-        ))
-        self.register_command(CLICommand(
-            name="terminal", description="Open integrated terminal window", category="system",
-            handler=self._handle_terminal, aliases=["term", "shell"],
-            options=[{"name": "--split"}, {"name": "--vertical"}, {"name": "--new-tab"}],
-            examples=["terminal", "terminal --split", "terminal --new-tab"]
-        ))
+        self.register_command(
+            CLICommand(
+                name="status",
+                description="Show comprehensive system status",
+                category="system",
+                handler=self._handle_status,
+                aliases=["st", "info"],
+                options=[
+                    {"name": "--detailed"},
+                    {"name": "--json"},
+                    {"name": "--refresh", "type": int},
+                ],
+                examples=[
+                    "status",
+                    "status --detailed",
+                    "status --json",
+                    "status --refresh 5",
+                ],
+            )
+        )
+        self.register_command(
+            CLICommand(
+                name="health",
+                description="Perform comprehensive health check",
+                category="system",
+                handler=self._handle_health,
+                aliases=["hc", "check"],
+                options=[
+                    {"name": "--fix"},
+                    {"name": "--report"},
+                    {"name": "--categories"},
+                ],
+                examples=[
+                    "health",
+                    "health --fix",
+                    "health --report",
+                    "health --categories security,database",
+                ],
+            )
+        )
+        self.register_command(
+            CLICommand(
+                name="system-config",
+                description="Advanced system configuration management",
+                category="system",
+                handler=self._handle_system_config,
+                aliases=["config", "settings"],
+                options=[
+                    {"name": "--edit"},
+                    {"name": "--backup"},
+                    {"name": "--restore"},
+                    {"name": "--validate"},
+                ],
+                examples=[
+                    "system-config",
+                    "system-config --edit",
+                    "system-config --backup",
+                ],
+            )
+        )
+        self.register_command(
+            CLICommand(
+                name="terminal",
+                description="Open integrated terminal window",
+                category="system",
+                handler=self._handle_terminal,
+                aliases=["term", "shell"],
+                options=[
+                    {"name": "--split"},
+                    {"name": "--vertical"},
+                    {"name": "--new-tab"},
+                ],
+                examples=["terminal", "terminal --split", "terminal --new-tab"],
+            )
+        )
 
     def _register_admin_commands(self):
-        self.register_command(CLICommand(
-            name="user-management", description="Comprehensive user and permission management", category="admin",
-            handler=self._handle_user_management, aliases=["users", "um"],
-            options=[{"name": "--list"}, {"name": "--add"}, {"name": "--remove"}, {"name": "--modify"}],
-            examples=["user-management --list", "user-management --add john", "user-management --remove alice"]
-        ))
-        self.register_command(CLICommand(
-            name="password-change", description="Change user password", category="admin",
-            handler=self._handle_password_change, aliases=["passwd"],
-            arguments=[{"name": "username"}],
-            options=[{"name": "--current"}, {"name": "--new"}, {"name": "--force"}],
-            examples=["password-change john", "password-change admin --current old --new new", "password-change user1 --force"]
-        ))
+        self.register_command(
+            CLICommand(
+                name="user-management",
+                description="Comprehensive user and permission management",
+                category="admin",
+                handler=self._handle_user_management,
+                aliases=["users", "um"],
+                options=[
+                    {"name": "--list"},
+                    {"name": "--add"},
+                    {"name": "--remove"},
+                    {"name": "--modify"},
+                ],
+                examples=[
+                    "user-management --list",
+                    "user-management --add john",
+                    "user-management --remove alice",
+                ],
+            )
+        )
+        self.register_command(
+            CLICommand(
+                name="password-change",
+                description="Change user password",
+                category="admin",
+                handler=self._handle_password_change,
+                aliases=["passwd"],
+                arguments=[{"name": "username"}],
+                options=[{"name": "--current"}, {"name": "--new"}, {"name": "--force"}],
+                examples=[
+                    "password-change john",
+                    "password-change admin --current old --new new",
+                    "password-change user1 --force",
+                ],
+            )
+        )
 
     # ... and so on for all other categories to keep this method clean
-    def _register_backup_commands(self): pass
-    def _register_network_commands(self): pass
-    def _register_ai_commands(self): pass
-    def _register_testing_commands(self): pass
-    def _register_development_commands(self): pass
-    def _register_maintenance_commands(self): pass
-    def _register_plugin_commands(self): pass
-    def _register_monitoring_commands(self): pass
-    def _register_interface_commands(self): pass
+    def _register_backup_commands(self):
+        pass
+
+    def _register_network_commands(self):
+        pass
+
+    def _register_ai_commands(self):
+        pass
+
+    def _register_testing_commands(self):
+        pass
+
+    def _register_development_commands(self):
+        pass
+
+    def _register_maintenance_commands(self):
+        pass
+
+    def _register_plugin_commands(self):
+        pass
+
+    def _register_monitoring_commands(self):
+        pass
+
+    def _register_interface_commands(self):
+        pass
 
     async def execute_command(self, command_name: str, args: list[str] = None) -> bool:
         """Execute a CLI command."""
@@ -198,15 +305,17 @@ class EnhancedCLISystem:
             return False
 
         self.command_history.append(f"{command_name} {' '.join(args)}")
-        if len(self.command_history) > self.config['max_history']:
+        if len(self.command_history) > self.config["max_history"]:
             self.command_history.pop(0)
 
         start_time = time.time()
         try:
             success = await command.handler(args)
             execution_time = time.time() - start_time
-            if self.config['show_timing']:
-                print(f"{CLIColors.DIM}Command completed in {execution_time:.2f}s{CLIColors.RESET}")
+            if self.config["show_timing"]:
+                print(
+                    f"{CLIColors.DIM}Command completed in {execution_time:.2f}s{CLIColors.RESET}"
+                )
             return success
         except Exception as e:
             print(f"{CLIColors.ERROR}Command failed: {e}{CLIColors.RESET}")
@@ -231,20 +340,26 @@ class EnhancedCLISystem:
         """Show general help with all commands organized by category."""
         print(f"{CLIColors.HEADER}PlexiChat Enhanced CLI System{CLIColors.RESET}")
         for category, commands in self.categories.items():
-            if not commands: continue
+            if not commands:
+                continue
             print(f"\n{CLIColors.HEADER}{category.upper()} COMMANDS:{CLIColors.RESET}")
             for cmd_name in sorted(commands):
                 cmd = self.commands[cmd_name]
-                if cmd.hidden: continue
+                if cmd.hidden:
+                    continue
                 aliases_str = f" ({', '.join(cmd.aliases)})" if cmd.aliases else ""
-                print(f"  {CLIColors.COMMAND}{cmd.name}{CLIColors.RESET}{CLIColors.DIM}{aliases_str}{CLIColors.RESET}")
+                print(
+                    f"  {CLIColors.COMMAND}{cmd.name}{CLIColors.RESET}{CLIColors.DIM}{aliases_str}{CLIColors.RESET}"
+                )
                 print(f"    {cmd.description}")
 
     def _show_command_help(self, command_name: str):
         """Show detailed help for a specific command."""
         command = self.get_command(command_name)
         if not command:
-            print(f"{CLIColors.ERROR}Command '{command_name}' not found{CLIColors.RESET}")
+            print(
+                f"{CLIColors.ERROR}Command '{command_name}' not found{CLIColors.RESET}"
+            )
             return
 
         print(f"{CLIColors.HEADER}{command.name.upper()}{CLIColors.RESET}")
@@ -252,13 +367,26 @@ class EnhancedCLISystem:
         # ... more detailed help printout ...
 
     # ... Placeholder handlers for all registered commands ...
-    async def _handle_status(self, args: list[str]) -> bool: return True
-    async def _handle_health(self, args: list[str]) -> bool: return True
-    async def _handle_system_config(self, args: list[str]) -> bool: return True
-    async def _handle_terminal(self, args: list[str]) -> bool: return True
-    async def _handle_user_management(self, args: list[str]) -> bool: return True
-    async def _handle_password_change(self, args: list[str]) -> bool: return True
+    async def _handle_status(self, args: list[str]) -> bool:
+        return True
+
+    async def _handle_health(self, args: list[str]) -> bool:
+        return True
+
+    async def _handle_system_config(self, args: list[str]) -> bool:
+        return True
+
+    async def _handle_terminal(self, args: list[str]) -> bool:
+        return True
+
+    async def _handle_user_management(self, args: list[str]) -> bool:
+        return True
+
+    async def _handle_password_change(self, args: list[str]) -> bool:
+        return True
+
     # ... and so on for all handlers
+
 
 async def main():
     """Main CLI entry point."""
@@ -272,6 +400,7 @@ async def main():
 
     success = await cli.execute_command(command, args)
     sys.exit(0 if success else 1)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

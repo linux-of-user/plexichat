@@ -18,10 +18,15 @@ from typing import Any, Optional
 
 # Placeholder for a real implementation
 class BehavioralAssessment:
-    def __init__(self, **kwargs): pass
+    def __init__(self, **kwargs):
+        pass
+
+
 class BehavioralThreatType:
     COORDINATED_ATTACK = "coordinated_attack"
     BRUTE_FORCE = "brute_force"
+
+
 advanced_behavioral_analyzer = None
 BEHAVIORAL_ANALYZER_AVAILABLE = False
 
@@ -33,25 +38,31 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
 class ThreatLevel(Enum):
     """DDoS threat levels."""
+
     CLEAN = 0
     SUSPICIOUS = 1
     MODERATE = 2
     HIGH = 3
     CRITICAL = 4
 
+
 class BlockType(Enum):
     """Types of IP blocks."""
+
     NONE = "none"
     RATE_LIMITED = "rate_limited"
     TEMPORARILY_BLOCKED = "temporarily_blocked"
     PROGRESSIVELY_BLOCKED = "progressively_blocked"
     PERMANENTLY_BLOCKED = "permanently_blocked"
 
+
 @dataclass
 class DDoSMetrics:
     """DDoS protection metrics."""
+
     total_requests: int = 0
     blocked_requests: int = 0
     suspicious_requests: int = 0
@@ -64,9 +75,11 @@ class DDoSMetrics:
     threat_level: ThreatLevel = ThreatLevel.CLEAN
     last_update: datetime = field(default_factory=lambda: datetime.now(UTC))
 
+
 @dataclass
 class IPThreatProfile:
     """Threat profile for an IP address."""
+
     ip: str
     first_seen: datetime
     last_seen: datetime
@@ -80,6 +93,7 @@ class IPThreatProfile:
     request_patterns: list[str] = field(default_factory=list)
     geographic_info: dict[str, Any] = field(default_factory=dict)
 
+
 class EnhancedDDoSProtectionService:
     """
     Enhanced DDoS protection service with intelligent threat detection.
@@ -92,18 +106,19 @@ class EnhancedDDoSProtectionService:
     - Real-time metrics and monitoring
     - Adaptive thresholds based on traffic patterns
     """
+
     def __init__(self):
         # Core protection settings
         self.enabled = True
         self.base_rate_limit = 100  # requests per minute per IP
-        self.burst_allowance = 20   # additional requests allowed in burst
+        self.burst_allowance = 20  # additional requests allowed in burst
 
         # Dynamic thresholds
         self.dynamic_thresholds = {
-            "low_load": {"multiplier": 1.5, "threshold": 0.3},      # < 30% load
-            "normal_load": {"multiplier": 1.0, "threshold": 0.7},   # 30-70% load
-            "high_load": {"multiplier": 0.6, "threshold": 0.9},     # 70-90% load
-            "critical_load": {"multiplier": 0.3, "threshold": 1.0}  # > 90% load
+            "low_load": {"multiplier": 1.5, "threshold": 0.3},  # < 30% load
+            "normal_load": {"multiplier": 1.0, "threshold": 0.7},  # 30-70% load
+            "high_load": {"multiplier": 0.6, "threshold": 0.9},  # 70-90% load
+            "critical_load": {"multiplier": 0.3, "threshold": 1.0},  # > 90% load
         }
 
         # IP tracking and profiling
@@ -112,12 +127,12 @@ class EnhancedDDoSProtectionService:
 
         # Progressive blocking configuration
         self.progressive_blocks = {
-            1: 60,      # 1 minute
-            3: 300,     # 5 minutes
-            5: 900,     # 15 minutes
-            10: 3600,   # 1 hour
+            1: 60,  # 1 minute
+            3: 300,  # 5 minutes
+            5: 900,  # 15 minutes
+            10: 3600,  # 1 hour
             20: 86400,  # 24 hours
-            50: 604800  # 1 week
+            50: 604800,  # 1 week
         }
 
         # System metrics
@@ -127,13 +142,26 @@ class EnhancedDDoSProtectionService:
         # Pattern detection
         self.suspicious_patterns = {
             "user_agents": [
-                "bot", "crawler", "spider", "scraper", "scanner",
-                "curl", "wget", "python-requests", "go-http-client"
+                "bot",
+                "crawler",
+                "spider",
+                "scraper",
+                "scanner",
+                "curl",
+                "wget",
+                "python-requests",
+                "go-http-client",
             ],
             "request_patterns": [
-                r"/\.env", r"/admin", r"/wp-admin", r"/phpmyadmin",
-                r"\.php$", r"\.asp$", r"\.jsp$", r"/api/v\d+/.*"
-            ]
+                r"/\.env",
+                r"/admin",
+                r"/wp-admin",
+                r"/phpmyadmin",
+                r"\.php$",
+                r"\.asp$",
+                r"\.jsp$",
+                r"/api/v\d+/.*",
+            ],
         }
 
         # Start background tasks
@@ -141,8 +169,9 @@ class EnhancedDDoSProtectionService:
 
         logger.info(" Enhanced DDoS Protection Service initialized")
 
-    async def check_request(self, ip: str, user_agent: str = "",
-                        endpoint: str = "", method: str = "GET") -> tuple[bool, str, dict[str, Any]]:
+    async def check_request(
+        self, ip: str, user_agent: str = "", endpoint: str = "", method: str = "GET"
+    ) -> tuple[bool, str, dict[str, Any]]:
         """
         Check if request should be allowed through DDoS protection.
 
@@ -166,11 +195,15 @@ class EnhancedDDoSProtectionService:
         # Check if IP is blocked
         if profile.block_type != BlockType.NONE:
             if profile.block_expires and current_time < profile.block_expires:
-                return False, f"ip_blocked_{profile.block_type.value}", {
-                    "block_type": profile.block_type.value,
-                    "block_expires": profile.block_expires.isoformat(),
-                    "violation_count": profile.violation_count
-                }
+                return (
+                    False,
+                    f"ip_blocked_{profile.block_type.value}",
+                    {
+                        "block_type": profile.block_type.value,
+                        "block_expires": profile.block_expires.isoformat(),
+                        "violation_count": profile.violation_count,
+                    },
+                )
             else:
                 # Block expired, reset
                 profile.block_type = BlockType.NONE
@@ -187,12 +220,16 @@ class EnhancedDDoSProtectionService:
             # Rate limit exceeded
             self._handle_rate_limit_violation(profile, current_time)
 
-            return False, "rate_limit_exceeded", {
-                "requests_in_window": recent_requests,
-                "limit": adjusted_limit,
-                "system_load": current_load,
-                "violation_count": profile.violation_count
-            }
+            return (
+                False,
+                "rate_limit_exceeded",
+                {
+                    "requests_in_window": recent_requests,
+                    "limit": adjusted_limit,
+                    "system_load": current_load,
+                    "violation_count": profile.violation_count,
+                },
+            )
 
         # Check for suspicious patterns
         suspicion_score = self._calculate_suspicion_score(profile, user_agent, endpoint)
@@ -202,62 +239,73 @@ class EnhancedDDoSProtectionService:
         if BEHAVIORAL_ANALYZER_AVAILABLE:
             try:
                 request_data = {
-                    'endpoint': endpoint,
-                    'method': method,
-                    'user_agent': user_agent,
-                    'headers': {},  # Would need to be passed from middleware
-                    'client_ip': ip
+                    "endpoint": endpoint,
+                    "method": method,
+                    "user_agent": user_agent,
+                    "headers": {},  # Would need to be passed from middleware
+                    "client_ip": ip,
                 }
                 if advanced_behavioral_analyzer:
-                    behavioral_assessment = await advanced_behavioral_analyzer.analyze_request_behavior(
-                        ip, 'ip', request_data
+                    behavioral_assessment = (
+                        await advanced_behavioral_analyzer.analyze_request_behavior(
+                            ip, "ip", request_data
+                        )
                     )
 
                 # Integrate behavioral analysis with suspicion score
                 if behavioral_assessment and behavioral_assessment.risk_level > 6:
-                    suspicion_score = max(suspicion_score, behavioral_assessment.confidence)
+                    suspicion_score = max(
+                        suspicion_score, behavioral_assessment.confidence
+                    )
 
             except Exception as e:
                 logger.warning(f"Behavioral analysis failed: {e}")
 
         if suspicion_score > 0.8:  # High suspicion threshold
-            self._handle_suspicious_activity(profile, current_time, suspicion_score, behavioral_assessment)
+            self._handle_suspicious_activity(
+                profile, current_time, suspicion_score, behavioral_assessment
+            )
 
             response_data = {
                 "suspicion_score": suspicion_score,
                 "threat_level": profile.threat_level.value,
-                "patterns_detected": self._get_detected_patterns(user_agent, endpoint)
+                "patterns_detected": self._get_detected_patterns(user_agent, endpoint),
             }
 
             # Add behavioral analysis data if available
             if behavioral_assessment:
-                response_data.update({
-                    "behavioral_threat_type": behavioral_assessment.threat_type.value,
-                    "behavioral_confidence": behavioral_assessment.confidence,
-                    "behavioral_risk_level": behavioral_assessment.risk_level,
-                    "behavioral_patterns": behavioral_assessment.patterns_detected
-                })
+                response_data.update(
+                    {
+                        "behavioral_threat_type": behavioral_assessment.threat_type.value,
+                        "behavioral_confidence": behavioral_assessment.confidence,
+                        "behavioral_risk_level": behavioral_assessment.risk_level,
+                        "behavioral_patterns": behavioral_assessment.patterns_detected,
+                    }
+                )
 
             return False, "suspicious_activity", response_data
 
         # Request allowed
         self._record_successful_request(profile, current_time)
 
-        return True, "allowed", {
-            "requests_in_window": recent_requests,
-            "limit": adjusted_limit,
-            "system_load": current_load,
-            "threat_level": profile.threat_level.value
-        }
+        return (
+            True,
+            "allowed",
+            {
+                "requests_in_window": recent_requests,
+                "limit": adjusted_limit,
+                "system_load": current_load,
+                "threat_level": profile.threat_level.value,
+            },
+        )
 
-    def _update_ip_profile(self, ip: str, user_agent: str, endpoint: str,
-                        current_time: datetime) -> IPThreatProfile:
+    def _update_ip_profile(
+        self, ip: str, user_agent: str, endpoint: str, current_time: datetime
+    ) -> IPThreatProfile:
         """Update or create IP threat profile."""
         if ip not in self.ip_profiles:
             self.ip_profiles[ip] = IPThreatProfile(
-                ip=ip,
-                first_seen=current_time,
-                last_seen=current_time
+                ip=ip, first_seen=current_time, last_seen=current_time
             )
 
         profile = self.ip_profiles[ip]
@@ -329,10 +377,13 @@ class EnhancedDDoSProtectionService:
         cutoff_time = current_time - window_seconds
 
         # Count requests after cutoff time
-        return sum(1 for timestamp in self.request_history[ip] if timestamp > cutoff_time)
+        return sum(
+            1 for timestamp in self.request_history[ip] if timestamp > cutoff_time
+        )
 
-    def _calculate_suspicion_score(self, profile: IPThreatProfile,
-                                user_agent: str, endpoint: str) -> float:
+    def _calculate_suspicion_score(
+        self, profile: IPThreatProfile, user_agent: str, endpoint: str
+    ) -> float:
         """Calculate suspicion score for request."""
         score = 0.0
 
@@ -361,7 +412,9 @@ class EnhancedDDoSProtectionService:
 
         return min(score, 1.0)  # Cap at 1.0
 
-    def _handle_rate_limit_violation(self, profile: IPThreatProfile, current_time: datetime):
+    def _handle_rate_limit_violation(
+        self, profile: IPThreatProfile, current_time: datetime
+    ):
         """Handle rate limit violation with progressive blocking."""
         profile.violation_count += 1
         profile.blocked_requests += 1
@@ -386,14 +439,20 @@ class EnhancedDDoSProtectionService:
         else:
             profile.threat_level = ThreatLevel.SUSPICIOUS
 
-        logger.warning(f"Progressive block applied to {profile.ip}: "
-                    f"violations={profile.violation_count}, "
-                    f"duration={block_duration}s, "
-                    f"threat_level={profile.threat_level.value}")
+        logger.warning(
+            f"Progressive block applied to {profile.ip}: "
+            f"violations={profile.violation_count}, "
+            f"duration={block_duration}s, "
+            f"threat_level={profile.threat_level.value}"
+        )
 
-    def _handle_suspicious_activity(self, profile: IPThreatProfile,
-                                current_time: datetime, suspicion_score: float,
-                                behavioral_assessment: Optional['BehavioralAssessment'] = None):
+    def _handle_suspicious_activity(
+        self,
+        profile: IPThreatProfile,
+        current_time: datetime,
+        suspicion_score: float,
+        behavioral_assessment: Optional["BehavioralAssessment"] = None,
+    ):
         """Handle suspicious activity detection with behavioral analysis integration."""
         profile.violation_count += 1
         profile.blocked_requests += 1
@@ -403,7 +462,10 @@ class EnhancedDDoSProtectionService:
 
         # Enhance duration based on behavioral assessment
         if behavioral_assessment:
-            if behavioral_assessment.threat_type == BehavioralThreatType.COORDINATED_ATTACK:
+            if (
+                behavioral_assessment.threat_type
+                == BehavioralThreatType.COORDINATED_ATTACK
+            ):
                 base_duration *= 3  # Longer blocks for coordinated attacks
             elif behavioral_assessment.threat_type == BehavioralThreatType.BRUTE_FORCE:
                 base_duration *= 2  # Longer blocks for brute force
@@ -416,9 +478,15 @@ class EnhancedDDoSProtectionService:
         # Update threat level with behavioral input
         final_threat_level = ThreatLevel.MODERATE
 
-        if (behavioral_assessment and behavioral_assessment.risk_level > 8) or suspicion_score > 0.9 or (behavioral_assessment and behavioral_assessment.risk_level > 6):
+        if (
+            (behavioral_assessment and behavioral_assessment.risk_level > 8)
+            or suspicion_score > 0.9
+            or (behavioral_assessment and behavioral_assessment.risk_level > 6)
+        ):
             final_threat_level = ThreatLevel.CRITICAL
-        elif suspicion_score > 0.7 or (behavioral_assessment and behavioral_assessment.risk_level > 4):
+        elif suspicion_score > 0.7 or (
+            behavioral_assessment and behavioral_assessment.risk_level > 4
+        ):
             final_threat_level = ThreatLevel.HIGH
         else:
             final_threat_level = ThreatLevel.MODERATE
@@ -427,17 +495,23 @@ class EnhancedDDoSProtectionService:
 
         # Log enhanced threat information
         if behavioral_assessment:
-            logger.warning(f"Enhanced threat detection for {profile.ip}: "
-                        f"suspicion={suspicion_score:.2f}, "
-                        f"behavioral_type={behavioral_assessment.threat_type.value}, "
-                        f"risk_level={behavioral_assessment.risk_level}, "
-                        f"block_duration={base_duration}s")
+            logger.warning(
+                f"Enhanced threat detection for {profile.ip}: "
+                f"suspicion={suspicion_score:.2f}, "
+                f"behavioral_type={behavioral_assessment.threat_type.value}, "
+                f"risk_level={behavioral_assessment.risk_level}, "
+                f"block_duration={base_duration}s"
+            )
 
-        logger.warning(f"Suspicious activity block applied to {profile.ip}: "
-                    f"suspicion_score={suspicion_score:.2f}, "
-                    f"duration={base_duration}s")
+        logger.warning(
+            f"Suspicious activity block applied to {profile.ip}: "
+            f"suspicion_score={suspicion_score:.2f}, "
+            f"duration={base_duration}s"
+        )
 
-    def _record_successful_request(self, profile: IPThreatProfile, current_time: datetime):
+    def _record_successful_request(
+        self, profile: IPThreatProfile, current_time: datetime
+    ):
         """Record successful request and potentially reduce threat level."""
         # Gradually reduce violation count for good behavior
         if profile.violation_count > 0 and profile.total_requests % 10 == 0:
@@ -473,14 +547,15 @@ class EnhancedDDoSProtectionService:
         # Update metrics
         self.metrics.unique_ips = len(self.ip_profiles)
         self.metrics.active_blocks = sum(
-            1 for profile in self.ip_profiles.values()
+            1
+            for profile in self.ip_profiles.values()
             if profile.block_type != BlockType.NONE
         )
 
         if self.metrics.unique_ips > 0:
             self.metrics.avg_requests_per_ip = (
-                sum(profile.total_requests for profile in self.ip_profiles.values()) /
-                self.metrics.unique_ips
+                sum(profile.total_requests for profile in self.ip_profiles.values())
+                / self.metrics.unique_ips
             )
 
         # Determine overall threat level
@@ -501,6 +576,7 @@ class EnhancedDDoSProtectionService:
 
         self.metrics.last_update = datetime.now(UTC)
         return self.metrics
+
 
 # Global enhanced DDoS protection service
 enhanced_ddos_service = EnhancedDDoSProtectionService()

@@ -56,7 +56,7 @@ class PerformanceOptimizationEngine:
         strategy_func: Callable[..., Any],
         target_metric: str = "",
         threshold: float = 0.0,
-        parameters: dict[str, Any] | None = None
+        parameters: dict[str, Any] | None = None,
     ) -> None:
         """Register a new optimization strategy."""
         strategy = OptimizationStrategy(
@@ -65,11 +65,13 @@ class PerformanceOptimizationEngine:
             target_metric=target_metric,
             threshold=threshold,
             strategy_func=strategy_func,
-            parameters=parameters or {}
+            parameters=parameters or {},
         )
 
         self.strategies[name] = strategy
-        self.logger.info(f"Registered optimization strategy: {name} (priority: {priority})")
+        self.logger.info(
+            f"Registered optimization strategy: {name} (priority: {priority})"
+        )
 
     def unregister_strategy(self, name: str) -> bool:
         """Unregister an optimization strategy."""
@@ -94,17 +96,15 @@ class PerformanceOptimizationEngine:
         return False
 
     async def optimize(
-        self,
-        target: str | None = None,
-        context: dict[str, Any] | None = None
+        self, target: str | None = None, context: dict[str, Any] | None = None
     ) -> list[OptimizationResult]:
         """
         Execute optimization strategies.
-        
+
         Args:
             target: Specific optimization target (optional)
             context: Additional context for optimization
-            
+
         Returns:
             List of optimization results
         """
@@ -116,12 +116,15 @@ class PerformanceOptimizationEngine:
 
         # Get enabled strategies, sorted by priority (higher priority first)
         enabled_strategies = [
-            strategy for strategy in self.strategies.values()
+            strategy
+            for strategy in self.strategies.values()
             if strategy.enabled and (not target or strategy.name == target)
         ]
         enabled_strategies.sort(key=lambda s: s.priority, reverse=True)
 
-        self.logger.info(f"Starting optimization with {len(enabled_strategies)} strategies")
+        self.logger.info(
+            f"Starting optimization with {len(enabled_strategies)} strategies"
+        )
 
         for strategy in enabled_strategies:
             try:
@@ -146,23 +149,22 @@ class PerformanceOptimizationEngine:
 
             except Exception as e:
                 self.logger.error(f"Error executing strategy '{strategy.name}': {e}")
-                results.append(OptimizationResult(
-                    success=False,
-                    metadata={"error": str(e), "strategy": strategy.name}
-                ))
+                results.append(
+                    OptimizationResult(
+                        success=False,
+                        metadata={"error": str(e), "strategy": strategy.name},
+                    )
+                )
 
         return results
 
     async def _execute_strategy(
-        self,
-        strategy: OptimizationStrategy,
-        context: dict[str, Any]
+        self, strategy: OptimizationStrategy, context: dict[str, Any]
     ) -> OptimizationResult:
         """Execute a single optimization strategy."""
         if not strategy.strategy_func:
             return OptimizationResult(
-                success=False,
-                metadata={"error": "No strategy function defined"}
+                success=False, metadata={"error": "No strategy function defined"}
             )
 
         try:
@@ -183,19 +185,13 @@ class PerformanceOptimizationEngine:
                     success=result.get("success", True),
                     improvement_percent=result.get("improvement_percent", 0.0),
                     recommendations=result.get("recommendations", []),
-                    metadata=result.get("metadata", {})
+                    metadata=result.get("metadata", {}),
                 )
             else:
-                return OptimizationResult(
-                    success=True,
-                    metadata={"raw_result": result}
-                )
+                return OptimizationResult(success=True, metadata={"raw_result": result})
 
         except Exception as e:
-            return OptimizationResult(
-                success=False,
-                metadata={"error": str(e)}
-            )
+            return OptimizationResult(success=False, metadata={"error": str(e)})
 
     def get_strategy_status(self) -> dict[str, dict[str, Any]]:
         """Get status of all optimization strategies."""
@@ -205,22 +201,21 @@ class PerformanceOptimizationEngine:
                 "priority": strategy.priority,
                 "target_metric": strategy.target_metric,
                 "threshold": strategy.threshold,
-                "has_function": strategy.strategy_func is not None
+                "has_function": strategy.strategy_func is not None,
             }
             for name, strategy in self.strategies.items()
         }
 
     def get_optimization_history(
-        self,
-        limit: int = 100,
-        strategy_name: str | None = None
+        self, limit: int = 100, strategy_name: str | None = None
     ) -> list[dict[str, Any]]:
         """Get optimization history."""
         history = self.optimization_history[-limit:]
 
         if strategy_name:
             history = [
-                result for result in history
+                result
+                for result in history
                 if result.metadata.get("strategy") == strategy_name
             ]
 
@@ -231,34 +226,46 @@ class PerformanceOptimizationEngine:
                 "time_taken_ms": result.time_taken_ms,
                 "recommendations": result.recommendations,
                 "timestamp": result.timestamp.isoformat(),
-                "metadata": result.metadata
+                "metadata": result.metadata,
             }
             for result in history
         ]
 
     def get_performance_metrics(self) -> dict[str, Any]:
         """Get performance metrics for the optimization engine."""
-        recent_results = self.optimization_history[-100:] if self.optimization_history else []
+        recent_results = (
+            self.optimization_history[-100:] if self.optimization_history else []
+        )
 
         successful_optimizations = [r for r in recent_results if r.success]
-        total_improvements = sum(r.improvement_percent for r in successful_optimizations)
-        avg_time = sum(r.time_taken_ms for r in recent_results) / len(recent_results) if recent_results else 0
+        total_improvements = sum(
+            r.improvement_percent for r in successful_optimizations
+        )
+        avg_time = (
+            sum(r.time_taken_ms for r in recent_results) / len(recent_results)
+            if recent_results
+            else 0
+        )
 
         return {
             "total_strategies": len(self.strategies),
-            "enabled_strategies": len([s for s in self.strategies.values() if s.enabled]),
+            "enabled_strategies": len(
+                [s for s in self.strategies.values() if s.enabled]
+            ),
             "total_optimizations": len(self.optimization_history),
             "recent_optimizations": len(recent_results),
             "success_rate": (
                 len(successful_optimizations) / len(recent_results)
-                if recent_results else 0
+                if recent_results
+                else 0
             ),
             "average_improvement": (
                 total_improvements / len(successful_optimizations)
-                if successful_optimizations else 0
+                if successful_optimizations
+                else 0
             ),
             "average_execution_time_ms": avg_time,
-            "enabled": self.enabled
+            "enabled": self.enabled,
         }
 
     def enable(self) -> None:
@@ -284,7 +291,7 @@ async def cache_optimization_strategy(**kwargs: Any) -> OptimizationResult:
     return OptimizationResult(
         success=True,
         improvement_percent=5.0,
-        recommendations=["Enable query result caching", "Increase cache size"]
+        recommendations=["Enable query result caching", "Increase cache size"],
     )
 
 
@@ -294,7 +301,7 @@ async def database_query_optimization(**kwargs: Any) -> OptimizationResult:
     return OptimizationResult(
         success=True,
         improvement_percent=8.0,
-        recommendations=["Add database indexes", "Optimize slow queries"]
+        recommendations=["Add database indexes", "Optimize slow queries"],
     )
 
 
@@ -304,7 +311,7 @@ def memory_optimization_strategy(**kwargs: Any) -> OptimizationResult:
     return OptimizationResult(
         success=True,
         improvement_percent=3.0,
-        recommendations=["Run garbage collection", "Release unused objects"]
+        recommendations=["Run garbage collection", "Release unused objects"],
     )
 
 
@@ -317,7 +324,7 @@ optimization_engine.register_strategy(
     priority=10,
     strategy_func=cache_optimization_strategy,
     target_metric="cache_hit_rate",
-    threshold=0.8
+    threshold=0.8,
 )
 
 optimization_engine.register_strategy(
@@ -325,7 +332,7 @@ optimization_engine.register_strategy(
     priority=8,
     strategy_func=database_query_optimization,
     target_metric="query_time",
-    threshold=100.0
+    threshold=100.0,
 )
 
 optimization_engine.register_strategy(
@@ -333,14 +340,13 @@ optimization_engine.register_strategy(
     priority=5,
     strategy_func=memory_optimization_strategy,
     target_metric="memory_usage",
-    threshold=80.0
+    threshold=80.0,
 )
 
 
 # Convenience functions
 async def optimize_performance(
-    target: str | None = None,
-    context: dict[str, Any] | None = None
+    target: str | None = None, context: dict[str, Any] | None = None
 ) -> list[OptimizationResult]:
     """Run performance optimization."""
     return await optimization_engine.optimize(target, context)
@@ -350,15 +356,12 @@ def get_optimization_status() -> dict[str, Any]:
     """Get optimization engine status."""
     return {
         "strategies": optimization_engine.get_strategy_status(),
-        "metrics": optimization_engine.get_performance_metrics()
+        "metrics": optimization_engine.get_performance_metrics(),
     }
 
 
 def register_custom_strategy(
-    name: str,
-    priority: int,
-    strategy_func: Callable[..., Any],
-    **kwargs: Any
+    name: str, priority: int, strategy_func: Callable[..., Any], **kwargs: Any
 ) -> None:
     """Register a custom optimization strategy."""
     optimization_engine.register_strategy(name, priority, strategy_func, **kwargs)

@@ -20,6 +20,7 @@ try:
     from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
     from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
     from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
+
     CRYPTOGRAPHY_AVAILABLE = True
 except ImportError:
     # Create dummy objects to avoid NameError
@@ -40,6 +41,7 @@ logger = logging.getLogger(__name__)
 
 class EncryptionAlgorithm(str, Enum):
     """Supported encryption algorithms."""
+
     AES_256_GCM = "aes-256-gcm"
     AES_256_CBC = "aes-256-cbc"
     CHACHA20_POLY1305 = "chacha20-poly1305"
@@ -49,6 +51,7 @@ class EncryptionAlgorithm(str, Enum):
 
 class KeyDerivationFunction(str, Enum):
     """Key derivation functions."""
+
     PBKDF2 = "pbkdf2"
     SCRYPT = "scrypt"
     ARGON2 = "argon2"
@@ -57,6 +60,7 @@ class KeyDerivationFunction(str, Enum):
 @dataclass
 class EncryptionKey:
     """Enhanced encryption key structure."""
+
     key_id: str
     algorithm: EncryptionAlgorithm
     key_data: bytes
@@ -75,6 +79,7 @@ class EncryptionKey:
 @dataclass
 class EncryptionResult:
     """Encryption operation result."""
+
     encrypted_data: bytes
     key_id: str
     algorithm: EncryptionAlgorithm
@@ -124,7 +129,7 @@ class EncryptionService:
             "average_encryption_speed": 0.0,
             "average_decryption_speed": 0.0,
             "key_rotations": 0,
-            "failed_operations": 0
+            "failed_operations": 0,
         }
 
         # Initialize master key
@@ -150,12 +155,7 @@ class EncryptionService:
             try:
                 # Use Scrypt for key derivation
                 kdf = Scrypt(
-                    length=32,
-                    salt=salt,
-                    n=2**14,
-                    r=8,
-                    p=1,
-                    backend=default_backend()
+                    length=32, salt=salt, n=2**14, r=8, p=1, backend=default_backend()
                 )
             except (NameError, AttributeError):
                 # Fallback if imports failed
@@ -166,7 +166,8 @@ class EncryptionService:
                     key_data=key_data,
                     salt=salt,
                     kdf=self.default_kdf,
-                    expires_at=datetime.now(UTC) + timedelta(days=self.key_rotation_days)
+                    expires_at=datetime.now(UTC)
+                    + timedelta(days=self.key_rotation_days),
                 )
             # In production, derive from user password or HSM
             master_password = secrets.token_bytes(64)
@@ -181,11 +182,12 @@ class EncryptionService:
             key_data=key_data,
             salt=salt,
             kdf=self.default_kdf,
-            expires_at=datetime.now(UTC) + timedelta(days=self.key_rotation_days)
+            expires_at=datetime.now(UTC) + timedelta(days=self.key_rotation_days),
         )
 
-    async def encrypt_data_async(self, data: bytes,
-                               security_level: str = "standard") -> tuple[bytes, dict[str, Any]]:
+    async def encrypt_data_async(
+        self, data: bytes, security_level: str = "standard"
+    ) -> tuple[bytes, dict[str, Any]]:
         """Encrypt data with specified security level."""
         try:
             start_time = time.time()
@@ -199,7 +201,10 @@ class EncryptionService:
             # Perform encryption
             if CRYPTOGRAPHY_AVAILABLE and algorithm == EncryptionAlgorithm.AES_256_GCM:
                 result = self._encrypt_aes_gcm(data, encryption_key)
-            elif CRYPTOGRAPHY_AVAILABLE and algorithm == EncryptionAlgorithm.CHACHA20_POLY1305:
+            elif (
+                CRYPTOGRAPHY_AVAILABLE
+                and algorithm == EncryptionAlgorithm.CHACHA20_POLY1305
+            ):
                 result = self._encrypt_chacha20(data, encryption_key)
             else:
                 # Fallback encryption for demo
@@ -216,7 +221,7 @@ class EncryptionService:
                 "iv": base64.b64encode(result.iv).decode() if result.iv else None,
                 "tag": base64.b64encode(result.tag).decode() if result.tag else None,
                 "encrypted_at": datetime.now(UTC).isoformat(),
-                "security_level": security_level
+                "security_level": security_level,
             }
 
             return result.encrypted_data, metadata
@@ -226,25 +231,31 @@ class EncryptionService:
             self.logger.error(f"Encryption failed: {e!s}")
             raise
 
-    def _select_algorithm_for_security_level(self, security_level: str) -> EncryptionAlgorithm:
+    def _select_algorithm_for_security_level(
+        self, security_level: str
+    ) -> EncryptionAlgorithm:
         """Select encryption algorithm based on security level."""
         security_map = {
             "basic": EncryptionAlgorithm.AES_256_CBC,
             "standard": EncryptionAlgorithm.AES_256_GCM,
             "high": EncryptionAlgorithm.CHACHA20_POLY1305,
             "maximum": EncryptionAlgorithm.HYBRID,
-            "government": EncryptionAlgorithm.HYBRID
+            "government": EncryptionAlgorithm.HYBRID,
         }
         return security_map.get(security_level, self.default_algorithm)
 
-    async def _get_encryption_key(self, algorithm: EncryptionAlgorithm) -> EncryptionKey:
+    async def _get_encryption_key(
+        self, algorithm: EncryptionAlgorithm
+    ) -> EncryptionKey:
         """Get or create an encryption key for the specified algorithm."""
         # Check for existing active key
         for key in self.active_keys.values():
-            if (key.algorithm == algorithm and
-                key.status == "active" and
-                (not key.expires_at or key.expires_at > datetime.now(UTC)) and
-                (not key.max_usage or key.usage_count < key.max_usage)):
+            if (
+                key.algorithm == algorithm
+                and key.status == "active"
+                and (not key.expires_at or key.expires_at > datetime.now(UTC))
+                and (not key.max_usage or key.usage_count < key.max_usage)
+            ):
                 key.usage_count += 1
                 return key
 
@@ -258,20 +269,22 @@ class EncryptionService:
         key_id = f"key_{algorithm.value}_{int(time.time())}_{secrets.token_hex(6)}"
         salt = secrets.token_bytes(32)
 
-        if algorithm in [EncryptionAlgorithm.AES_256_GCM, EncryptionAlgorithm.AES_256_CBC] or algorithm == EncryptionAlgorithm.CHACHA20_POLY1305:
+        if (
+            algorithm
+            in [EncryptionAlgorithm.AES_256_GCM, EncryptionAlgorithm.AES_256_CBC]
+            or algorithm == EncryptionAlgorithm.CHACHA20_POLY1305
+        ):
             key_data = secrets.token_bytes(32)  # 256-bit key
         elif algorithm == EncryptionAlgorithm.RSA_4096:
             if CRYPTOGRAPHY_AVAILABLE and rsa and serialization and default_backend:
                 try:
                     private_key = rsa.generate_private_key(
-                        public_exponent=65537,
-                        key_size=4096,
-                        backend=default_backend()
+                        public_exponent=65537, key_size=4096, backend=default_backend()
                     )
                     key_data = private_key.private_bytes(
                         encoding=serialization.Encoding.PEM,
                         format=serialization.PrivateFormat.PKCS8,
-                        encryption_algorithm=serialization.NoEncryption()
+                        encryption_algorithm=serialization.NoEncryption(),
                     )
                 except (NameError, AttributeError):
                     key_data = secrets.token_bytes(512)  # Fallback
@@ -287,20 +300,24 @@ class EncryptionService:
             salt=salt,
             kdf=self.default_kdf,
             expires_at=datetime.now(UTC) + timedelta(days=self.key_rotation_days),
-            max_usage=self.max_key_usage
+            max_usage=self.max_key_usage,
         )
 
     def _encrypt_aes_gcm(self, data: bytes, key: EncryptionKey) -> EncryptionResult:
         """Encrypt data using AES-256-GCM."""
-        if not CRYPTOGRAPHY_AVAILABLE or not Cipher or not algorithms or not modes or not default_backend:
+        if (
+            not CRYPTOGRAPHY_AVAILABLE
+            or not Cipher
+            or not algorithms
+            or not modes
+            or not default_backend
+        ):
             return self._encrypt_fallback(data, key)
 
         try:
             iv = secrets.token_bytes(12)  # 96-bit IV for GCM
             cipher = Cipher(
-                algorithms.AES(key.key_data),
-                modes.GCM(iv),
-                backend=default_backend()
+                algorithms.AES(key.key_data), modes.GCM(iv), backend=default_backend()
             )
             encryptor = cipher.encryptor()
 
@@ -311,7 +328,7 @@ class EncryptionService:
                 key_id=key.key_id,
                 algorithm=key.algorithm,
                 iv=iv,
-                tag=encryptor.tag
+                tag=encryptor.tag,
             )
         except (Exception, NameError, AttributeError) as e:
             self.logger.error(f"AES-GCM encryption failed: {e!s}")
@@ -327,7 +344,9 @@ class EncryptionService:
         try:
             # Use ChaCha20-Poly1305 as fallback - audited and secure
             if not CRYPTOGRAPHY_AVAILABLE:
-                raise RuntimeError("Cryptography library required for secure encryption")
+                raise RuntimeError(
+                    "Cryptography library required for secure encryption"
+                )
 
             from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 
@@ -345,13 +364,15 @@ class EncryptionService:
                 key_id=key.key_id,
                 algorithm=EncryptionAlgorithm.CHACHA20_POLY1305,
                 iv=nonce,
-                tag=None  # ChaCha20-Poly1305 includes tag in ciphertext
+                tag=None,  # ChaCha20-Poly1305 includes tag in ciphertext
             )
         except Exception as e:
             self.logger.error(f"ChaCha20-Poly1305 encryption failed: {e!s}")
             raise
 
-    def _update_encryption_stats(self, data_size: int, duration: float, is_encryption: bool):
+    def _update_encryption_stats(
+        self, data_size: int, duration: float, is_encryption: bool
+    ):
         """Update encryption performance statistics."""
         if is_encryption:
             self.encryption_stats["total_encryptions"] += 1
@@ -361,7 +382,9 @@ class EncryptionService:
             current_speed = data_size / duration if duration > 0 else 0
             total_ops = self.encryption_stats["total_encryptions"]
             current_avg = self.encryption_stats["average_encryption_speed"]
-            self.encryption_stats["average_encryption_speed"] = ((current_avg * (total_ops - 1)) + current_speed) / total_ops
+            self.encryption_stats["average_encryption_speed"] = (
+                (current_avg * (total_ops - 1)) + current_speed
+            ) / total_ops
         else:
             self.encryption_stats["total_decryptions"] += 1
             self.encryption_stats["total_bytes_decrypted"] += data_size
@@ -370,7 +393,9 @@ class EncryptionService:
             current_speed = data_size / duration if duration > 0 else 0
             total_ops = self.encryption_stats["total_decryptions"]
             current_avg = self.encryption_stats["average_decryption_speed"]
-            self.encryption_stats["average_decryption_speed"] = ((current_avg * (total_ops - 1)) + current_speed) / total_ops
+            self.encryption_stats["average_decryption_speed"] = (
+                (current_avg * (total_ops - 1)) + current_speed
+            ) / total_ops
 
     def generate_key(self) -> dict[str, Any]:
         """
@@ -390,7 +415,7 @@ class EncryptionService:
                 "algorithm": "AES-256-GCM",
                 "created_at": datetime.now(UTC),
                 "key_size": 256,
-                "status": "active"
+                "status": "active",
             }
 
             self.logger.info(f"Generated new encryption key: {key_id}")
@@ -413,7 +438,9 @@ class EncryptionService:
         """
         try:
             if not CRYPTOGRAPHY_AVAILABLE:
-                raise RuntimeError("Cryptography library required for secure encryption")
+                raise RuntimeError(
+                    "Cryptography library required for secure encryption"
+                )
 
             # Use AES-256-GCM for encryption
             from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -435,17 +462,21 @@ class EncryptionService:
                 "algorithm": "AES-256-GCM",
                 "checksum": checksum,
                 "size": len(data),
-                "encrypted_at": datetime.now(UTC)
+                "encrypted_at": datetime.now(UTC),
             }
 
-            self.logger.debug(f"Encrypted {len(data)} bytes with key {key_info['key_id']} using AES-256-GCM")
+            self.logger.debug(
+                f"Encrypted {len(data)} bytes with key {key_info['key_id']} using AES-256-GCM"
+            )
             return result
 
         except Exception as e:
             self.logger.error(f"AEAD encryption failed: {e}")
             raise
 
-    def decrypt_data(self, encrypted_info: dict[str, Any], key_info: dict[str, Any]) -> bytes:
+    def decrypt_data(
+        self, encrypted_info: dict[str, Any], key_info: dict[str, Any]
+    ) -> bytes:
         """
         Decrypt data using the provided key with AEAD.
 
@@ -462,7 +493,9 @@ class EncryptionService:
                 raise ValueError("Key ID mismatch")
 
             if not CRYPTOGRAPHY_AVAILABLE:
-                raise RuntimeError("Cryptography library required for secure decryption")
+                raise RuntimeError(
+                    "Cryptography library required for secure decryption"
+                )
 
             # Use AES-256-GCM for decryption
             from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -482,7 +515,9 @@ class EncryptionService:
             if checksum != encrypted_info["checksum"]:
                 raise ValueError("Checksum verification failed")
 
-            self.logger.debug(f"Decrypted {len(decrypted_data)} bytes with key {key_info['key_id']} using AES-256-GCM")
+            self.logger.debug(
+                f"Decrypted {len(decrypted_data)} bytes with key {key_info['key_id']} using AES-256-GCM"
+            )
             return decrypted_data
 
         except Exception as e:
@@ -514,7 +549,9 @@ class EncryptionService:
             self.logger.error(f"Checksum generation failed: {e}")
             raise
 
-    def verify_checksum(self, data: bytes, expected_checksum: str, algorithm: str = "sha256") -> bool:
+    def verify_checksum(
+        self, data: bytes, expected_checksum: str, algorithm: str = "sha256"
+    ) -> bool:
         """
         Verify data integrity using checksum.
 
@@ -572,7 +609,7 @@ class EncryptionService:
                 "old_key_id": key_id,
                 "new_key_id": new_key.key_id,
                 "algorithm": new_key.algorithm.value,
-                "rotated_at": datetime.now(UTC).isoformat()
+                "rotated_at": datetime.now(UTC).isoformat(),
             }
 
         except Exception as e:

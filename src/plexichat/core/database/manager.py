@@ -99,18 +99,29 @@ class DatabaseSession:
 
         # Simple heuristic to extract table name from query
         words = query.strip().split()
-        if len(words) > 2 and words[0].upper() in ["SELECT", "INSERT", "UPDATE", "DELETE"]:
-            operation = DBOperation.WRITE if words[0].upper() != "SELECT" else DBOperation.READ
+        if len(words) > 2 and words[0].upper() in [
+            "SELECT",
+            "INSERT",
+            "UPDATE",
+            "DELETE",
+        ]:
+            operation = (
+                DBOperation.WRITE if words[0].upper() != "SELECT" else DBOperation.READ
+            )
             # Try to extract table name
             if words[0].upper() == "SELECT":
                 try:
-                    from_idx = [i for i, w in enumerate(words) if w.upper() == "FROM"][0]
+                    from_idx = [i for i, w in enumerate(words) if w.upper() == "FROM"][
+                        0
+                    ]
                     table_name = words[from_idx + 1].strip(";")
                 except (IndexError, ValueError):
                     table_name = "unknown"
             elif words[0].upper() == "INSERT":
                 try:
-                    into_idx = [i for i, w in enumerate(words) if w.upper() == "INTO"][0]
+                    into_idx = [i for i, w in enumerate(words) if w.upper() == "INTO"][
+                        0
+                    ]
                     table_name = words[into_idx + 1].strip(";")
                 except (IndexError, ValueError):
                     table_name = "unknown"
@@ -140,7 +151,7 @@ class DatabaseSession:
                 param_counter += 1
                 return f":{key}"
 
-            query = re.sub(r'\?', replace_placeholder, query)
+            query = re.sub(r"\?", replace_placeholder, query)
             params = params_dict
 
         try:

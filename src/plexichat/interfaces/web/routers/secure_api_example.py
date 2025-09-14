@@ -31,42 +31,57 @@ try:
     )
 except Exception as e:
     print(f"Security decorators import error: {e}")
+
     # Fallback decorators that do nothing
     def require_auth(*args, **kwargs):
-        def decorator(func): return func
+        def decorator(func):
+            return func
+
         return decorator
 
     def require_admin(*args, **kwargs):
-        def decorator(func): return func
+        def decorator(func):
+            return func
+
         return decorator
 
     def rate_limit(*args, **kwargs):
-        def decorator(func): return func
+        def decorator(func):
+            return func
+
         return decorator
 
     def audit_access(*args, **kwargs):
-        def decorator(func): return func
+        def decorator(func):
+            return func
+
         return decorator
 
     def validate_input(*args, **kwargs):
-        def decorator(func): return func
+        def decorator(func):
+            return func
+
         return decorator
 
     def secure_endpoint(*args, **kwargs):
-        def decorator(func): return func
+        def decorator(func):
+            return func
+
         return decorator
 
     def admin_endpoint(*args, **kwargs):
-        def decorator(func): return func
+        def decorator(func):
+            return func
+
         return decorator
 
-    SecurityLevel = type('SecurityLevel', (), {})
-    RequiredPermission = type('RequiredPermission', (), {})
+    SecurityLevel = type("SecurityLevel", (), {})
+    RequiredPermission = type("RequiredPermission", (), {})
     get_logging_system = lambda: None
-    LogCategory = type('LogCategory', (), {})
-    LogLevel = type('LogLevel', (), {})
-    PerformanceMetrics = type('PerformanceMetrics', (), {})
-    PerformanceTracker = type('PerformanceTracker', (), {})
+    LogCategory = type("LogCategory", (), {})
+    LogLevel = type("LogLevel", (), {})
+    PerformanceMetrics = type("PerformanceMetrics", (), {})
+    PerformanceTracker = type("PerformanceTracker", (), {})
 
 router = APIRouter()
 
@@ -76,7 +91,9 @@ if logging_system:
     logger = logging_system.get_logger(__name__)
 else:
     import logging
+
     logger = logging.getLogger(__name__)
+
 
 # Data models
 class UserData(BaseModel):
@@ -84,15 +101,18 @@ class UserData(BaseModel):
     email: str
     role: str | None = "user"
 
+
 class AdminAction(BaseModel):
     action: str
     target: str
     reason: str | None = None
 
+
 class SystemConfig(BaseModel):
     key: str
     value: Any
     category: str = "general"
+
 
 class MessageData(BaseModel):
     content: str
@@ -111,13 +131,13 @@ async def get_public_info(request: Request):
             "Public info requested",
             category=LogCategory.API,
             metadata={"endpoint": "/public-info"},
-            tags=["public", "info"]
+            tags=["public", "info"],
         )
 
     return {
         "message": "This is public information",
         "timestamp": datetime.now(UTC).isoformat(),
-        "features": ["enhanced_security", "comprehensive_logging", "rate_limiting"]
+        "features": ["enhanced_security", "comprehensive_logging", "rate_limiting"],
     }
 
 
@@ -126,14 +146,13 @@ async def get_public_info(request: Request):
 @secure_endpoint(
     auth_level=SecurityLevel.AUTHENTICATED,
     rate_limit_rpm=60,
-    audit_action="view_profile"
+    audit_action="view_profile",
 )
 async def get_user_profile(request: Request, current_user: dict = None):
     """Get user profile with security and auditing."""
     if not current_user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required"
         )
 
     # Performance tracking
@@ -143,6 +162,7 @@ async def get_user_profile(request: Request, current_user: dict = None):
 
             # Simulate some processing time
             import time
+
             time.sleep(0.01)
 
             profile_data = {
@@ -151,13 +171,10 @@ async def get_user_profile(request: Request, current_user: dict = None):
                 "email": current_user.get("email"),
                 "role": current_user.get("role", "user"),
                 "last_login": current_user.get("last_login"),
-                "permissions": current_user.get("permissions", [])
+                "permissions": current_user.get("permissions", []),
             }
 
-            return {
-                "profile": profile_data,
-                "timestamp": datetime.now(UTC).isoformat()
-            }
+            return {"profile": profile_data, "timestamp": datetime.now(UTC).isoformat()}
 
     return {"error": "Logging system not available"}
 
@@ -167,16 +184,12 @@ async def get_user_profile(request: Request, current_user: dict = None):
 @validate_input(
     max_size=10 * 1024,  # 10KB max
     allowed_content_types=["application/json"],
-    validate_json=True
+    validate_json=True,
 )
 @require_auth(SecurityLevel.ELEVATED, permissions=[RequiredPermission.WRITE])
 @audit_access("create_user", resource_type="user", include_request_body=True)
 @rate_limit(requests_per_minute=20)
-async def create_user(
-    request: Request,
-    user_data: UserData,
-    current_user: dict = None
-):
+async def create_user(request: Request, user_data: UserData, current_user: dict = None):
     """Create a new user with comprehensive security."""
     if logging_system:
         logger.info(
@@ -186,10 +199,10 @@ async def create_user(
                 "metadata": {
                     "action": "create_user",
                     "creator_id": current_user.get("id"),
-                    "new_user_data": user_data.dict()
+                    "new_user_data": user_data.dict(),
                 },
-                "tags": ["user_management", "create"]
-            }
+                "tags": ["user_management", "create"],
+            },
         )
 
     # Simulate user creation process
@@ -203,16 +216,16 @@ async def create_user(
             metadata={
                 "new_user_id": new_user_id,
                 "created_by": current_user.get("id"),
-                "user_details": user_data.dict()
+                "user_details": user_data.dict(),
             },
-            tags=["user_created", "success"]
+            tags=["user_created", "success"],
         )
 
     return {
         "message": "User created successfully",
         "user_id": new_user_id,
         "created_by": current_user.get("username"),
-        "timestamp": datetime.now(UTC).isoformat()
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
@@ -221,12 +234,10 @@ async def create_user(
 @admin_endpoint(
     permissions=[RequiredPermission.ADMIN],
     rate_limit_rpm=10,
-    audit_action="system_action"
+    audit_action="system_action",
 )
 async def perform_admin_action(
-    request: Request,
-    action_data: AdminAction,
-    current_user: dict = None
+    request: Request, action_data: AdminAction, current_user: dict = None
 ):
     """Perform administrative action with full auditing."""
     if logging_system:
@@ -241,9 +252,9 @@ async def perform_admin_action(
                 "action": action_data.action,
                 "target": action_data.target,
                 "reason": action_data.reason,
-                "ip_address": logging_system.get_context().ip_address
+                "ip_address": logging_system.get_context().ip_address,
             },
-            tags=["admin_action", "security_relevant"]
+            tags=["admin_action", "security_relevant"],
         )
 
     # Simulate action processing
@@ -252,7 +263,7 @@ async def perform_admin_action(
         "target": action_data.target,
         "status": "completed",
         "performed_by": current_user.get("username"),
-        "timestamp": datetime.now(UTC).isoformat()
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
     return result
@@ -261,13 +272,16 @@ async def perform_admin_action(
 # System endpoint with highest security level
 @router.put("/system/config")
 @require_auth(SecurityLevel.SYSTEM)
-@audit_access("update_system_config", resource_type="system", include_request_body=True, include_response=True)
+@audit_access(
+    "update_system_config",
+    resource_type="system",
+    include_request_body=True,
+    include_response=True,
+)
 @rate_limit(requests_per_minute=5)
 @validate_input(max_size=5 * 1024)
 async def update_system_config(
-    request: Request,
-    config_data: SystemConfig,
-    current_user: dict = None
+    request: Request, config_data: SystemConfig, current_user: dict = None
 ):
     """Update system configuration with maximum security."""
     if logging_system:
@@ -281,9 +295,9 @@ async def update_system_config(
                 "config_key": config_data.key,
                 "config_category": config_data.category,
                 "previous_value": "redacted",  # Don't log actual values
-                "new_value": "redacted"
+                "new_value": "redacted",
             },
-            tags=["system_config", "critical_change"]
+            tags=["system_config", "critical_change"],
         )
 
     return {
@@ -291,7 +305,7 @@ async def update_system_config(
         "key": config_data.key,
         "category": config_data.category,
         "updated_by": current_user.get("username"),
-        "timestamp": datetime.now(UTC).isoformat()
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
@@ -300,39 +314,35 @@ async def update_system_config(
 @secure_endpoint(
     auth_level=SecurityLevel.AUTHENTICATED,
     rate_limit_rpm=100,
-    audit_action="list_messages"
+    audit_action="list_messages",
 )
 async def list_messages(
-    request: Request,
-    limit: int = 50,
-    offset: int = 0,
-    current_user: dict = None
+    request: Request, limit: int = 50, offset: int = 0, current_user: dict = None
 ):
     """List messages with performance monitoring."""
     if not logging_system:
         return {"error": "Enhanced logging not available"}
 
     with PerformanceTracker("list_messages", logger) as tracker:
-        tracker.add_metadata(
-            user_id=current_user.get("id"),
-            limit=limit,
-            offset=offset
-        )
+        tracker.add_metadata(user_id=current_user.get("id"), limit=limit, offset=offset)
 
         # Simulate database query
         import time
+
         time.sleep(0.05)  # Simulate DB query time
 
         # Generate sample messages
         messages = []
         for i in range(min(limit, 20)):  # Limit for demo
-            messages.append({
-                "id": f"msg_{i + offset}",
-                "content": f"Sample message {i + offset}",
-                "sender": f"user_{i % 3}",
-                "timestamp": datetime.now(UTC).isoformat(),
-                "read": i % 2 == 0
-            })
+            messages.append(
+                {
+                    "id": f"msg_{i + offset}",
+                    "content": f"Sample message {i + offset}",
+                    "sender": f"user_{i % 3}",
+                    "timestamp": datetime.now(UTC).isoformat(),
+                    "read": i % 2 == 0,
+                }
+            )
 
         # Log performance metrics
         logging_system.log_with_context(
@@ -343,14 +353,14 @@ async def list_messages(
                 duration_ms=tracker.metadata.get("duration", 0),
                 database_queries=1,
                 cache_hits=0,
-                cache_misses=1
+                cache_misses=1,
             ),
             metadata={
                 "message_count": len(messages),
                 "query_limit": limit,
-                "query_offset": offset
+                "query_offset": offset,
             },
-            tags=["performance", "database_query"]
+            tags=["performance", "database_query"],
         )
 
         return {
@@ -358,23 +368,19 @@ async def list_messages(
             "total_count": 1000,  # Simulated total
             "limit": limit,
             "offset": offset,
-            "has_more": offset + len(messages) < 1000
+            "has_more": offset + len(messages) < 1000,
         }
 
 
 # File upload endpoint with security validation
 @router.post("/files/upload")
 @validate_input(
-    max_size=10 * 1024 * 1024,  # 10MB max
-    allowed_content_types=["multipart/form-data"]
+    max_size=10 * 1024 * 1024, allowed_content_types=["multipart/form-data"]  # 10MB max
 )
 @require_auth(SecurityLevel.AUTHENTICATED, permissions=[RequiredPermission.WRITE])
 @audit_access("upload_file", resource_type="file")
 @rate_limit(requests_per_minute=10)
-async def upload_file(
-    request: Request,
-    current_user: dict = None
-):
+async def upload_file(request: Request, current_user: dict = None):
     """File upload with security validation."""
     if logging_system:
         # Log file upload attempt
@@ -385,9 +391,9 @@ async def upload_file(
             metadata={
                 "user_id": current_user.get("id"),
                 "content_type": request.headers.get("Content-Type"),
-                "content_length": request.headers.get("Content-Length")
+                "content_length": request.headers.get("Content-Length"),
             },
-            tags=["file_upload", "security_check"]
+            tags=["file_upload", "security_check"],
         )
 
     # Simulate file processing
@@ -397,7 +403,7 @@ async def upload_file(
         "message": "File uploaded successfully",
         "file_id": file_id,
         "uploaded_by": current_user.get("username"),
-        "timestamp": datetime.now(UTC).isoformat()
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
@@ -412,9 +418,9 @@ async def detailed_health_check(request: Request):
             "enhanced_logging": logging_system is not None,
             "security_manager": True,  # Assume available if we got here
             "database": True,  # Would check actual DB connection
-            "cache": True,     # Would check cache connectivity
+            "cache": True,  # Would check cache connectivity
         },
-        "metrics": {}
+        "metrics": {},
     }
 
     if logging_system:
@@ -422,10 +428,9 @@ async def detailed_health_check(request: Request):
         buffer_stats = logging_system.get_buffer_stats()
         performance_stats = logging_system.get_performance_stats()
 
-        health_data["metrics"].update({
-            "log_buffer": buffer_stats,
-            "performance": performance_stats
-        })
+        health_data["metrics"].update(
+            {"log_buffer": buffer_stats, "performance": performance_stats}
+        )
 
         # Log health check
         logging_system.log_with_context(
@@ -433,7 +438,7 @@ async def detailed_health_check(request: Request):
             "Detailed health check performed",
             category=LogCategory.MONITORING,
             metadata=health_data,
-            tags=["health_check", "monitoring"]
+            tags=["health_check", "monitoring"],
         )
 
     return health_data
@@ -449,9 +454,7 @@ async def get_security_metrics(request: Request, current_user: dict = None):
 
     # Get security-related logs
     security_logs = logging_system.search_logs(
-        query="",
-        category=LogCategory.SECURITY,
-        limit=100
+        query="", category=LogCategory.SECURITY, limit=100
     )
 
     # Analyze security events
@@ -474,12 +477,12 @@ async def get_security_metrics(request: Request, current_user: dict = None):
                 "timestamp": log.timestamp.isoformat(),
                 "level": log.level.name,
                 "message": log.message,
-                "metadata": log.metadata
+                "metadata": log.metadata,
             }
             for log in security_logs[:10]  # Last 10 events
         ],
         "generated_at": datetime.now(UTC).isoformat(),
-        "generated_by": current_user.get("username")
+        "generated_by": current_user.get("username"),
     }
 
     return metrics

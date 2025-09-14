@@ -24,12 +24,21 @@ class SecurityTier:
     GOVERNMENT = "government"
     MILITARY = "military"
     QUANTUM_PROOF = "quantum_proof"
+
+
 class ServiceMetadata:
-    def __init__(self, **kwargs): pass
+    def __init__(self, **kwargs):
+        pass
+
+
 class ServicePriority:
     NORMAL = "normal"
+
+
 class ServiceType:
     PLUGIN = "plugin"
+
+
 distributed_key_manager = None
 
 # from ...features.security.distributed_key_manager import distributed_key_manager
@@ -48,16 +57,18 @@ logger = logging.getLogger(__name__)
 
 class ModuleType(Enum):
     """Module types for categorization."""
-    CORE = "core"              # Core system modules
-    PLUGIN = "plugin"          # Plugin modules
-    EXTENSION = "extension"    # Extension modules
-    THEME = "theme"           # UI theme modules
+
+    CORE = "core"  # Core system modules
+    PLUGIN = "plugin"  # Plugin modules
+    EXTENSION = "extension"  # Extension modules
+    THEME = "theme"  # UI theme modules
     INTEGRATION = "integration"  # Third-party integrations
-    CUSTOM = "custom"         # Custom user modules
+    CUSTOM = "custom"  # Custom user modules
 
 
 class ModuleStatus(Enum):
     """Module status states."""
+
     UNLOADED = "unloaded"
     LOADING = "loading"
     LOADED = "loaded"
@@ -68,16 +79,18 @@ class ModuleStatus(Enum):
 
 class ModuleAccessLevel(Enum):
     """Module access levels."""
-    PUBLIC = "public"         # Available to all users
+
+    PUBLIC = "public"  # Available to all users
     AUTHENTICATED = "authenticated"  # Requires authentication
-    PREMIUM = "premium"       # Premium users only
-    ADMIN = "admin"          # Admin users only
-    DEVELOPER = "developer"   # Developer access only
+    PREMIUM = "premium"  # Premium users only
+    ADMIN = "admin"  # Admin users only
+    DEVELOPER = "developer"  # Developer access only
 
 
 @dataclass
 class ModuleMetadata:
     """Module metadata and configuration."""
+
     module_id: str
     name: str
     description: str
@@ -98,6 +111,7 @@ class ModuleMetadata:
 @dataclass
 class ModuleHealth:
     """Module health and performance metrics."""
+
     module_id: str
     status: ModuleStatus
     load_time: float = 0.0
@@ -121,10 +135,13 @@ class SecureModule:
     - Automatic dependency resolution
     - Hot-swapping capabilities
     """
+
     def __init__(self, metadata: ModuleMetadata):
         self.metadata = metadata
         self.status = ModuleStatus.UNLOADED
-        self.health = ModuleHealth(module_id=metadata.module_id, status=ModuleStatus.UNLOADED)
+        self.health = ModuleHealth(
+            module_id=metadata.module_id, status=ModuleStatus.UNLOADED
+        )
 
         # Module state
         self.load_time: datetime | None = None
@@ -165,14 +182,16 @@ class SecureModule:
             await self._load_module_code()
 
             # Initialize module
-            if hasattr(self.module_instance, 'initialize'):
-                await self._call_module_method('initialize')
+            if hasattr(self.module_instance, "initialize"):
+                await self._call_module_method("initialize")
 
             # Create service instance if module provides services
-            if hasattr(self.module_instance, 'create_service'):
+            if hasattr(self.module_instance, "create_service"):
                 service_metadata = await self._create_service_metadata()
                 if service_metadata is not None:
-                    self.service_instance = await self.module_instance.create_service(service_metadata)
+                    self.service_instance = await self.module_instance.create_service(
+                        service_metadata
+                    )
 
             self.status = ModuleStatus.LOADED
             self.health.status = ModuleStatus.LOADED
@@ -201,8 +220,8 @@ class SecureModule:
 
         try:
             # Activate module
-            if hasattr(self.module_instance, 'activate'):
-                await self._call_module_method('activate')
+            if hasattr(self.module_instance, "activate"):
+                await self._call_module_method("activate")
 
             # Start service if available
             if self.service_instance:
@@ -238,8 +257,8 @@ class SecureModule:
                     await self.service_instance.stop()
 
             # Deactivate module
-            if hasattr(self.module_instance, 'deactivate'):
-                await self._call_module_method('deactivate')
+            if hasattr(self.module_instance, "deactivate"):
+                await self._call_module_method("deactivate")
 
             self.status = ModuleStatus.LOADED
             self.health.status = ModuleStatus.LOADED
@@ -266,8 +285,8 @@ class SecureModule:
                 await self.deactivate()
 
             # Cleanup module
-            if hasattr(self.module_instance, 'cleanup'):
-                await self._call_module_method('cleanup')
+            if hasattr(self.module_instance, "cleanup"):
+                await self._call_module_method("cleanup")
 
             # Remove from sys.modules if loaded
             module_name = f"plexichat_module_{self.metadata.module_id}"
@@ -298,27 +317,31 @@ class SecureModule:
         try:
             # Get module encryption key if distributed_key_manager is available
             if distributed_key_manager is not None:
-                self.module_key = await distributed_key_manager.get_domain_key(distributed_key_manager.KeyDomain.COMMUNICATION)
+                self.module_key = await distributed_key_manager.get_domain_key(
+                    distributed_key_manager.KeyDomain.COMMUNICATION
+                )
             else:
                 # Use a default key or skip encryption setup
                 self.module_key = None
 
             # Create encryption context (use a dict for simplicity)
             self.encryption_context = {
-                'operation_id': f"module_{self.metadata.module_id}",
-                'data_type': 'module_communication',
-                'security_tier': self._get_security_tier(),
-                'algorithms': [],
-                'key_ids': [f"module_key_{self.metadata.module_id}"],
-                'metadata': {
-                    'module_id': self.metadata.module_id,
-                    'module_type': self.metadata.module_type.value,
-                    'security_level': self.metadata.security_level
-                }
+                "operation_id": f"module_{self.metadata.module_id}",
+                "data_type": "module_communication",
+                "security_tier": self._get_security_tier(),
+                "algorithms": [],
+                "key_ids": [f"module_key_{self.metadata.module_id}"],
+                "metadata": {
+                    "module_id": self.metadata.module_id,
+                    "module_type": self.metadata.module_type.value,
+                    "security_level": self.metadata.security_level,
+                },
             }
 
         except Exception as e:
-            logger.warning(f"Failed to setup module security for {self.metadata.name}: {e}")
+            logger.warning(
+                f"Failed to setup module security for {self.metadata.name}: {e}"
+            )
 
     def _get_security_tier(self):
         """Get quantum security tier based on module security level."""
@@ -327,7 +350,7 @@ class SecureModule:
             "ENHANCED": SecurityTier.ENHANCED,
             "GOVERNMENT": SecurityTier.GOVERNMENT,
             "MILITARY": SecurityTier.MILITARY,
-            "QUANTUM_PROOF": SecurityTier.QUANTUM_PROOF
+            "QUANTUM_PROOF": SecurityTier.QUANTUM_PROOF,
         }
         return mapping.get(self.metadata.security_level, SecurityTier.STANDARD)
 
@@ -350,7 +373,11 @@ class SecureModule:
         """Load the actual module code."""
         # This is a placeholder - in a real implementation, this would
         # load the module from a file, package, or remote source
-        self.module_instance = type('ModuleInstance', (), {'name': self.metadata.name, 'version': self.metadata.version})()
+        self.module_instance = type(
+            "ModuleInstance",
+            (),
+            {"name": self.metadata.name, "version": self.metadata.version},
+        )()
 
     async def _create_service_metadata(self) -> Any | None:
         """Create service metadata for module service."""
@@ -366,7 +393,7 @@ class SecureModule:
             priority=ServicePriority.NORMAL,
             dependencies=[],
             security_level=self.metadata.security_level,
-            configuration=self.metadata.configuration.copy()
+            configuration=self.metadata.configuration.copy(),
         )
 
     async def _call_module_method(self, method_name: str, *args, **kwargs):
@@ -417,26 +444,26 @@ class SecureModule:
                 "load_time": self.health.load_time,
                 "error_count": self.health.error_count,
                 "warning_count": self.health.warning_count,
-                "memory_usage": self.health.memory_usage
+                "memory_usage": self.health.memory_usage,
             },
             "metadata": {
                 "version": self.metadata.version,
                 "author": self.metadata.author,
                 "module_type": self.metadata.module_type.value,
                 "access_level": self.metadata.access_level.value,
-                "security_level": self.metadata.security_level
+                "security_level": self.metadata.security_level,
             },
-            "service_active": self.service_instance is not None and
-                        hasattr(self.service_instance, 'status') and
-                        self.service_instance.status.value == "running"
+            "service_active": self.service_instance is not None
+            and hasattr(self.service_instance, "status")
+            and self.service_instance.status.value == "running",
         }
 
 
 __all__ = [
-    'ModuleAccessLevel',
-    'ModuleHealth',
-    'ModuleMetadata',
-    'ModuleStatus',
-    'ModuleType',
-    'SecureModule'
+    "ModuleAccessLevel",
+    "ModuleHealth",
+    "ModuleMetadata",
+    "ModuleStatus",
+    "ModuleType",
+    "SecureModule",
 ]

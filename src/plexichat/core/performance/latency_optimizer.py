@@ -267,14 +267,18 @@ class ResponseCompressor:
                 return data_bytes, 1.0
 
             # Check cache
-            cache_key = hashlib.md5(data_bytes).hexdigest() + str(compression_type.value)
+            cache_key = hashlib.md5(data_bytes).hexdigest() + str(
+                compression_type.value
+            )
             if cache_key in self._compression_cache:
                 return self._compression_cache[cache_key]
 
             # Perform compression
             compressed_data = await self._compress_data(data_bytes, compression_type)
 
-            compression_ratio = len(compressed_data) / len(data_bytes) if len(data_bytes) > 0 else 1.0
+            compression_ratio = (
+                len(compressed_data) / len(data_bytes) if len(data_bytes) > 0 else 1.0
+            )
 
             # Cache result
             self._compression_cache[cache_key] = (compressed_data, compression_ratio)
@@ -298,7 +302,9 @@ class ResponseCompressor:
             # Return original data if compression fails
             return data_bytes if isinstance(data, bytes) else data.encode(), 1.0
 
-    async def _compress_data(self, data: bytes, compression_type: CompressionType) -> bytes:
+    async def _compress_data(
+        self, data: bytes, compression_type: CompressionType
+    ) -> bytes:
         """Perform actual compression based on type."""
         if compression_type == CompressionType.GZIP:
             return gzip.compress(data)
@@ -307,6 +313,7 @@ class ResponseCompressor:
         elif compression_type == CompressionType.BROTLI:
             try:
                 import brotli
+
                 return brotli.compress(data)
             except ImportError:
                 self.logger.warning("Brotli not available, falling back to gzip")
@@ -320,6 +327,7 @@ def monitor_performance(
     metric_name: str | None = None,
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Decorator to monitor function performance."""
+
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:

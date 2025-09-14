@@ -27,17 +27,21 @@ logger = logging.getLogger(__name__)
 # Create router
 router = APIRouter(prefix="/performance", tags=["performance"])
 
+
 # Pydantic models for request/response
 class MetricDataResponse(BaseModel):
     """Response model for metric data."""
+
     name: str
     value: float
     unit: str
     timestamp: str
     tags: dict[str, str]
 
+
 class AlertRuleRequest(BaseModel):
     """Request model for alert rule creation."""
+
     name: str = Field(..., description="Alert rule name")
     metric: str = Field(..., description="Metric name to monitor")
     threshold: float = Field(..., description="Threshold value")
@@ -45,8 +49,10 @@ class AlertRuleRequest(BaseModel):
     enabled: bool = Field(True, description="Whether the rule is enabled")
     cooldown_seconds: int = Field(300, description="Cooldown period in seconds")
 
+
 class AlertRuleResponse(BaseModel):
     """Response model for alert rule."""
+
     name: str
     metric: str
     threshold: float
@@ -54,8 +60,10 @@ class AlertRuleResponse(BaseModel):
     enabled: bool
     cooldown: int
 
+
 class AlertResponse(BaseModel):
     """Response model for alerts."""
+
     rule_id: str
     rule_name: str
     metric_name: str
@@ -68,16 +76,20 @@ class AlertResponse(BaseModel):
     acknowledged: bool
     created_at: str
 
+
 class SystemStatusResponse(BaseModel):
     """Response model for system status."""
+
     initialized: bool
     total_metrics: int
     metric_types: int
     alert_rules: int
     recent_alerts: int
 
+
 class MetricsSummaryResponse(BaseModel):
     """Response model for metrics summary."""
+
     metric_name: str
     count: int
     average: float
@@ -86,7 +98,7 @@ class MetricsSummaryResponse(BaseModel):
     latest_value: float
     latest_timestamp: str
 
-# API Endpoints
+    # API Endpoints
 
     @router.get("/status", response_model=SystemStatusResponse)
     async def get_performance_status(user: dict[str, Any] = Depends(get_current_user)):
@@ -96,7 +108,9 @@ class MetricsSummaryResponse(BaseModel):
             return SystemStatusResponse(**status)
         except Exception as e:
             logger.error(f"Error getting performance status: {e}")
-            raise HTTPException(status_code=500, detail="Failed to get performance status")
+            raise HTTPException(
+                status_code=500, detail="Failed to get performance status"
+            )
 
     @router.get("/collector/status")
     async def get_collector_status(user: dict[str, Any] = Depends(get_current_user)):
@@ -105,13 +119,17 @@ class MetricsSummaryResponse(BaseModel):
             return get_metrics_collector_status()
         except Exception as e:
             logger.error(f"Error getting collector status: {e}")
-            raise HTTPException(status_code=500, detail="Failed to get collector status")
+            raise HTTPException(
+                status_code=500, detail="Failed to get collector status"
+            )
 
     @router.get("/metrics/{metric_name}", response_model=list[MetricDataResponse])
     async def get_metric_data(
         metric_name: str,
-        hours_param: int = Query(24, ge=1, le=168, description="Hours of data to retrieve"),
-        user: dict[str, Any] = Depends(get_current_user)
+        hours_param: int = Query(
+            24, ge=1, le=168, description="Hours of data to retrieve"
+        ),
+        user: dict[str, Any] = Depends(get_current_user),
     ):
         """Get metric data for a specific metric."""
         try:
@@ -124,18 +142,21 @@ class MetricsSummaryResponse(BaseModel):
                     value=m.value,
                     unit=m.unit,
                     timestamp=m.timestamp.isoformat(),
-                    tags=m.tags
+                    tags=m.tags,
                 )
                 for m in metrics
             ]
         except Exception as e:
             logger.error(f"Error getting metric data for {metric_name}: {e}")
-            raise HTTPException(status_code=500, detail=f"Failed to get metric data for {metric_name}")
+            raise HTTPException(
+                status_code=500, detail=f"Failed to get metric data for {metric_name}"
+            )
 
-    @router.get("/metrics/{metric_name}/latest", response_model=Optional[MetricDataResponse])
+    @router.get(
+        "/metrics/{metric_name}/latest", response_model=Optional[MetricDataResponse]
+    )
     async def get_latest_metric_data(
-        metric_name: str,
-        user: dict[str, Any] = Depends(get_current_user)
+        metric_name: str, user: dict[str, Any] = Depends(get_current_user)
     ):
         """Get the latest value for a specific metric."""
         try:
@@ -148,16 +169,19 @@ class MetricsSummaryResponse(BaseModel):
                 value=metric.value,
                 unit=metric.unit,
                 timestamp=metric.timestamp.isoformat(),
-                tags=metric.tags
+                tags=metric.tags,
             )
         except Exception as e:
             logger.error(f"Error getting latest metric data for {metric_name}: {e}")
-            raise HTTPException(status_code=500, detail=f"Failed to get latest metric data for {metric_name}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to get latest metric data for {metric_name}",
+            )
 
     @router.get("/metrics/summary")
     async def get_metrics_summary(
         hours_param: int = Query(1, ge=1, le=24, description="Hours to summarize"),
-        user: dict[str, Any] = Depends(get_current_user)
+        user: dict[str, Any] = Depends(get_current_user),
     ):
         """Get summary of all metrics."""
         try:
@@ -175,15 +199,19 @@ class MetricsSummaryResponse(BaseModel):
                 values = [m.value for m in metrics]
                 latest = metrics[-1] if metrics else None
 
-                summaries.append({
-                    "metric_name": name,
-                    "count": len(metrics),
-                    "average": sum(values) / len(values) if values else 0,
-                    "minimum": min(values) if values else 0,
-                    "maximum": max(values) if values else 0,
-                    "latest_value": latest.value if latest else 0,
-                    "latest_timestamp": latest.timestamp.isoformat() if latest else None
-                })
+                summaries.append(
+                    {
+                        "metric_name": name,
+                        "count": len(metrics),
+                        "average": sum(values) / len(values) if values else 0,
+                        "minimum": min(values) if values else 0,
+                        "maximum": max(values) if values else 0,
+                        "latest_value": latest.value if latest else 0,
+                        "latest_timestamp": (
+                            latest.timestamp.isoformat() if latest else None
+                        ),
+                    }
+                )
 
             return {"summaries": summaries, "period_hours": hours_param}
         except Exception as e:
@@ -196,18 +224,24 @@ class MetricsSummaryResponse(BaseModel):
         value: float = Query(..., description="Metric value"),
         unit: str = Query("", description="Metric unit"),
         tags: str | None = Query(None, description="JSON string of tags"),
-        user: dict[str, Any] = Depends(get_current_user)
+        user: dict[str, Any] = Depends(get_current_user),
     ):
         """Record a custom metric."""
         try:
             import json
+
             parsed_tags = json.loads(tags) if tags else {}
 
             record_metric(metric_name, value, unit, parsed_tags)
-            return {"message": f"Metric {metric_name} recorded successfully", "value": value}
+            return {
+                "message": f"Metric {metric_name} recorded successfully",
+                "value": value,
+            }
         except Exception as e:
             logger.error(f"Error recording custom metric: {e}")
-            raise HTTPException(status_code=500, detail="Failed to record custom metric")
+            raise HTTPException(
+                status_code=500, detail="Failed to record custom metric"
+            )
 
     @router.get("/alerts/rules", response_model=list[AlertRuleResponse])
     async def get_alert_rules(user: dict[str, Any] = Depends(get_current_user)):
@@ -215,14 +249,16 @@ class MetricsSummaryResponse(BaseModel):
         try:
             rules = []
             for rule_name, rule in unified_monitoring_system.alert_rules.items():
-                rules.append(AlertRuleResponse(
-                    name=rule.name,
-                    metric=rule.metric,
-                    threshold=rule.threshold,
-                    operator=rule.operator,
-                    enabled=rule.enabled,
-                    cooldown=rule.cooldown
-                ))
+                rules.append(
+                    AlertRuleResponse(
+                        name=rule.name,
+                        metric=rule.metric,
+                        threshold=rule.threshold,
+                        operator=rule.operator,
+                        enabled=rule.enabled,
+                        cooldown=rule.cooldown,
+                    )
+                )
             return rules
         except Exception as e:
             logger.error(f"Error getting alert rules: {e}")
@@ -230,19 +266,19 @@ class MetricsSummaryResponse(BaseModel):
 
     @router.post("/alerts/rules", response_model=AlertRuleResponse)
     async def create_alert_rule(
-        rule: AlertRuleRequest,
-        user: dict[str, Any] = Depends(get_current_user)
+        rule: AlertRuleRequest, user: dict[str, Any] = Depends(get_current_user)
     ):
         """Create a new alert rule."""
         try:
             from plexichat.core.monitoring.unified_monitoring_system import AlertRule
+
             alert_rule = AlertRule(
                 name=rule.name,
                 metric=rule.metric,
                 threshold=rule.threshold,
                 operator=rule.operator,
                 enabled=rule.enabled,
-                cooldown=rule.cooldown_seconds
+                cooldown=rule.cooldown_seconds,
             )
 
             unified_monitoring_system.add_alert_rule(alert_rule)
@@ -253,7 +289,7 @@ class MetricsSummaryResponse(BaseModel):
                 threshold=alert_rule.threshold,
                 operator=alert_rule.operator,
                 enabled=alert_rule.enabled,
-                cooldown=alert_rule.cooldown
+                cooldown=alert_rule.cooldown,
             )
         except Exception as e:
             logger.error(f"Error creating alert rule: {e}")
@@ -261,8 +297,7 @@ class MetricsSummaryResponse(BaseModel):
 
     @router.delete("/alerts/rules/{rule_name}")
     async def delete_alert_rule(
-        rule_name: str,
-        user: dict[str, Any] = Depends(get_current_user)
+        rule_name: str, user: dict[str, Any] = Depends(get_current_user)
     ):
         """Delete an alert rule."""
         try:
@@ -270,13 +305,17 @@ class MetricsSummaryResponse(BaseModel):
             return {"message": f"Alert rule {rule_name} deleted successfully"}
         except Exception as e:
             logger.error(f"Error deleting alert rule {rule_name}: {e}")
-            raise HTTPException(status_code=500, detail=f"Failed to delete alert rule {rule_name}")
+            raise HTTPException(
+                status_code=500, detail=f"Failed to delete alert rule {rule_name}"
+            )
 
     @router.get("/alerts", response_model=list[AlertResponse])
     async def get_alerts(
-        hours_param: int = Query(24, ge=1, le=168, description="Hours of alerts to retrieve"),
+        hours_param: int = Query(
+            24, ge=1, le=168, description="Hours of alerts to retrieve"
+        ),
         status_filter: str | None = Query(None, description="Filter by alert status"),
-        user: dict[str, Any] = Depends(get_current_user)
+        user: dict[str, Any] = Depends(get_current_user),
     ):
         """Get alerts from the database."""
         try:
@@ -300,19 +339,21 @@ class MetricsSummaryResponse(BaseModel):
 
                 alerts = []
                 for alert in alerts_data:
-                    alerts.append(AlertResponse(
-                        rule_id=alert["rule_id"],
-                        rule_name=alert["rule_name"],
-                        metric_name=alert["metric_name"],
-                        metric_value=alert["metric_value"],
-                        threshold=alert["threshold"],
-                        operator=alert["operator"],
-                        severity=alert["severity"],
-                        message=alert["message"],
-                        status=alert["status"],
-                        acknowledged=alert["acknowledged"],
-                        created_at=alert["created_at"]
-                    ))
+                    alerts.append(
+                        AlertResponse(
+                            rule_id=alert["rule_id"],
+                            rule_name=alert["rule_name"],
+                            metric_name=alert["metric_name"],
+                            metric_value=alert["metric_value"],
+                            threshold=alert["threshold"],
+                            operator=alert["operator"],
+                            severity=alert["severity"],
+                            message=alert["message"],
+                            status=alert["status"],
+                            acknowledged=alert["acknowledged"],
+                            created_at=alert["created_at"],
+                        )
+                    )
 
                 return alerts
         except Exception as e:
@@ -321,8 +362,7 @@ class MetricsSummaryResponse(BaseModel):
 
     @router.post("/alerts/{alert_id}/acknowledge")
     async def acknowledge_alert(
-        alert_id: str,
-        user: dict[str, Any] = Depends(get_current_user)
+        alert_id: str, user: dict[str, Any] = Depends(get_current_user)
     ):
         """Acknowledge an alert."""
         try:
@@ -333,21 +373,25 @@ class MetricsSummaryResponse(BaseModel):
                         "acknowledged": True,
                         "acknowledged_by": str(user["id"]),
                         "acknowledged_at": datetime.now().isoformat(),
-                        "updated_at": datetime.now().isoformat()
+                        "updated_at": datetime.now().isoformat(),
                     },
-                    {"id": alert_id}
+                    {"id": alert_id},
                 )
                 await session.commit()
 
             return {"message": f"Alert {alert_id} acknowledged successfully"}
         except Exception as e:
             logger.error(f"Error acknowledging alert {alert_id}: {e}")
-            raise HTTPException(status_code=500, detail=f"Failed to acknowledge alert {alert_id}")
+            raise HTTPException(
+                status_code=500, detail=f"Failed to acknowledge alert {alert_id}"
+            )
 
     @router.get("/dashboard")
     async def get_dashboard_data(
-        hours_param: int = Query(24, ge=1, le=168, description="Hours of data for dashboard"),
-        user: dict[str, Any] = Depends(get_current_user)
+        hours_param: int = Query(
+            24, ge=1, le=168, description="Hours of data for dashboard"
+        ),
+        user: dict[str, Any] = Depends(get_current_user),
     ):
         """Get comprehensive dashboard data."""
         try:
@@ -356,13 +400,17 @@ class MetricsSummaryResponse(BaseModel):
                 "collector_status": get_metrics_collector_status(),
                 "recent_metrics": {},
                 "active_alerts": [],
-                "metrics_summary": {}
+                "metrics_summary": {},
             }
 
             # Get recent metrics for key system metrics
             key_metrics = [
-                "cpu_usage_percent", "memory_percent", "disk_percent",
-                "network_bytes_sent", "network_bytes_recv", "process_count"
+                "cpu_usage_percent",
+                "memory_percent",
+                "disk_percent",
+                "network_bytes_sent",
+                "network_bytes_recv",
+                "process_count",
             ]
 
             since = datetime.now() - timedelta(hours=hours_param)
@@ -373,7 +421,7 @@ class MetricsSummaryResponse(BaseModel):
                         {
                             "value": m.value,
                             "timestamp": m.timestamp.isoformat(),
-                            "unit": m.unit
+                            "unit": m.unit,
                         }
                         for m in metrics[-20:]  # Last 20 data points
                     ]
@@ -382,7 +430,7 @@ class MetricsSummaryResponse(BaseModel):
             async with database_manager.get_session() as session:
                 alerts = await session.fetchall(
                     "SELECT * FROM alerts WHERE status = 'active' ORDER BY created_at DESC LIMIT 10",
-                    {}
+                    {},
                 )
                 dashboard_data["active_alerts"] = [
                     {
@@ -390,7 +438,7 @@ class MetricsSummaryResponse(BaseModel):
                         "rule_name": alert["rule_name"],
                         "message": alert["message"],
                         "severity": alert["severity"],
-                        "created_at": alert["created_at"]
+                        "created_at": alert["created_at"],
                     }
                     for alert in alerts
                 ]

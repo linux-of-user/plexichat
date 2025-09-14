@@ -24,6 +24,7 @@ except ImportError:
 
 try:
     from plexichat.core.logging.logger import get_logger
+
     logger = get_logger(__name__)
 except ImportError:
     logger = None
@@ -64,6 +65,7 @@ REDIS_EXPIRE_TIME = 86400 * 7  # 7 days
 
 class MetricType(str, Enum):
     """Types of metrics."""
+
     COUNTER = "counter"
     GAUGE = "gauge"
     HISTOGRAM = "histogram"
@@ -72,6 +74,7 @@ class MetricType(str, Enum):
 
 class TimeRange(str, Enum):
     """Time range options."""
+
     HOUR = "1h"
     DAY = "1d"
     WEEK = "1w"
@@ -82,6 +85,7 @@ class TimeRange(str, Enum):
 @dataclass
 class Metric:
     """Metric data structure."""
+
     name: str
     type: MetricType
     value: float
@@ -90,11 +94,11 @@ class Metric:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            'name': self.name,
-            'type': self.type,
-            'value': self.value,
-            'timestamp': self.timestamp.isoformat(),
-            'tags': self.tags or {}
+            "name": self.name,
+            "type": self.type,
+            "value": self.value,
+            "timestamp": self.timestamp.isoformat(),
+            "tags": self.tags or {},
         }
 
 
@@ -118,8 +122,7 @@ class AnalyticsService:
         try:
             if redis:
                 self.redis_client = redis.from_url(
-                    'redis://localhost:6379',
-                    decode_responses=True
+                    "redis://localhost:6379", decode_responses=True
                 )
                 await self.redis_client.ping()
                 if logger:
@@ -128,16 +131,20 @@ class AnalyticsService:
             if logger:
                 logger.warning(f"Redis connection failed, using in-memory storage: {e}")
 
-    async def record_metric(self, name: str, value: float,
-                          metric_type: MetricType = MetricType.COUNTER,
-                          tags: dict[str, str] | None = None):
+    async def record_metric(
+        self,
+        name: str,
+        value: float,
+        metric_type: MetricType = MetricType.COUNTER,
+        tags: dict[str, str] | None = None,
+    ):
         """Record a metric."""
         metric = Metric(
             name=name,
             type=metric_type,
             value=value,
             timestamp=datetime.now(),
-            tags=tags
+            tags=tags,
         )
 
         self.metrics_buffer.append(metric)
@@ -176,7 +183,9 @@ class AnalyticsService:
                 pipe = self.redis_client.pipeline()
 
                 for metric in metrics:
-                    key = f"metric:{metric.name}:{metric.timestamp.strftime('%Y%m%d%H')}"
+                    key = (
+                        f"metric:{metric.name}:{metric.timestamp.strftime('%Y%m%d%H')}"
+                    )
                     pipe.lpush(key, json.dumps(metric.to_dict()))
                     pipe.expire(key, REDIS_EXPIRE_TIME)
 
@@ -192,16 +201,18 @@ class AnalyticsService:
     async def _store_aggregated_metrics(self, metrics: list[Metric]):
         """Store aggregated metrics in database."""
         # Group metrics by name and hour
-        aggregated = defaultdict(lambda: {'count': 0, 'sum': 0, 'min': float('inf'), 'max': float('-inf')})
+        aggregated = defaultdict(
+            lambda: {"count": 0, "sum": 0, "min": float("inf"), "max": float("-inf")}
+        )
 
         for metric in metrics:
             hour_key = f"{metric.name}:{metric.timestamp.strftime('%Y%m%d%H')}"
             agg = aggregated[hour_key]
 
-            agg['count'] += 1
-            agg['sum'] += metric.value
-            agg['min'] = min(agg['min'], metric.value)
-            agg['max'] = max(agg['max'], metric.value)
+            agg["count"] += 1
+            agg["sum"] += metric.value
+            agg["min"] = min(agg["min"], metric.value)
+            agg["max"] = max(agg["max"], metric.value)
 
         # Store in database (would need a metrics table)
         # For now, just log the aggregated data
@@ -226,25 +237,28 @@ class AnalyticsService:
                     # Active users (last 5 minutes)
                     five_min_ago = datetime.now() - timedelta(minutes=5)
                     active_users = await session.execute(
-                        select(func.count(User.id.distinct()))
-                        .where(User.last_seen >= five_min_ago)
+                        select(func.count(User.id.distinct())).where(
+                            User.last_seen >= five_min_ago
+                        )
                     )
-                    self.real_time_stats['active_users'] = active_users.scalar() or 0
+                    self.real_time_stats["active_users"] = active_users.scalar() or 0
 
                     # Messages in last hour
                     hour_ago = datetime.now() - timedelta(hours=1)
                     recent_messages = await session.execute(
-                        select(func.count(Message.id))
-                        .where(Message.timestamp >= hour_ago)
+                        select(func.count(Message.id)).where(
+                            Message.timestamp >= hour_ago
+                        )
                     )
-                    self.real_time_stats['messages_last_hour'] = recent_messages.scalar() or 0
+                    self.real_time_stats["messages_last_hour"] = (
+                        recent_messages.scalar() or 0
+                    )
 
                     # Online users
                     online_users = await session.execute(
-                        select(func.count(User.id))
-                        .where(User.status == 'online')
+                        select(func.count(User.id)).where(User.status == "online")
                     )
-                    self.real_time_stats['online_users'] = online_users.scalar() or 0
+                    self.real_time_stats["online_users"] = online_users.scalar() or 0
 
         except Exception as e:
             if logger:
@@ -257,25 +271,27 @@ class AnalyticsService:
                 async with db_cluster.get_session() as session:
                     # User's guilds
                     user_guilds = await session.execute(
-                        select(func.count(GuildMember.guild_id))
-                        .where(GuildMember.user_id == user_id)
+                        select(func.count(GuildMember.guild_id)).where(
+                            GuildMember.user_id == user_id
+                        )
                     )
                     guilds_count = user_guilds.scalar() or 0
 
                     # User's messages
                     user_messages = await session.execute(
-                        select(func.count(Message.id))
-                        .where(Message.author_id == user_id)
+                        select(func.count(Message.id)).where(
+                            Message.author_id == user_id
+                        )
                     )
                     messages_count = user_messages.scalar() or 0
 
                     return {
-                        'guilds_count': guilds_count,
-                        'messages_count': messages_count,
-                        'real_time_stats': dict(self.real_time_stats)
+                        "guilds_count": guilds_count,
+                        "messages_count": messages_count,
+                        "real_time_stats": dict(self.real_time_stats),
                     }
 
-            return {'real_time_stats': dict(self.real_time_stats)}
+            return {"real_time_stats": dict(self.real_time_stats)}
 
         except Exception as e:
             if logger:

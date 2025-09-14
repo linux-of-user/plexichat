@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 class EventPriority(Enum):
     """Event priority levels."""
+
     LOW = 1
     NORMAL = 2
     HIGH = 3
@@ -35,6 +36,7 @@ class EventPriority(Enum):
 @dataclass
 class Event:
     """Base event class."""
+
     type: str
     data: dict[str, Any] = field(default_factory=dict)
     source: str | None = None
@@ -47,6 +49,7 @@ class Event:
 @dataclass
 class EventHandler:
     """Event handler registration."""
+
     callback: Callable
     event_type: str
     priority: int = 0
@@ -67,6 +70,7 @@ class EventBus:
     - Event history and replay
     - Middleware support
     """
+
     def __init__(self, max_history: int = 1000):
         self._handlers: dict[str, list[EventHandler]] = {}
         self._middleware: list[Callable] = []
@@ -159,7 +163,10 @@ class EventBus:
         return handler_id
 
     def unsubscribe(
-        self, event_type: str, callback: Callable | None = None, handler_id: str | None = None
+        self,
+        event_type: str,
+        callback: Callable | None = None,
+        handler_id: str | None = None,
     ):
         """
         Unsubscribe from events.
@@ -376,7 +383,10 @@ class EventBus:
             logger.debug("Removed event middleware")
 
     def get_history(
-        self, event_type: str | None = None, limit: int | None = None, since: datetime | None = None
+        self,
+        event_type: str | None = None,
+        limit: int | None = None,
+        since: datetime | None = None,
     ) -> list[Event]:
         """Get event history with optional filtering."""
         events = self._event_history
@@ -424,7 +434,9 @@ def subscribe(event_type: str, callback: Callable, **kwargs) -> str:
     return event_bus.subscribe(event_type, callback, **kwargs)
 
 
-def unsubscribe(event_type: str, callback: Callable | None = None, handler_id: str | None = None):
+def unsubscribe(
+    event_type: str, callback: Callable | None = None, handler_id: str | None = None
+):
     """Unsubscribe from events."""
     event_bus.unsubscribe(event_type, callback, handler_id)
 

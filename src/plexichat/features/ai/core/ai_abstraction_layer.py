@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 # Enums for AI system
 class AIProvider(Enum):
     """Supported AI providers."""
+
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     OLLAMA = "ollama"
@@ -35,6 +36,7 @@ class AIProvider(Enum):
 
 class ModelCapability(Enum):
     """AI model capabilities."""
+
     TEXT_GENERATION = "text_generation"
     TEXT_COMPLETION = "text_completion"
     CHAT = "chat"
@@ -53,6 +55,7 @@ class ModelCapability(Enum):
 
 class ModelStatus(Enum):
     """Model status."""
+
     AVAILABLE = "available"
     UNAVAILABLE = "unavailable"
     RATE_LIMITED = "rate_limited"
@@ -63,6 +66,7 @@ class ModelStatus(Enum):
 @dataclass
 class AIModel:
     """AI model configuration."""
+
     id: str
     name: str
     provider: AIProvider
@@ -87,7 +91,10 @@ class AIModel:
 @dataclass
 class AIRequest:
     """AI request data structure."""
-    id: str = field(default_factory=lambda: hashlib.md5(f"{time.time()}".encode()).hexdigest())
+
+    id: str = field(
+        default_factory=lambda: hashlib.md5(f"{time.time()}".encode()).hexdigest()
+    )
     prompt: str = ""
     model_id: str = ""
     user_id: str | None = None
@@ -106,6 +113,7 @@ class AIRequest:
 @dataclass
 class AIResponse:
     """AI response data structure."""
+
     request_id: str
     content: str
     model_id: str
@@ -126,7 +134,9 @@ class AIAccessControl:
         self.rate_limits: dict[str, dict] = {}
         self.usage_tracking: dict[str, dict] = {}
 
-    def has_permission(self, user_id: str, model_id: str, capabilities: list[ModelCapability]) -> bool:
+    def has_permission(
+        self, user_id: str, model_id: str, capabilities: list[ModelCapability]
+    ) -> bool:
         """Check if user has permission to use model with capabilities."""
         # Simplified permission check
         return True  # Allow all for now
@@ -136,7 +146,9 @@ class AIAccessControl:
         # Simplified rate limit check
         return True  # Allow all for now
 
-    def track_usage(self, user_id: str, model_id: str, tokens: int, cost: float) -> None:
+    def track_usage(
+        self, user_id: str, model_id: str, tokens: int, cost: float
+    ) -> None:
         """Track user usage."""
         # Simplified usage tracking
         pass
@@ -147,7 +159,9 @@ class AIAbstractionLayer:
 
     def __init__(self, config_path: str | None = None):
         """Initialize AI abstraction layer."""
-        self.config_path = Path(config_path) if config_path else Path("config/ai_config.json")
+        self.config_path = (
+            Path(config_path) if config_path else Path("config/ai_config.json")
+        )
         self.models: dict[str, AIModel] = {}
         self.providers: dict[AIProvider, Any] = {}
         self.access_control = AIAccessControl()
@@ -170,9 +184,9 @@ class AIAbstractionLayer:
         try:
             config_data = {
                 "models": {k: v.__dict__ for k, v in self.models.items()},
-                "metrics": self.metrics
+                "metrics": self.metrics,
             }
-            with open(self.config_path, 'w') as f:
+            with open(self.config_path, "w") as f:
                 json.dump(config_data, f, indent=2, default=str)
         except Exception as e:
             logger.error(f"Failed to save configuration: {e}")
@@ -235,7 +249,7 @@ class AIAbstractionLayer:
                     model_id=request.model_id,
                     provider="unknown",
                     status="error",
-                    error=f"Model {request.model_id} not found"
+                    error=f"Model {request.model_id} not found",
                 )
 
             provider = self.get_provider(model.provider)
@@ -246,29 +260,33 @@ class AIAbstractionLayer:
                     model_id=request.model_id,
                     provider=model.provider.value,
                     status="error",
-                    error=f"Provider {model.provider.value} not available"
+                    error=f"Provider {model.provider.value} not available",
                 )
 
             # Check permissions and rate limits
             if request.user_id:
-                if not self.access_control.has_permission(request.user_id, request.model_id, model.capabilities):
+                if not self.access_control.has_permission(
+                    request.user_id, request.model_id, model.capabilities
+                ):
                     return AIResponse(
                         request_id=request.id,
                         content="",
                         model_id=request.model_id,
                         provider=model.provider.value,
                         status="error",
-                        error="Permission denied"
+                        error="Permission denied",
                     )
 
-                if not self.access_control.check_rate_limit(request.user_id, request.model_id):
+                if not self.access_control.check_rate_limit(
+                    request.user_id, request.model_id
+                ):
                     return AIResponse(
                         request_id=request.id,
                         content="",
                         model_id=request.model_id,
                         provider=model.provider.value,
                         status="error",
-                        error="Rate limit exceeded"
+                        error="Rate limit exceeded",
                     )
 
             # Process request with provider
@@ -281,7 +299,7 @@ class AIAbstractionLayer:
                 model_id=request.model_id,
                 provider=model.provider.value,
                 usage={"tokens": 100, "cost": 0.01},
-                metadata={"processing_time": 0.5}
+                metadata={"processing_time": 0.5},
             )
 
         except Exception as e:
@@ -292,7 +310,7 @@ class AIAbstractionLayer:
                 model_id=request.model_id,
                 provider="unknown",
                 status="error",
-                error=str(e)
+                error=str(e),
             )
 
     def get_health_status(self) -> dict[str, Any]:
@@ -301,5 +319,5 @@ class AIAbstractionLayer:
             "status": "healthy",
             "models_count": len(self.models),
             "providers_count": len(self.providers),
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }

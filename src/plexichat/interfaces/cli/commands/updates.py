@@ -6,42 +6,70 @@ import sys
 
 # Mocking dependencies for standalone execution
 class MockUpdateSystem:
-    async def check_for_updates(self): return {"updates_available": False, "current_version": "1.0.0"}
-    async def create_update_plan(self, *args, **kwargs): return type("obj", (object,), {"breaking_changes": []})()
-    async def execute_update(self, *args, **kwargs): return type("obj", (object,), {"success": True})()
-    def show_changelog(self, *args, **kwargs): return "Changelog is available."
-    async def reinstall_dependencies(self): return True
-    async def upgrade_database_only(self, *args, **kwargs): return True
-    async def rollback_update(self, *args, **kwargs): return type("obj", (object,), {"success": True})()
-    def list_active_updates(self): return []
+    async def check_for_updates(self):
+        return {"updates_available": False, "current_version": "1.0.0"}
+
+    async def create_update_plan(self, *args, **kwargs):
+        return type("obj", (object,), {"breaking_changes": []})()
+
+    async def execute_update(self, *args, **kwargs):
+        return type("obj", (object,), {"success": True})()
+
+    def show_changelog(self, *args, **kwargs):
+        return "Changelog is available."
+
+    async def reinstall_dependencies(self):
+        return True
+
+    async def upgrade_database_only(self, *args, **kwargs):
+        return True
+
+    async def rollback_update(self, *args, **kwargs):
+        return type("obj", (object,), {"success": True})()
+
+    def list_active_updates(self):
+        return []
+
 
 class MockVersionManager:
-    def get_current_version(self): return "1.0.0"
-    def get_version_info(self, *args, **kwargs): return None
-    def get_available_versions(self): return []
+    def get_current_version(self):
+        return "1.0.0"
+
+    def get_version_info(self, *args, **kwargs):
+        return None
+
+    def get_available_versions(self):
+        return []
+
 
 update_system = MockUpdateSystem()
 version_manager = MockVersionManager()
 
-logging.basicConfig(level=logging.INFO, format='%(message)s')
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
+
 
 class UpdateCLI:
     """CLI interface for the update system."""
+
     def __init__(self):
         self.parser = self.create_parser()
 
     def create_parser(self) -> argparse.ArgumentParser:
         """Creates the argument parser for update commands."""
         parser = argparse.ArgumentParser(description="PlexiChat Update System CLI")
-        subparsers = parser.add_subparsers(dest='command', help='Update commands', required=True)
+        subparsers = parser.add_subparsers(
+            dest="command", help="Update commands", required=True
+        )
 
-        subparsers.add_parser('check', help='Check for available updates')
-        subparsers.add_parser('version', help='Show current version information')
-        upgrade_parser = subparsers.add_parser('upgrade', help='Upgrade to a newer version')
-        upgrade_parser.add_argument('--to', type=str, help='Target version')
-        subparsers.add_parser('history', help='Show update history')
-        subparsers.add_parser('rollback', help='Rollback the last update')
+        subparsers.add_parser("check", help="Check for available updates")
+        subparsers.add_parser("version", help="Show current version information")
+        upgrade_parser = subparsers.add_parser(
+            "upgrade", help="Upgrade to a newer version"
+        )
+        upgrade_parser.add_argument("--to", type=str, help="Target version")
+        subparsers.add_parser("history", help="Show update history")
+        subparsers.add_parser("rollback", help="Rollback the last update")
 
         return parser
 
@@ -50,11 +78,11 @@ class UpdateCLI:
         parsed_args = self.parser.parse_args(args=args or sys.argv[1:])
 
         handler_map = {
-            'check': self.handle_check,
-            'version': self.handle_version,
-            'upgrade': self.handle_upgrade,
-            'history': self.handle_history,
-            'rollback': self.handle_rollback,
+            "check": self.handle_check,
+            "version": self.handle_version,
+            "upgrade": self.handle_upgrade,
+            "history": self.handle_history,
+            "rollback": self.handle_rollback,
         }
 
         handler = handler_map.get(parsed_args.command)
@@ -104,10 +132,12 @@ class UpdateCLI:
         else:
             logger.error("Rollback failed.")
 
+
 async def main():
     """Main entry point for the update CLI."""
     cli = UpdateCLI()
     await cli.run()
+
 
 if __name__ == "__main__":
     asyncio.run(main())

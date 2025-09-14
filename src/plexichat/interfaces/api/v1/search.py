@@ -11,24 +11,33 @@ from plexichat.core.search_service import SearchFilter, get_search_service
 def get_current_user():
     return {"user_id": "mock_user"}
 
+
 router = APIRouter(prefix="/search", tags=["Search & Analytics"])
 
 
 class AdvancedSearchQuery(BaseModel):
     """Advanced search query with filters."""
+
     query: str = Field(..., min_length=1, max_length=200, description="Search query")
     user_id: str | None = Field(None, description="Filter by specific user")
     channel_id: str | None = Field(None, description="Filter by specific channel")
-    date_from: datetime | None = Field(None, description="Filter messages from this date")
-    date_to: datetime | None = Field(None, description="Filter messages until this date")
+    date_from: datetime | None = Field(
+        None, description="Filter messages from this date"
+    )
+    date_to: datetime | None = Field(
+        None, description="Filter messages until this date"
+    )
     message_type: str | None = Field(None, description="Filter by message type")
-    has_attachments: bool | None = Field(None, description="Filter messages with/without attachments")
+    has_attachments: bool | None = Field(
+        None, description="Filter messages with/without attachments"
+    )
     limit: int = Field(50, ge=1, le=100, description="Number of results to return")
     offset: int = Field(0, ge=0, description="Number of results to skip")
 
 
 class SearchResult(BaseModel):
     """Search result response model."""
+
     message_id: str
     content: str
     user_id: str
@@ -41,6 +50,7 @@ class SearchResult(BaseModel):
 
 class SuggestionResponse(BaseModel):
     """Search suggestion response model."""
+
     text: str
     type: str
     frequency: int = 0
@@ -49,6 +59,7 @@ class SuggestionResponse(BaseModel):
 
 class HistoryResponse(BaseModel):
     """Search history response model."""
+
     id: str
     user_id: str
     query: str
@@ -59,7 +70,9 @@ class HistoryResponse(BaseModel):
 
 
 @router.post("/", response_model=dict[str, Any])
-async def advanced_search(query: AdvancedSearchQuery, current_user: dict = Depends(get_current_user)):
+async def advanced_search(
+    query: AdvancedSearchQuery, current_user: dict = Depends(get_current_user)
+):
     """Perform advanced message search with filters."""
     try:
         search_service = await get_search_service()
@@ -74,11 +87,13 @@ async def advanced_search(query: AdvancedSearchQuery, current_user: dict = Depen
             message_type=query.message_type,
             has_attachments=query.has_attachments,
             limit=query.limit,
-            offset=query.offset
+            offset=query.offset,
         )
 
         # Perform search
-        results, total = await search_service.search_messages(filters, current_user["user_id"])
+        results, total = await search_service.search_messages(
+            filters, current_user["user_id"]
+        )
 
         # Convert to response model
         response_results = []
@@ -91,7 +106,7 @@ async def advanced_search(query: AdvancedSearchQuery, current_user: dict = Depen
                 created_at=result.created_at,
                 score=result.score,
                 highlights=result.highlights,
-                metadata=result.metadata
+                metadata=result.metadata,
             )
             response_results.append(response_result)
 
@@ -105,8 +120,8 @@ async def advanced_search(query: AdvancedSearchQuery, current_user: dict = Depen
                 "date_from": query.date_from.isoformat() if query.date_from else None,
                 "date_to": query.date_to.isoformat() if query.date_to else None,
                 "message_type": query.message_type,
-                "has_attachments": query.has_attachments
-            }
+                "has_attachments": query.has_attachments,
+            },
         }
 
     except Exception as e:
@@ -116,7 +131,7 @@ async def advanced_search(query: AdvancedSearchQuery, current_user: dict = Depen
 @router.get("/suggestions", response_model=list[SuggestionResponse])
 async def get_search_suggestions(
     q: str = Query(..., min_length=1, max_length=50, description="Search prefix"),
-    limit: int = Query(10, ge=1, le=20, description="Number of suggestions to return")
+    limit: int = Query(10, ge=1, le=20, description="Number of suggestions to return"),
 ):
     """Get search suggestions based on prefix."""
     try:
@@ -130,7 +145,7 @@ async def get_search_suggestions(
                 text=suggestion.text,
                 type=suggestion.type,
                 frequency=suggestion.frequency,
-                last_used=suggestion.last_used
+                last_used=suggestion.last_used,
             )
             response_suggestions.append(response_suggestion)
 
@@ -142,13 +157,17 @@ async def get_search_suggestions(
 
 @router.get("/history", response_model=list[HistoryResponse])
 async def get_search_history(
-    limit: int = Query(20, ge=1, le=100, description="Number of history items to return"),
-    current_user: dict = Depends(get_current_user)
+    limit: int = Query(
+        20, ge=1, le=100, description="Number of history items to return"
+    ),
+    current_user: dict = Depends(get_current_user),
 ):
     """Get user's search history."""
     try:
         search_service = await get_search_service()
-        history = await search_service.get_search_history(current_user["user_id"], limit)
+        history = await search_service.get_search_history(
+            current_user["user_id"], limit
+        )
 
         # Convert to response model
         response_history = []
@@ -160,14 +179,16 @@ async def get_search_history(
                 filters=entry.filters,
                 result_count=entry.result_count,
                 timestamp=entry.timestamp,
-                duration_ms=entry.duration_ms
+                duration_ms=entry.duration_ms,
             )
             response_history.append(response_entry)
 
         return response_history
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get search history: {e!s}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get search history: {e!s}"
+        )
 
 
 @router.get("/status", response_model=dict[str, Any])
@@ -180,32 +201,31 @@ async def search_status():
         return {
             "status": "operational",
             "service_initialized": search_service._initialized,
-            "statistics": stats
+            "statistics": stats,
         }
 
     except Exception as e:
-        return {
-            "status": "error",
-            "error": str(e),
-            "service_initialized": False
-        }
+        return {"status": "error", "error": str(e), "service_initialized": False}
 
 
 @router.delete("/history/{history_id}")
 async def delete_search_history_entry(
-    history_id: str,
-    current_user: dict = Depends(get_current_user)
+    history_id: str, current_user: dict = Depends(get_current_user)
 ):
     """Delete a specific search history entry."""
     try:
         # Note: This would need to be implemented in the search service
         # For now, return not implemented
-        raise HTTPException(status_code=501, detail="Delete history entry not yet implemented")
+        raise HTTPException(
+            status_code=501, detail="Delete history entry not yet implemented"
+        )
 
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to delete history entry: {e!s}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to delete history entry: {e!s}"
+        )
 
 
 @router.delete("/history")

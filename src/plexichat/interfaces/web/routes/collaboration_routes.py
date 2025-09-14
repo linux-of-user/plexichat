@@ -16,16 +16,19 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/collaboration", tags=["Collaboration Web"])
 
 # Register only meaningful routers
-if hasattr(chat, 'router'):
+if hasattr(chat, "router"):
     router.include_router(chat.router)
-if hasattr(whiteboard, 'router'):
+if hasattr(whiteboard, "router"):
     router.include_router(whiteboard.router)
+
 
 # try to import the real CollaborationService, otherwise use a stub
 # from ...infrastructure.services.collaboration_service import CollaborationService
 class CollaborationService:
     def get_session_stats(self):
         return {"stats": "Stub service"}
+
+
 try:
     # Uncomment the real import if/when available
     # from ...infrastructure.services.collaboration_service import CollaborationService
@@ -33,11 +36,13 @@ try:
 except Exception:
     collaboration_service = CollaborationService()
 
+
 # Example: Add a root endpoint that uses the shared service if available
 def get_collab_stats():
     if collaboration_service:
         return collaboration_service.get_session_stats()
     return {"stats": "Service unavailable"}
+
 
 @router.get("/stats")
 def stats():

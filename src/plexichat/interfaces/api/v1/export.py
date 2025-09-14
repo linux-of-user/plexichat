@@ -19,18 +19,26 @@ from plexichat.core.services.chat_export_service import (
 def get_current_user():
     return {"id": "mock_user_id", "username": "mock_user"}
 
+
 router = APIRouter(prefix="/export", tags=["Export"])
+
 
 @router.get("/channel/{channel_id}")
 async def export_channel_messages(
     channel_id: str,
     format: str = Query(..., description="Export format: json, csv, txt, html"),
-    start_date: str | None = Query(None, description="Start date in ISO format (YYYY-MM-DDTHH:MM:SS)"),
-    end_date: str | None = Query(None, description="End date in ISO format (YYYY-MM-DDTHH:MM:SS)"),
-    include_attachments: bool = Query(False, description="Include attachment information"),
+    start_date: str | None = Query(
+        None, description="Start date in ISO format (YYYY-MM-DDTHH:MM:SS)"
+    ),
+    end_date: str | None = Query(
+        None, description="End date in ISO format (YYYY-MM-DDTHH:MM:SS)"
+    ),
+    include_attachments: bool = Query(
+        False, description="Include attachment information"
+    ),
     include_reactions: bool = Query(True, description="Include reaction information"),
     include_threads: bool = Query(False, description="Include thread information"),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
 ):
     """
     Export messages from a channel.
@@ -44,26 +52,34 @@ async def export_channel_messages(
 
         if start_date:
             try:
-                start_datetime = datetime.fromisoformat(start_date.replace('Z', '+00:00'))
+                start_datetime = datetime.fromisoformat(
+                    start_date.replace("Z", "+00:00")
+                )
                 if start_datetime.tzinfo is None:
                     start_datetime = start_datetime.replace(tzinfo=UTC)
             except ValueError:
-                raise HTTPException(status_code=400, detail="Invalid start_date format. Use ISO format: YYYY-MM-DDTHH:MM:SS")
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid start_date format. Use ISO format: YYYY-MM-DDTHH:MM:SS",
+                )
 
         if end_date:
             try:
-                end_datetime = datetime.fromisoformat(end_date.replace('Z', '+00:00'))
+                end_datetime = datetime.fromisoformat(end_date.replace("Z", "+00:00"))
                 if end_datetime.tzinfo is None:
                     end_datetime = end_datetime.replace(tzinfo=UTC)
             except ValueError:
-                raise HTTPException(status_code=400, detail="Invalid end_date format. Use ISO format: YYYY-MM-DDTHH:MM:SS")
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid end_date format. Use ISO format: YYYY-MM-DDTHH:MM:SS",
+                )
 
         # Validate format
-        supported_formats = ['json', 'csv', 'txt', 'html']
+        supported_formats = ["json", "csv", "txt", "html"]
         if format not in supported_formats:
             raise HTTPException(
                 status_code=400,
-                detail=f"Unsupported format: {format}. Supported formats: {', '.join(supported_formats)}"
+                detail=f"Unsupported format: {format}. Supported formats: {', '.join(supported_formats)}",
             )
 
         # Create export options
@@ -73,7 +89,7 @@ async def export_channel_messages(
             end_date=end_datetime,
             include_attachments=include_attachments,
             include_reactions=include_reactions,
-            include_threads=include_threads
+            include_threads=include_threads,
         )
 
         # Get export service
@@ -81,28 +97,31 @@ async def export_channel_messages(
 
         # Export messages
         success, error_message, export_data = export_service.export_messages(
-            channel_id=channel_id,
-            user_id=current_user["id"],
-            options=options
+            channel_id=channel_id, user_id=current_user["id"], options=options
         )
 
         if not success:
-            raise HTTPException(status_code=403 if "Access denied" in error_message else 404, detail=error_message)
+            raise HTTPException(
+                status_code=403 if "Access denied" in error_message else 404,
+                detail=error_message,
+            )
 
         # Determine content type and filename
         content_type = "application/json"
-        filename = f"chat_export_{channel_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        filename = (
+            f"chat_export_{channel_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        )
 
-        if format == 'json':
+        if format == "json":
             content_type = "application/json"
             filename += ".json"
-        elif format == 'csv':
+        elif format == "csv":
             content_type = "text/csv"
             filename += ".csv"
-        elif format == 'txt':
+        elif format == "txt":
             content_type = "text/plain"
             filename += ".txt"
-        elif format == 'html':
+        elif format == "html":
             content_type = "text/html"
             filename += ".html"
 
@@ -116,14 +135,17 @@ async def export_channel_messages(
             headers={
                 "Content-Disposition": f"attachment; filename={filename}",
                 "X-Export-Format": format,
-                "X-Message-Count": str(len(export_data.split('\n')) if format == 'txt' else "1")
-            }
+                "X-Message-Count": str(
+                    len(export_data.split("\n")) if format == "txt" else "1"
+                ),
+            },
         )
 
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Export failed: {e!s}")
+
 
 @router.get("/formats")
 async def get_supported_formats():
@@ -135,43 +157,44 @@ async def get_supported_formats():
             {
                 "format": "json",
                 "description": "JSON format with full message metadata",
-                "content_type": "application/json"
+                "content_type": "application/json",
             },
             {
                 "format": "csv",
                 "description": "CSV format for spreadsheet applications",
-                "content_type": "text/csv"
+                "content_type": "text/csv",
             },
             {
                 "format": "txt",
                 "description": "Plain text format for simple viewing",
-                "content_type": "text/plain"
+                "content_type": "text/plain",
             },
             {
                 "format": "html",
                 "description": "HTML format with styled output",
-                "content_type": "text/html"
-            }
+                "content_type": "text/html",
+            },
         ]
     }
+
 
 @router.get("/channel/{channel_id}/preview")
 async def preview_channel_export(
     channel_id: str,
     format: str = Query("json", description="Export format: json, csv, txt, html"),
     limit: int = Query(10, description="Number of messages to preview", ge=1, le=50),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
 ):
     """
     Preview export data without downloading the full export.
     """
     try:
         # Validate format
-        supported_formats = ['json', 'csv', 'txt', 'html']
+        supported_formats = ["json", "csv", "txt", "html"]
         if format not in supported_formats:
             raise HTTPException(
                 status_code=400,
-                detail=f"Unsupported format: {format}. Supported formats: {', '.join(supported_formats)}"
+                detail=f"Unsupported format: {format}. Supported formats: {', '.join(supported_formats)}",
             )
 
         # Create export options with limit
@@ -179,7 +202,7 @@ async def preview_channel_export(
             format=format,
             include_attachments=False,
             include_reactions=True,
-            include_threads=False
+            include_threads=False,
         )
 
         # Get export service
@@ -195,21 +218,25 @@ async def preview_channel_export(
             return {"preview": "No messages found", "count": 0}
 
         # Generate preview based on format
-        if format == 'json':
+        if format == "json":
             preview_data = export_service.export_json(preview_messages, options)
-        elif format == 'csv':
+        elif format == "csv":
             preview_data = export_service.export_csv(preview_messages, options)
-        elif format == 'txt':
+        elif format == "txt":
             preview_data = export_service.export_txt(preview_messages, options)
-        elif format == 'html':
+        elif format == "html":
             preview_data = export_service.export_html(preview_messages, options)
 
         return {
-            "preview": preview_data[:2000] + "..." if len(preview_data) > 2000 else preview_data,
+            "preview": (
+                preview_data[:2000] + "..."
+                if len(preview_data) > 2000
+                else preview_data
+            ),
             "count": len(preview_messages),
             "total_available": len(messages),
             "format": format,
-            "truncated": len(preview_data) > 2000
+            "truncated": len(preview_data) > 2000,
         }
 
     except HTTPException:
@@ -217,7 +244,8 @@ async def preview_channel_export(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Preview failed: {e!s}")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # Example of how to run this API with uvicorn
     from fastapi import FastAPI
 

@@ -25,74 +25,149 @@ class ClusterCLI:
     def _create_parser(self) -> argparse.ArgumentParser:
         """Creates the argument parser for cluster commands."""
         parser = argparse.ArgumentParser(description="PlexiChat Cluster Management")
-        subparsers = parser.add_subparsers(dest="command", help="Cluster commands", required=True)
+        subparsers = parser.add_subparsers(
+            dest="command", help="Cluster commands", required=True
+        )
 
         # Status
         status_parser = subparsers.add_parser("status", help="Show cluster status")
-        status_parser.add_argument("--detailed", action="store_true", help="Show detailed status")
+        status_parser.add_argument(
+            "--detailed", action="store_true", help="Show detailed status"
+        )
 
         # List nodes
         list_parser = subparsers.add_parser("list", help="List cluster nodes")
-        list_parser.add_argument("--healthy", action="store_true", help="Only show healthy nodes")
-        list_parser.add_argument("--type", type=str, help="Filter by node type (networking, endpoint, general, cache, database, load_balancer)")
+        list_parser.add_argument(
+            "--healthy", action="store_true", help="Only show healthy nodes"
+        )
+        list_parser.add_argument(
+            "--type",
+            type=str,
+            help="Filter by node type (networking, endpoint, general, cache, database, load_balancer)",
+        )
 
         # Add node
-        add_parser = subparsers.add_parser("add-node", help="Add/register a new node to the cluster")
-        add_parser.add_argument("--node-id", required=True, help="Unique node identifier")
-        add_parser.add_argument("--hostname", required=True, help="Hostname of the node")
+        add_parser = subparsers.add_parser(
+            "add-node", help="Add/register a new node to the cluster"
+        )
+        add_parser.add_argument(
+            "--node-id", required=True, help="Unique node identifier"
+        )
+        add_parser.add_argument(
+            "--hostname", required=True, help="Hostname of the node"
+        )
         add_parser.add_argument("--ip", required=True, help="IP address of the node")
-        add_parser.add_argument("--port", type=int, default=8000, help="Port of the node")
+        add_parser.add_argument(
+            "--port", type=int, default=8000, help="Port of the node"
+        )
         add_parser.add_argument("--type", default="general", help="Node type")
-        add_parser.add_argument("--region", default="default", help="Geographical region")
+        add_parser.add_argument(
+            "--region", default="default", help="Geographical region"
+        )
         add_parser.add_argument("--zone", default="default", help="Availability zone")
-        add_parser.add_argument("--weight", type=float, default=1.0, help="Load balancing weight")
-        add_parser.add_argument("--capabilities", default="", help="Comma-separated capabilities (api, websocket, clustering, cache, db)")
+        add_parser.add_argument(
+            "--weight", type=float, default=1.0, help="Load balancing weight"
+        )
+        add_parser.add_argument(
+            "--capabilities",
+            default="",
+            help="Comma-separated capabilities (api, websocket, clustering, cache, db)",
+        )
 
         # Remove node
-        remove_parser = subparsers.add_parser("remove-node", help="Remove/unregister a node from the cluster")
+        remove_parser = subparsers.add_parser(
+            "remove-node", help="Remove/unregister a node from the cluster"
+        )
         remove_parser.add_argument("--node-id", required=True, help="Node ID to remove")
 
         # Initialize local node / start manager
-        init_parser = subparsers.add_parser("init-local", help="Initialize/start local cluster manager and register local node")
+        init_parser = subparsers.add_parser(
+            "init-local",
+            help="Initialize/start local cluster manager and register local node",
+        )
 
         # Health check
-        health_parser = subparsers.add_parser("health-check", help="Trigger a health check immediately")
+        health_parser = subparsers.add_parser(
+            "health-check", help="Trigger a health check immediately"
+        )
 
         # Failover test
-        failover_parser = subparsers.add_parser("failover-test", help="Simulate a node failure to test failover")
-        failover_parser.add_argument("--node-id", required=True, help="Node ID to simulate failure for")
+        failover_parser = subparsers.add_parser(
+            "failover-test", help="Simulate a node failure to test failover"
+        )
+        failover_parser.add_argument(
+            "--node-id", required=True, help="Node ID to simulate failure for"
+        )
 
         # Scale cluster
-        scale_parser = subparsers.add_parser("scale", help="Scale cluster to target number of nodes")
-        scale_parser.add_argument("--target", type=int, required=True, help="Target number of nodes")
+        scale_parser = subparsers.add_parser(
+            "scale", help="Scale cluster to target number of nodes"
+        )
+        scale_parser.add_argument(
+            "--target", type=int, required=True, help="Target number of nodes"
+        )
 
         # Rebalance cluster
-        rebalance_parser = subparsers.add_parser("rebalance", help="Rebalance cluster distribution")
+        rebalance_parser = subparsers.add_parser(
+            "rebalance", help="Rebalance cluster distribution"
+        )
 
         # Config get/set
-        cfg_get_parser = subparsers.add_parser("config-get", help="Get cluster configuration value")
-        cfg_get_parser.add_argument("--key", required=False, help="Specific configuration key to get (optional)")
+        cfg_get_parser = subparsers.add_parser(
+            "config-get", help="Get cluster configuration value"
+        )
+        cfg_get_parser.add_argument(
+            "--key", required=False, help="Specific configuration key to get (optional)"
+        )
 
-        cfg_set_parser = subparsers.add_parser("config-set", help="Set cluster configuration value")
-        cfg_set_parser.add_argument("--key", required=True, help="Configuration key to set")
-        cfg_set_parser.add_argument("--value", required=True, help="New value for the configuration key")
+        cfg_set_parser = subparsers.add_parser(
+            "config-set", help="Set cluster configuration value"
+        )
+        cfg_set_parser.add_argument(
+            "--key", required=True, help="Configuration key to set"
+        )
+        cfg_set_parser.add_argument(
+            "--value", required=True, help="New value for the configuration key"
+        )
 
         # Sync config
-        sync_parser = subparsers.add_parser("sync-config", help="Force synchronization of configuration to all nodes")
+        sync_parser = subparsers.add_parser(
+            "sync-config", help="Force synchronization of configuration to all nodes"
+        )
 
         # Update node metrics
-        metrics_parser = subparsers.add_parser("update-metrics", help="Update metrics for a node")
-        metrics_parser.add_argument("--node-id", required=True, help="Node ID for which to update metrics")
-        metrics_parser.add_argument("--cpu", type=float, default=0.0, help="CPU usage percent")
-        metrics_parser.add_argument("--memory", type=float, default=0.0, help="Memory usage percent")
-        metrics_parser.add_argument("--disk", type=float, default=0.0, help="Disk usage percent")
-        metrics_parser.add_argument("--latency", type=float, default=0.0, help="Network latency ms")
-        metrics_parser.add_argument("--request-rate", type=float, default=0.0, help="Request rate")
-        metrics_parser.add_argument("--error-rate", type=float, default=0.0, help="Error rate (0-1)")
-        metrics_parser.add_argument("--uptime", type=int, default=0, help="Uptime seconds")
+        metrics_parser = subparsers.add_parser(
+            "update-metrics", help="Update metrics for a node"
+        )
+        metrics_parser.add_argument(
+            "--node-id", required=True, help="Node ID for which to update metrics"
+        )
+        metrics_parser.add_argument(
+            "--cpu", type=float, default=0.0, help="CPU usage percent"
+        )
+        metrics_parser.add_argument(
+            "--memory", type=float, default=0.0, help="Memory usage percent"
+        )
+        metrics_parser.add_argument(
+            "--disk", type=float, default=0.0, help="Disk usage percent"
+        )
+        metrics_parser.add_argument(
+            "--latency", type=float, default=0.0, help="Network latency ms"
+        )
+        metrics_parser.add_argument(
+            "--request-rate", type=float, default=0.0, help="Request rate"
+        )
+        metrics_parser.add_argument(
+            "--error-rate", type=float, default=0.0, help="Error rate (0-1)"
+        )
+        metrics_parser.add_argument(
+            "--uptime", type=int, default=0, help="Uptime seconds"
+        )
 
         # Shutdown manager
-        shutdown_parser = subparsers.add_parser("shutdown", help="Stop cluster manager gracefully")
+        shutdown_parser = subparsers.add_parser(
+            "shutdown", help="Stop cluster manager gracefully"
+        )
 
         return parser
 
@@ -104,9 +179,22 @@ class ClusterCLI:
         command = parsed_args.command
 
         try:
-            if command in ("init-local", "status", "list", "add-node", "remove-node",
-                           "health-check", "failover-test", "scale", "rebalance",
-                           "config-get", "config-set", "sync-config", "update-metrics", "shutdown"):
+            if command in (
+                "init-local",
+                "status",
+                "list",
+                "add-node",
+                "remove-node",
+                "health-check",
+                "failover-test",
+                "scale",
+                "rebalance",
+                "config-get",
+                "config-set",
+                "sync-config",
+                "update-metrics",
+                "shutdown",
+            ):
                 # Start the manager if not running for commands that interact with cluster state
                 if not getattr(self.cluster_manager, "running", False):
                     logger.info("Starting cluster manager for CLI operation...")
@@ -157,8 +245,14 @@ class ClusterCLI:
                 {
                     "node_id": n.node_id,
                     "address": n.address,
-                    "type": n.node_type.value if hasattr(n.node_type, "value") else str(n.node_type),
-                    "status": n.status.value if hasattr(n.status, "value") else str(n.status),
+                    "type": (
+                        n.node_type.value
+                        if hasattr(n.node_type, "value")
+                        else str(n.node_type)
+                    ),
+                    "status": (
+                        n.status.value if hasattr(n.status, "value") else str(n.status)
+                    ),
                     "region": n.region,
                     "zone": n.zone,
                     "weight": n.weight,
@@ -172,8 +266,12 @@ class ClusterCLI:
                         "error_rate": n.metrics.error_rate,
                         "uptime_seconds": n.metrics.uptime_seconds,
                     },
-                    "last_heartbeat": n.last_heartbeat.isoformat() if n.last_heartbeat else None,
-                    "joined_at": n.joined_at.isoformat() if hasattr(n, "joined_at") else None,
+                    "last_heartbeat": (
+                        n.last_heartbeat.isoformat() if n.last_heartbeat else None
+                    ),
+                    "joined_at": (
+                        n.joined_at.isoformat() if hasattr(n, "joined_at") else None
+                    ),
                 }
                 for n in nodes
             ]
@@ -193,7 +291,9 @@ class ClusterCLI:
 
         nodes = await self.cluster_manager.get_all_nodes()
         if getattr(args, "healthy", False):
-            nodes = [n for n in nodes if n.node_id in self.cluster_manager.healthy_nodes]
+            nodes = [
+                n for n in nodes if n.node_id in self.cluster_manager.healthy_nodes
+            ]
 
         if node_type_filter:
             nodes = [n for n in nodes if n.node_type == node_type_filter]
@@ -203,7 +303,9 @@ class ClusterCLI:
             return
 
         for n in nodes:
-            logger.info(f"- {n.node_id} | {n.address} | type={n.node_type.value} | status={n.status.value} | weight={n.weight} | caps={','.join(n.capabilities)}")
+            logger.info(
+                f"- {n.node_id} | {n.address} | type={n.node_type.value} | status={n.status.value} | weight={n.weight} | caps={','.join(n.capabilities)}"
+            )
 
     async def handle_add_node(self, args: argparse.Namespace):
         """Add/register a new node to the cluster."""
@@ -269,7 +371,9 @@ class ClusterCLI:
             status = await self.cluster_manager.get_cluster_status()
             logger.info(f"Cluster health: {status.get('status')}")
         else:
-            logger.error("Cluster manager does not support health checks in this deployment.")
+            logger.error(
+                "Cluster manager does not support health checks in this deployment."
+            )
 
     async def handle_failover_test(self, args: argparse.Namespace):
         """Simulate a node failure to test failover behavior."""
@@ -353,6 +457,7 @@ class ClusterCLI:
             # Update timestamp if present
             if hasattr(cfg, "updated_at"):
                 import datetime
+
                 cfg.updated_at = datetime.datetime.now(datetime.UTC)
             logger.info(f"Configuration '{key}' updated to '{new_value}'.")
             # Optionally sync immediately
@@ -368,7 +473,9 @@ class ClusterCLI:
             await self.cluster_manager._sync_config_to_all_nodes()
             logger.info("Configuration synchronized to all nodes.")
         else:
-            logger.error("Cluster manager does not support config synchronization in this deployment.")
+            logger.error(
+                "Cluster manager does not support config synchronization in this deployment."
+            )
 
     async def handle_update_metrics(self, args: argparse.Namespace):
         """Update metrics for a node."""

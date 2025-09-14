@@ -125,9 +125,7 @@ class EdgeNode:
     status: EdgeNodeStatus = EdgeNodeStatus.ACTIVE
     metrics: EdgeNodeMetrics = field(default_factory=lambda: EdgeNodeMetrics(""))
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-    last_health_check: datetime = field(
-        default_factory=lambda: datetime.now(UTC)
-    )
+    last_health_check: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def __post_init__(self):
         if not self.metrics.node_id:

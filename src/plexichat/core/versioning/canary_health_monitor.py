@@ -365,9 +365,7 @@ class CanaryHealthMonitor:
         # This would integrate with monitoring systems like Prometheus
         return 0.5  # Simulate good performance
 
-    async def _check_error_rate(
-        self, node: Any, check: "HealthCheck"
-    ) -> float | None:
+    async def _check_error_rate(self, node: Any, check: "HealthCheck") -> float | None:
         """Check error rate."""
         # Placeholder for error rate collection
         return 0.1  # Simulate low error rate

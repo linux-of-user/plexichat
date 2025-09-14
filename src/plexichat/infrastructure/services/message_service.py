@@ -14,27 +14,51 @@ from sqlmodel import Session
 # Placeholder imports for dependencies
 class FileAccessLevel:
     PUBLIC = "public"
-class FileAccessLog: pass
-class FilePermission: pass
+
+
+class FileAccessLog:
+    pass
+
+
+class FilePermission:
+    pass
+
+
 class FilePermissionType:
     READ = "read"
     WRITE = "write"
     DELETE = "delete"
     SHARE = "share"
     ADMIN = "admin"
-class FileRecord: pass
-class FileShare: pass
+
+
+class FileRecord:
+    pass
+
+
+class FileShare:
+    pass
+
+
 class Message:
-    def __init__(self, **kwargs): pass
+    def __init__(self, **kwargs):
+        pass
+
+
 class MessageType:
     DEFAULT = "default"
-class User: pass
+
+
+class User:
+    pass
+
 
 logger = logging.getLogger(__name__)
 
 
 class FilePermissionService:
     """Service for managing file permissions and access control."""
+
     def __init__(self, session: Session):
         self.session = session
 
@@ -44,11 +68,13 @@ class FilePermissionService:
         user_id: int | None,
         permission_type: FilePermissionType,
         ip_address: str | None = None,
-        user_agent: str | None = None
+        user_agent: str | None = None,
     ) -> tuple[bool, str | None, dict[str, Any] | None]:
         return True, None, {}
 
-    async def _get_user_permission(self, file_id: int, user_id: int) -> FilePermission | None:
+    async def _get_user_permission(
+        self, file_id: int, user_id: int
+    ) -> FilePermission | None:
         return None
 
     async def _get_user_share(self, file_id: int, user_id: int) -> FileShare | None:
@@ -60,6 +86,7 @@ class FilePermissionService:
 
 class MessageService:
     """Service for handling messages with file attachments and permissions."""
+
     def __init__(self, session: Session):
         self.session = session
         self.file_permission_service = FilePermissionService(session)
@@ -76,7 +103,7 @@ class MessageService:
         reply_to_id: int | None = None,
         expires_after_seconds: int | None = None,
         ip_address: str | None = None,
-        user_agent: str | None = None
+        user_agent: str | None = None,
     ) -> Message:
         """
         Create a message with file attachments, validating file permissions.
@@ -100,21 +127,31 @@ class MessageService:
             if file_ids:
                 for file_id in file_ids:
                     # Check if sender has access to the file
-                    has_access, error_message, access_context = await self.file_permission_service.check_file_access(
-                        file_id, sender_id, FilePermissionType.READ, ip_address, user_agent
+                    has_access, error_message, access_context = (
+                        await self.file_permission_service.check_file_access(
+                            file_id,
+                            sender_id,
+                            FilePermissionType.READ,
+                            ip_address,
+                            user_agent,
+                        )
                     )
 
                     if not has_access:
-                        logger.warning(f"User {sender_id} attempted to attach file {file_id} without permission: {error_message}")
+                        logger.warning(
+                            f"User {sender_id} attempted to attach file {file_id} without permission: {error_message}"
+                        )
                         raise HTTPException(
                             status_code=status.HTTP_403_FORBIDDEN,
-                            detail=f"No permission to attach file {file_id}: {error_message}"
+                            detail=f"No permission to attach file {file_id}: {error_message}",
                         )
 
                     # Get file details for embedding
                     file_record = self.session.get(FileRecord, file_id)
                     if not file_record:
-                        raise HTTPException(status_code=404, detail=f"File {file_id} not found")
+                        raise HTTPException(
+                            status_code=404, detail=f"File {file_id} not found"
+                        )
 
                     attached_files.append(file_id)
 
@@ -126,20 +163,30 @@ class MessageService:
                         "size": file_record.size,
                         "mime_type": file_record.mime_type,
                         "access_level": file_record.access_level.value,
-                        "permission_source": access_context.get("permission_source") if access_context else "owner",
-                        "attached_at": datetime.utcnow().isoformat()
+                        "permission_source": (
+                            access_context.get("permission_source")
+                            if access_context
+                            else "owner"
+                        ),
+                        "attached_at": datetime.utcnow().isoformat(),
                     }
 
                     # Add thumbnail for images
-                    if file_record.mime_type and file_record.mime_type.startswith('image/'):
-                        embed_info["thumbnail_url"] = f"/api/v1/files/thumbnail/{file_record.uuid}"
+                    if file_record.mime_type and file_record.mime_type.startswith(
+                        "image/"
+                    ):
+                        embed_info["thumbnail_url"] = (
+                            f"/api/v1/files/thumbnail/{file_record.uuid}"
+                        )
 
                     embedded_files.append(embed_info)
 
             # Calculate expiration time
             expires_at = None
             if expires_after_seconds:
-                expires_at = datetime.utcnow() + timedelta(seconds=expires_after_seconds)
+                expires_at = datetime.utcnow() + timedelta(
+                    seconds=expires_after_seconds
+                )
 
             # Create message
             message = Message(
@@ -154,14 +201,16 @@ class MessageService:
                 attached_files=attached_files,
                 embedded_files=embedded_files,
                 expires_at=expires_at,
-                auto_delete_after=expires_after_seconds
+                auto_delete_after=expires_after_seconds,
             )
 
             self.session.add(message)
             self.session.commit()
             self.session.refresh(message)
 
-            logger.info(f"Created message {message.id} with {len(attached_files)} file attachments")
+            logger.info(
+                f"Created message {message.id} with {len(attached_files)} file attachments"
+            )
             return message
 
         except HTTPException:
@@ -171,7 +220,7 @@ class MessageService:
             logger.error(f"Error creating message with files: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to create message"
+                detail="Failed to create message",
             )
 
     async def validate_message_file_access(
@@ -179,7 +228,7 @@ class MessageService:
         message_id: int,
         user_id: int,
         ip_address: str | None = None,
-        user_agent: str | None = None
+        user_agent: str | None = None,
     ) -> dict[str, Any]:
         """
         Validate user's access to all files in a message.
@@ -197,8 +246,14 @@ class MessageService:
             inaccessible_files = []
 
             for file_id in message.attached_files:
-                has_access, error_message, access_context = await self.file_permission_service.check_file_access(
-                    file_id, user_id, FilePermissionType.READ, ip_address, user_agent
+                has_access, error_message, access_context = (
+                    await self.file_permission_service.check_file_access(
+                        file_id,
+                        user_id,
+                        FilePermissionType.READ,
+                        ip_address,
+                        user_agent,
+                    )
                 )
 
                 file_record = self.session.get(FileRecord, file_id)
@@ -210,14 +265,20 @@ class MessageService:
                     "file_uuid": file_record.uuid,
                     "filename": file_record.filename,
                     "size": file_record.size,
-                    "mime_type": file_record.mime_type
+                    "mime_type": file_record.mime_type,
                 }
 
                 if has_access:
-                    file_info.update({
-                        "download_url": f"/api/v1/files/download/{file_record.uuid}",
-                        "permission_source": access_context.get("permission_source") if access_context else None
-                    })
+                    file_info.update(
+                        {
+                            "download_url": f"/api/v1/files/download/{file_record.uuid}",
+                            "permission_source": (
+                                access_context.get("permission_source")
+                                if access_context
+                                else None
+                            ),
+                        }
+                    )
                     accessible_files.append(file_info)
                 else:
                     file_info["error"] = error_message
@@ -225,7 +286,7 @@ class MessageService:
 
             return {
                 "accessible_files": accessible_files,
-                "inaccessible_files": inaccessible_files
+                "inaccessible_files": inaccessible_files,
             }
 
         except HTTPException:
@@ -234,7 +295,7 @@ class MessageService:
             logger.error(f"Error validating message file access: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to validate file access"
+                detail="Failed to validate file access",
             )
 
     async def update_message(
@@ -245,7 +306,7 @@ class MessageService:
         add_file_ids: list[int] | None = None,
         remove_file_ids: list[int] | None = None,
         ip_address: str | None = None,
-        user_agent: str | None = None
+        user_agent: str | None = None,
     ) -> Message:
         """
         Update a message, including file attachments.
@@ -260,7 +321,7 @@ class MessageService:
             if message.sender_id != user_id and message.author_id != user_id:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Cannot edit message from another user"
+                    detail="Cannot edit message from another user",
                 )
 
             # Update content if provided
@@ -279,20 +340,28 @@ class MessageService:
                         continue  # Already attached
 
                     # Validate access to new file
-                    has_access, error_message, access_context = await self.file_permission_service.check_file_access(
-                        file_id, user_id, FilePermissionType.READ, ip_address, user_agent
+                    has_access, error_message, access_context = (
+                        await self.file_permission_service.check_file_access(
+                            file_id,
+                            user_id,
+                            FilePermissionType.READ,
+                            ip_address,
+                            user_agent,
+                        )
                     )
 
                     if not has_access:
                         raise HTTPException(
                             status_code=status.HTTP_403_FORBIDDEN,
-                            detail=f"No permission to attach file {file_id}: {error_message}"
+                            detail=f"No permission to attach file {file_id}: {error_message}",
                         )
 
                     # Get file details
                     file_record = self.session.get(FileRecord, file_id)
                     if not file_record:
-                        raise HTTPException(status_code=404, detail=f"File {file_id} not found")
+                        raise HTTPException(
+                            status_code=404, detail=f"File {file_id} not found"
+                        )
 
                     current_files.append(file_id)
 
@@ -304,12 +373,20 @@ class MessageService:
                         "size": file_record.size,
                         "mime_type": file_record.mime_type,
                         "access_level": file_record.access_level.value,
-                        "permission_source": access_context.get("permission_source") if access_context else "owner",
-                        "attached_at": datetime.utcnow().isoformat()
+                        "permission_source": (
+                            access_context.get("permission_source")
+                            if access_context
+                            else "owner"
+                        ),
+                        "attached_at": datetime.utcnow().isoformat(),
                     }
 
-                    if file_record.mime_type and file_record.mime_type.startswith('image/'):
-                        embed_info["thumbnail_url"] = f"/api/v1/files/thumbnail/{file_record.uuid}"
+                    if file_record.mime_type and file_record.mime_type.startswith(
+                        "image/"
+                    ):
+                        embed_info["thumbnail_url"] = (
+                            f"/api/v1/files/thumbnail/{file_record.uuid}"
+                        )
 
                     current_embeds.append(embed_info)
 
@@ -322,12 +399,13 @@ class MessageService:
                 current_embeds = message.embedded_files or []
 
                 # Remove files
-                message.attached_files = [f for f in current_files if f not in remove_file_ids]
+                message.attached_files = [
+                    f for f in current_files if f not in remove_file_ids
+                ]
 
                 # Remove corresponding embeds
                 message.embedded_files = [
-                    e for e in current_embeds
-                    if e.get("file_id") not in remove_file_ids
+                    e for e in current_embeds if e.get("file_id") not in remove_file_ids
                 ]
 
             self.session.commit()
@@ -343,14 +421,11 @@ class MessageService:
             logger.error(f"Error updating message: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to update message"
+                detail="Failed to update message",
             )
 
     async def delete_message(
-        self,
-        message_id: int,
-        user_id: int,
-        hard_delete: bool = False
+        self, message_id: int, user_id: int, hard_delete: bool = False
     ) -> bool:
         """
         Delete a message (soft delete by default).
@@ -364,7 +439,7 @@ class MessageService:
             if message.sender_id != user_id and message.author_id != user_id:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Cannot delete message from another user"
+                    detail="Cannot delete message from another user",
                 )
 
             if hard_delete:

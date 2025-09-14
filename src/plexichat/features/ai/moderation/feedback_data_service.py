@@ -5,6 +5,7 @@ class FeedbackDataService:
     def __init__(self):
         try:
             from plexichat.core.database.manager import database_manager  # type: ignore
+
             self.db_manager = database_manager
         except ImportError:
             self.db_manager = None
@@ -13,7 +14,9 @@ class FeedbackDataService:
         if self.db_manager:
             await self.db_manager.add_feedback_data(feedback)
 
-    async def get_feedback_data(self, filters: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    async def get_feedback_data(
+        self, filters: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
         if self.db_manager:
             return await self.db_manager.get_feedback_data(filters)
         return []
@@ -42,7 +45,9 @@ class FeedbackDataService:
             return await self.db_manager.get_feedback_stats(days)  # type: ignore
         return {"total": 0, "processed": 0, "pending": 0}
 
-    async def get_user_feedback_history(self, user_id: str, limit: int) -> list[dict[str, Any]]:
+    async def get_user_feedback_history(
+        self, user_id: str, limit: int
+    ) -> list[dict[str, Any]]:
         """Get user feedback history."""
         if self.db_manager:
             return await self.db_manager.get_user_feedback_history(user_id, limit)  # type: ignore

@@ -141,7 +141,7 @@ class ErrorCode(Enum):
 class PlexiChatError(Exception):
     """
     Base exception class for all PlexiChat errors with proper type annotations.
-    
+
     Provides standardized error handling with error codes, context, and message parameters.
     """
 
@@ -157,7 +157,7 @@ class PlexiChatError(Exception):
     ) -> None:
         """
         Initialize PlexiChat base exception.
-        
+
         Args:
             message: Human-readable error message
             error_code: Typed error code from ErrorCode enum
@@ -216,7 +216,7 @@ class AuthenticationError(PlexiChatError):
     ) -> None:
         """
         Initialize authentication error.
-        
+
         Args:
             message: Error message
             error_code: Authentication-specific error code
@@ -248,7 +248,7 @@ class AuthorizationError(PlexiChatError):
     ) -> None:
         """
         Initialize authorization error.
-        
+
         Args:
             message: Error message
             error_code: Authorization-specific error code
@@ -286,7 +286,7 @@ class DatabaseError(PlexiChatError):
     ) -> None:
         """
         Initialize database error.
-        
+
         Args:
             message: Error message
             error_code: Database-specific error code
@@ -322,7 +322,7 @@ class PluginError(PlexiChatError):
     ) -> None:
         """
         Initialize plugin error.
-        
+
         Args:
             message: Error message
             error_code: Plugin-specific error code
@@ -358,7 +358,7 @@ class NetworkError(PlexiChatError):
     ) -> None:
         """
         Initialize network error.
-        
+
         Args:
             message: Error message
             error_code: Network-specific error code
@@ -397,7 +397,7 @@ class ValidationError(PlexiChatError):
     ) -> None:
         """
         Initialize validation error.
-        
+
         Args:
             message: Error message
             error_code: Validation-specific error code
@@ -414,8 +414,10 @@ class ValidationError(PlexiChatError):
             # Sanitize sensitive values
             if isinstance(value, str) and len(value) > 100:
                 details["value"] = f"<{type(value).__name__}:length={len(value)}>"
-            elif field and any(sensitive in field.lower() for sensitive in
-                              ["password", "token", "secret", "key", "credential"]):
+            elif field and any(
+                sensitive in field.lower()
+                for sensitive in ["password", "token", "secret", "key", "credential"]
+            ):
                 details["value"] = "<sensitive>"
             else:
                 details["value"] = value
@@ -442,7 +444,7 @@ class SystemError(PlexiChatError):
     ) -> None:
         """
         Initialize system error.
-        
+
         Args:
             message: Error message
             error_code: System-specific error code
@@ -477,7 +479,7 @@ class FileError(PlexiChatError):
     ) -> None:
         """
         Initialize file error.
-        
+
         Args:
             message: Error message
             error_code: File-specific error code
@@ -513,7 +515,7 @@ class RateLimitError(PlexiChatError):
     ) -> None:
         """
         Initialize rate limit error.
-        
+
         Args:
             message: Error message
             error_code: Rate limit-specific error code
@@ -551,7 +553,7 @@ class ConfigurationError(PlexiChatError):
     ) -> None:
         """
         Initialize configuration error.
-        
+
         Args:
             message: Error message
             error_code: Configuration-specific error code
@@ -595,13 +597,13 @@ def handle_exception(
 ) -> PlexiChatError:
     """
     Convert generic exceptions to typed PlexiChat exceptions.
-    
+
     Args:
         exception: Original exception to convert
         context: Additional context information
         correlation_id: Request correlation ID
         logger_instance: Logger instance to use for logging
-        
+
     Returns:
         Properly typed PlexiChat exception
     """

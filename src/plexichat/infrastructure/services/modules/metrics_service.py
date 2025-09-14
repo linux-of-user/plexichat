@@ -36,12 +36,12 @@ SERVICE_METADATA = {
         "alert_thresholds": {
             "cpu_percent": 80,
             "memory_percent": 85,
-            "disk_percent": 90
+            "disk_percent": 90,
         },
-        "enable_alerts": True
+        "enable_alerts": True,
     },
     "auto_start": True,
-    "hot_reload": True
+    "hot_reload": True,
 }
 
 logger = logging.getLogger(__name__)
@@ -49,9 +49,12 @@ logger = logging.getLogger(__name__)
 
 class MetricsService:
     """System metrics collection service."""
+
     def __init__(self):
         self.config = SERVICE_METADATA["config"]
-        self.metrics_data = defaultdict(lambda: deque(maxlen=2880))  # 24h at 30s intervals
+        self.metrics_data = defaultdict(
+            lambda: deque(maxlen=2880)
+        )  # 24h at 30s intervals
         self.alert_callbacks = []
         self.collection_task = None
         self.running = False
@@ -73,7 +76,7 @@ class MetricsService:
                 "memory": self._collect_memory_metrics,
                 "disk": self._collect_disk_metrics,
                 "network": self._collect_network_metrics,
-                "process": self._collect_process_metrics
+                "process": self._collect_process_metrics,
             }
 
             self.logger.info("Metrics service initialized")
@@ -143,10 +146,9 @@ class MetricsService:
 
                 for metric_name, value in metrics.items():
                     metric_key = f"{category}.{metric_name}"
-                    self.metrics_data[metric_key].append({
-                        "timestamp": timestamp,
-                        "value": value
-                    })
+                    self.metrics_data[metric_key].append(
+                        {"timestamp": timestamp, "value": value}
+                    )
 
             except Exception as e:
                 self.logger.warning(f"Failed to collect {category} metrics: {e}")
@@ -154,14 +156,17 @@ class MetricsService:
     async def _collect_system_metrics(self) -> dict[str, float]:
         """Collect general system metrics."""
         try:
-            if not psutil: return {}
+            if not psutil:
+                return {}
             boot_time = datetime.fromtimestamp(psutil.boot_time(), UTC)
             uptime = (datetime.now(UTC) - boot_time).total_seconds()
 
             return {
                 "uptime_seconds": uptime,
-                "load_average_1m": psutil.getloadavg()[0] if hasattr(psutil, 'getloadavg') else 0,
-                "process_count": len(psutil.pids())
+                "load_average_1m": (
+                    psutil.getloadavg()[0] if hasattr(psutil, "getloadavg") else 0
+                ),
+                "process_count": len(psutil.pids()),
             }
         except Exception as e:
             self.logger.warning(f"Failed to collect system metrics: {e}")
@@ -170,21 +175,21 @@ class MetricsService:
     async def _collect_cpu_metrics(self) -> dict[str, float]:
         """Collect CPU metrics."""
         try:
-            if not psutil: return {}
+            if not psutil:
+                return {}
             cpu_percent = psutil.cpu_percent(interval=1)
             cpu_count = psutil.cpu_count()
             cpu_freq = psutil.cpu_freq()
 
-            metrics = {
-                "usage_percent": cpu_percent,
-                "count": cpu_count
-            }
+            metrics = {"usage_percent": cpu_percent, "count": cpu_count}
 
             if cpu_freq:
-                metrics.update({
-                    "frequency_mhz": cpu_freq.current,
-                    "frequency_max_mhz": cpu_freq.max
-                })
+                metrics.update(
+                    {
+                        "frequency_mhz": cpu_freq.current,
+                        "frequency_max_mhz": cpu_freq.max,
+                    }
+                )
 
             # Per-core usage
             per_cpu = psutil.cpu_percent(percpu=True)
@@ -200,7 +205,8 @@ class MetricsService:
     async def _collect_memory_metrics(self) -> dict[str, float]:
         """Collect memory metrics."""
         try:
-            if not psutil: return {}
+            if not psutil:
+                return {}
             memory = psutil.virtual_memory()
             swap = psutil.swap_memory()
 
@@ -211,7 +217,7 @@ class MetricsService:
                 "usage_percent": memory.percent,
                 "swap_total_bytes": swap.total,
                 "swap_used_bytes": swap.used,
-                "swap_percent": swap.percent
+                "swap_percent": swap.percent,
             }
 
         except Exception as e:
@@ -221,27 +227,32 @@ class MetricsService:
     async def _collect_disk_metrics(self) -> dict[str, float]:
         """Collect disk metrics."""
         try:
-            if not psutil: return {}
+            if not psutil:
+                return {}
             metrics = {}
 
             # Disk usage for root partition
-            disk_usage = psutil.disk_usage('/')
-            metrics.update({
-                "total_bytes": disk_usage.total,
-                "used_bytes": disk_usage.used,
-                "free_bytes": disk_usage.free,
-                "usage_percent": (disk_usage.used / disk_usage.total) * 100
-            })
+            disk_usage = psutil.disk_usage("/")
+            metrics.update(
+                {
+                    "total_bytes": disk_usage.total,
+                    "used_bytes": disk_usage.used,
+                    "free_bytes": disk_usage.free,
+                    "usage_percent": (disk_usage.used / disk_usage.total) * 100,
+                }
+            )
 
             # Disk I/O
             disk_io = psutil.disk_io_counters()
             if disk_io:
-                metrics.update({
-                    "read_bytes": disk_io.read_bytes,
-                    "write_bytes": disk_io.write_bytes,
-                    "read_count": disk_io.read_count,
-                    "write_count": disk_io.write_count
-                })
+                metrics.update(
+                    {
+                        "read_bytes": disk_io.read_bytes,
+                        "write_bytes": disk_io.write_bytes,
+                        "read_count": disk_io.read_count,
+                        "write_count": disk_io.write_count,
+                    }
+                )
 
             return metrics
 
@@ -252,7 +263,8 @@ class MetricsService:
     async def _collect_network_metrics(self) -> dict[str, float]:
         """Collect network metrics."""
         try:
-            if not psutil: return {}
+            if not psutil:
+                return {}
             net_io = psutil.net_io_counters()
 
             if not net_io:
@@ -266,7 +278,7 @@ class MetricsService:
                 "errors_in": net_io.errin,
                 "errors_out": net_io.errout,
                 "drops_in": net_io.dropin,
-                "drops_out": net_io.dropout
+                "drops_out": net_io.dropout,
             }
 
         except Exception as e:
@@ -276,7 +288,8 @@ class MetricsService:
     async def _collect_process_metrics(self) -> dict[str, float]:
         """Collect process-specific metrics."""
         try:
-            if not psutil: return {}
+            if not psutil:
+                return {}
             current_process = psutil.Process()
 
             memory_info = current_process.memory_info()
@@ -287,7 +300,11 @@ class MetricsService:
                 "memory_vms_bytes": memory_info.vms,
                 "cpu_percent": cpu_percent,
                 "num_threads": current_process.num_threads(),
-                "num_fds": current_process.num_fds() if hasattr(current_process, 'num_fds') else 0
+                "num_fds": (
+                    current_process.num_fds()
+                    if hasattr(current_process, "num_fds")
+                    else 0
+                ),
             }
 
         except Exception as e:
@@ -306,41 +323,46 @@ class MetricsService:
         if cpu_data and len(cpu_data) > 0:
             current_cpu = cpu_data[-1]["value"]
             if current_cpu > thresholds.get("cpu_percent", 80):
-                await self._trigger_alert("cpu_high", {
-                    "metric": "cpu.usage_percent",
-                    "value": current_cpu,
-                    "threshold": thresholds["cpu_percent"]
-                })
+                await self._trigger_alert(
+                    "cpu_high",
+                    {
+                        "metric": "cpu.usage_percent",
+                        "value": current_cpu,
+                        "threshold": thresholds["cpu_percent"],
+                    },
+                )
 
         # Check memory usage
         memory_data = self.metrics_data.get("memory.usage_percent")
         if memory_data and len(memory_data) > 0:
             current_memory = memory_data[-1]["value"]
             if current_memory > thresholds.get("memory_percent", 85):
-                await self._trigger_alert("memory_high", {
-                    "metric": "memory.usage_percent",
-                    "value": current_memory,
-                    "threshold": thresholds["memory_percent"]
-                })
+                await self._trigger_alert(
+                    "memory_high",
+                    {
+                        "metric": "memory.usage_percent",
+                        "value": current_memory,
+                        "threshold": thresholds["memory_percent"],
+                    },
+                )
 
         # Check disk usage
         disk_data = self.metrics_data.get("disk.usage_percent")
         if disk_data and len(disk_data) > 0:
             current_disk = disk_data[-1]["value"]
             if current_disk > thresholds.get("disk_percent", 90):
-                await self._trigger_alert("disk_high", {
-                    "metric": "disk.usage_percent",
-                    "value": current_disk,
-                    "threshold": thresholds["disk_percent"]
-                })
+                await self._trigger_alert(
+                    "disk_high",
+                    {
+                        "metric": "disk.usage_percent",
+                        "value": current_disk,
+                        "threshold": thresholds["disk_percent"],
+                    },
+                )
 
     async def _trigger_alert(self, alert_type: str, data: dict[str, Any]):
         """Trigger an alert."""
-        alert = {
-            "type": alert_type,
-            "timestamp": datetime.now(UTC),
-            "data": data
-        }
+        alert = {"type": alert_type, "timestamp": datetime.now(UTC), "data": data}
 
         self.logger.warning(f"Alert triggered: {alert_type} - {data}")
 
@@ -380,7 +402,8 @@ class MetricsService:
         cutoff_time = datetime.now(UTC) - timedelta(hours=hours)
 
         return [
-            point for point in self.metrics_data[metric_name]
+            point
+            for point in self.metrics_data[metric_name]
             if point["timestamp"] >= cutoff_time
         ]
 
@@ -408,13 +431,17 @@ class MetricsService:
             "max": max(values),
             "avg": sum(values) / len(values),
             "count": len(values),
-            "latest": values[-1]
+            "latest": values[-1],
         }
 
     async def health_check(self) -> dict[str, Any]:
         """Perform health check."""
         try:
-            collection_running = self.running and self.collection_task and not self.collection_task.done()
+            collection_running = (
+                self.running
+                and self.collection_task
+                and not self.collection_task.done()
+            )
             latest_metrics = self.get_latest_metrics()
             data_fresh = len(latest_metrics) > 0
             cpu_ok = True
@@ -434,14 +461,11 @@ class MetricsService:
                 "cpu_ok": cpu_ok,
                 "memory_ok": memory_ok,
                 "metrics_count": len(self.metrics_data),
-                "latest_metrics": latest_metrics
+                "latest_metrics": latest_metrics,
             }
 
         except Exception as e:
-            return {
-                "status": "error",
-                "error": str(e)
-            }
+            return {"status": "error", "error": str(e)}
 
 
 def create_service():

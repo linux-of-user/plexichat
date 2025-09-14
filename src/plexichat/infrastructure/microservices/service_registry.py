@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 class ServiceStatus(Enum):
     """Service status enumeration."""
+
     STARTING = "starting"
     HEALTHY = "healthy"
     DEGRADED = "degraded"
@@ -33,6 +34,7 @@ class ServiceStatus(Enum):
 
 class ServiceType(Enum):
     """Microservice types."""
+
     AUTHENTICATION = "authentication"
     USER_MANAGEMENT = "user_management"
     MESSAGING = "messaging"
@@ -53,6 +55,7 @@ class ServiceType(Enum):
 @dataclass
 class ServiceEndpoint:
     """Service endpoint definition."""
+
     service_id: str
     service_name: str
     service_type: ServiceType
@@ -114,6 +117,7 @@ class ServiceRegistry:
     - Event-driven notifications
     - Distributed consensus for HA
     """
+
     def __init__(self):
         self.services: dict[str, ServiceEndpoint] = {}
         self.service_groups: dict[ServiceType, list[str]] = {}

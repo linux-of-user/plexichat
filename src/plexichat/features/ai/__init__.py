@@ -24,6 +24,7 @@ try:
 except ImportError:
     # Fallback types for standalone usage
     from typing import Any, Dict
+
     User = Any
     Event = Any
     Priority = str
@@ -40,6 +41,7 @@ except ImportError:
 
     class RateLimitError(Exception):
         pass
+
 
 # Import AI components
 
@@ -69,7 +71,6 @@ __all__ = [
     "ModelStatus",
     "AIAccessControl",
     "AICoordinator",
-
     # Shared components re-exports
     "User",
     "Event",
@@ -94,5 +95,5 @@ AI_FEATURES = {
     "real_time_monitoring": True,
     "provider_failover": True,
     "api_integration": True,
-    "web_ui_management": True
+    "web_ui_management": True,
 }

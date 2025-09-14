@@ -48,6 +48,7 @@ logger = logging.getLogger(__name__)
 
 class SecurityCLI:
     """CLI for security management."""
+
     def __init__(self):
         self.rate_limiter = ComprehensiveRateLimiter()
         # Use unified auth manager for permission and role operations
@@ -66,7 +67,7 @@ class SecurityCLI:
             "magenta": "\033[95m",
             "cyan": "\033[96m",
             "white": "\033[97m",
-            "reset": "\033[0m"
+            "reset": "\033[0m",
         }
         try:
             print(f"{colors.get(color, colors['white'])}{text}{colors['reset']}")
@@ -88,7 +89,9 @@ class SecurityCLI:
             status = " Enabled" if rule.enabled else " Disabled"
             self.print_colored(f"\n {rule.name}", "blue")
             logger.info(f"   Type: {rule.limit_type.value}")
-            logger.info(f"   Limit: {rule.max_requests} requests per {rule.time_window} seconds")
+            logger.info(
+                f"   Limit: {rule.max_requests} requests per {rule.time_window} seconds"
+            )
             logger.info(f"   Action: {rule.action.value}")
             logger.info(f"   Status: {status}")
 
@@ -104,9 +107,16 @@ class SecurityCLI:
     async def create_rate_limit_rule(self, args: list[str]) -> None:
         """Create a new rate limiting rule."""
         if len(args) < 5:
-            self.print_colored("Usage: create-rule <name> <type> <max_requests> <time_window> <action>", "red")
-            self.print_colored("Types: " + ", ".join([t.value for t in RateLimitType]), "yellow")
-            self.print_colored("Actions: " + ", ".join([a.value for a in RateLimitAction]), "yellow")
+            self.print_colored(
+                "Usage: create-rule <name> <type> <max_requests> <time_window> <action>",
+                "red",
+            )
+            self.print_colored(
+                "Types: " + ", ".join([t.value for t in RateLimitType]), "yellow"
+            )
+            self.print_colored(
+                "Actions: " + ", ".join([a.value for a in RateLimitAction]), "yellow"
+            )
             return
 
         name, limit_type, max_requests, time_window, action = args[:5]
@@ -125,7 +135,7 @@ class SecurityCLI:
             limit_type=limit_type_enum,
             max_requests=max_requests_int,
             time_window=time_window_int,
-            action=action_enum
+            action=action_enum,
         )
 
         if name in self.rate_limiter.rules:
@@ -152,7 +162,9 @@ class SecurityCLI:
             logger.warning(f"Could not persist rate limiter config: {e}")
         self.print_colored(f" Deleted rate limiting rule: {rule_name}", "green")
 
-    async def show_rate_limit_status(self, client_ip: str, user_id: str | None = None) -> None:
+    async def show_rate_limit_status(
+        self, client_ip: str, user_id: str | None = None
+    ) -> None:
         """Show rate limit status for a client."""
         self.print_colored(f" Rate Limit Status for {client_ip}", "cyan")
         if user_id:
@@ -164,10 +176,15 @@ class SecurityCLI:
                 continue
 
             client_key = self.rate_limiter._get_client_key(client_ip, user_id, rule)
-            current_count = self.rate_limiter.tracker.get_request_count(client_key, rule.time_window)
+            current_count = self.rate_limiter.tracker.get_request_count(
+                client_key, rule.time_window
+            )
 
             status = " EXCEEDED" if current_count >= rule.max_requests else " OK"
-            self.print_colored(f"\n {rule.name}: {status}", "yellow" if current_count >= rule.max_requests else "green")
+            self.print_colored(
+                f"\n {rule.name}: {status}",
+                "yellow" if current_count >= rule.max_requests else "green",
+            )
             logger.info(f"   Current: {current_count}/{rule.max_requests}")
             logger.info(f"   Window: {rule.time_window} seconds")
 
@@ -186,7 +203,9 @@ class SecurityCLI:
             self.print_colored("\n Banned Users:", "yellow")
             for user_id, until in self.rate_limiter.tracker.banned_users.items():
                 until_dt = datetime.fromtimestamp(until)
-                logger.info(f"   {user_id} - until {until_dt.strftime('%Y-%m-%d %H:%M:%S')}")
+                logger.info(
+                    f"   {user_id} - until {until_dt.strftime('%Y-%m-%d %H:%M:%S')}"
+                )
 
         if getattr(self.rate_limiter.tracker, "quarantined_ips", None):
             self.print_colored("\n Quarantined IPs:", "yellow")
@@ -194,16 +213,21 @@ class SecurityCLI:
                 until_dt = datetime.fromtimestamp(until)
                 logger.info(f"   {ip} - until {until_dt.strftime('%Y-%m-%d %H:%M:%S')}")
 
-        if not any([
-            getattr(self.rate_limiter.tracker, "banned_ips", None),
-            getattr(self.rate_limiter.tracker, "banned_users", None),
-            getattr(self.rate_limiter.tracker, "quarantined_ips", None),
-        ]):
+        if not any(
+            [
+                getattr(self.rate_limiter.tracker, "banned_ips", None),
+                getattr(self.rate_limiter.tracker, "banned_users", None),
+                getattr(self.rate_limiter.tracker, "quarantined_ips", None),
+            ]
+        ):
             self.print_colored("No banned or quarantined entities.", "green")
 
     async def unban_ip(self, ip: str) -> None:
         """Unban an IP address from rate limiter bans."""
-        if getattr(self.rate_limiter.tracker, "banned_ips", None) and ip in self.rate_limiter.tracker.banned_ips:
+        if (
+            getattr(self.rate_limiter.tracker, "banned_ips", None)
+            and ip in self.rate_limiter.tracker.banned_ips
+        ):
             del self.rate_limiter.tracker.banned_ips[ip]
             self.print_colored(f" Unbanned IP: {ip}", "green")
         else:
@@ -211,7 +235,10 @@ class SecurityCLI:
 
     async def unban_user(self, user_id: str) -> None:
         """Unban a user."""
-        if getattr(self.rate_limiter.tracker, "banned_users", None) and user_id in self.rate_limiter.tracker.banned_users:
+        if (
+            getattr(self.rate_limiter.tracker, "banned_users", None)
+            and user_id in self.rate_limiter.tracker.banned_users
+        ):
             del self.rate_limiter.tracker.banned_users[user_id]
             self.print_colored(f" Unbanned user: {user_id}", "green")
         else:
@@ -233,7 +260,10 @@ class SecurityCLI:
             logger.info(f"{k}: {v}")
         blocked = status.get("blocked_ips", {})
         logger.info(f"Blocked IPs: {len(blocked)}")
-        self.print_colored(" Use 'ddos-list-blocked' and 'ddos-unblock <ip>' to manage blocks", "yellow")
+        self.print_colored(
+            " Use 'ddos-list-blocked' and 'ddos-unblock <ip>' to manage blocks",
+            "yellow",
+        )
 
     async def ddos_block_ip(self, ip: str, duration_seconds: int = 3600) -> None:
         """Manually block an IP via DDoS protection manager."""
@@ -241,8 +271,12 @@ class SecurityCLI:
             self.print_colored("DDoS protection subsystem not available.", "red")
             return
         try:
-            self.ddos.ip_block_manager.block_ip(ip, duration_seconds, reason="manual-block-via-cli")
-            self.print_colored(f"Blocked IP {ip} for {duration_seconds} seconds", "green")
+            self.ddos.ip_block_manager.block_ip(
+                ip, duration_seconds, reason="manual-block-via-cli"
+            )
+            self.print_colored(
+                f"Blocked IP {ip} for {duration_seconds} seconds", "green"
+            )
         except Exception as e:
             self.print_colored(f"Failed to block IP: {e}", "red")
 
@@ -270,7 +304,9 @@ class SecurityCLI:
         for ip, info in blocked.items():
             expires = info.get("expires_at")
             remaining = info.get("remaining_seconds")
-            logger.info(f" {ip} - type={info.get('type')} expires_at={expires} remaining={remaining}")
+            logger.info(
+                f" {ip} - type={info.get('type')} expires_at={expires} remaining={remaining}"
+            )
 
     async def ddos_recent_alerts(self, hours: int = 1) -> None:
         """Show recent DDoS alerts."""
@@ -283,7 +319,9 @@ class SecurityCLI:
             return
         self.print_colored(f"Recent DDoS Alerts (last {hours} hours):", "yellow")
         for a in alerts:
-            logger.info(f"{datetime.fromtimestamp(a.timestamp).isoformat()} - {a.attack_type.value} - {a.source_ip} - {a.description}")
+            logger.info(
+                f"{datetime.fromtimestamp(a.timestamp).isoformat()} - {a.attack_type.value} - {a.source_ip} - {a.description}"
+            )
 
     # Security Scanning & Audit
     async def run_security_scan(self) -> None:
@@ -296,12 +334,18 @@ class SecurityCLI:
             try:
                 summary = self.plugin_sec.get_security_summary()
                 if summary.get("quarantined_plugins", 0) > 0:
-                    findings.append(f"Quarantined plugins: {summary.get('quarantined_plugins')}")
+                    findings.append(
+                        f"Quarantined plugins: {summary.get('quarantined_plugins')}"
+                    )
                 if summary.get("pending_permission_requests", 0) > 0:
-                    findings.append(f"Pending permission requests: {summary.get('pending_permission_requests')}")
+                    findings.append(
+                        f"Pending permission requests: {summary.get('pending_permission_requests')}"
+                    )
                 critical_events = summary.get("last_24h_critical_events", 0)
                 if critical_events > 0:
-                    findings.append(f"Critical plugin security events in last 24h: {critical_events}")
+                    findings.append(
+                        f"Critical plugin security events in last 24h: {critical_events}"
+                    )
             except Exception as e:
                 logger.error(f"Error fetching plugin security summary: {e}")
                 findings.append("Failed to gather plugin security summary")
@@ -311,7 +355,9 @@ class SecurityCLI:
             try:
                 stats = self.ddos.get_protection_status().get("stats", {})
                 if stats.get("active_attacks", 0) > 0:
-                    findings.append(f"Active DDoS attacks detected: {stats.get('active_attacks')}")
+                    findings.append(
+                        f"Active DDoS attacks detected: {stats.get('active_attacks')}"
+                    )
                 if stats.get("blocked_ips", 0) > 0:
                     findings.append(f"Blocked IPs: {stats.get('blocked_ips')}")
             except Exception as e:
@@ -333,7 +379,9 @@ class SecurityCLI:
             for f in findings:
                 logger.info(f" - {f}")
 
-    async def list_audit_events(self, hours: int = 24, threat_level: str | None = None) -> None:
+    async def list_audit_events(
+        self, hours: int = 24, threat_level: str | None = None
+    ) -> None:
         """List audit events from plugin security manager."""
         if not self.plugin_sec:
             self.print_colored("Plugin security manager not available.", "red")
@@ -348,7 +396,10 @@ class SecurityCLI:
             for e in internal:
                 ts = e.timestamp.timestamp() if hasattr(e.timestamp, "timestamp") else 0
                 if ts >= cutoff:
-                    if threat_level and getattr(e.threat_level, "value", None) != threat_level:
+                    if (
+                        threat_level
+                        and getattr(e.threat_level, "value", None) != threat_level
+                    ):
                         continue
                     events.append(e)
         except Exception as e:
@@ -357,14 +408,20 @@ class SecurityCLI:
             return
 
         if not events:
-            self.print_colored("No audit events found for the requested timeframe.", "green")
+            self.print_colored(
+                "No audit events found for the requested timeframe.", "green"
+            )
             return
 
         self.print_colored(f" Audit Events (last {hours} hours):", "yellow")
         for e in events:
-            logger.info(f"{e.timestamp.isoformat()} - {e.event_type.value} - {e.plugin_name} - {e.threat_level.value} - {e.description}")
+            logger.info(
+                f"{e.timestamp.isoformat()} - {e.event_type.value} - {e.plugin_name} - {e.threat_level.value} - {e.description}"
+            )
 
-    async def export_audit_logs(self, path: str = "audit_logs.json", hours: int = 168) -> None:
+    async def export_audit_logs(
+        self, path: str = "audit_logs.json", hours: int = 168
+    ) -> None:
         """Export audit logs to a JSON file."""
         if not self.plugin_sec:
             self.print_colored("Plugin security manager not available.", "red")
@@ -377,18 +434,26 @@ class SecurityCLI:
             for e in internal:
                 ts = e.timestamp.timestamp() if hasattr(e.timestamp, "timestamp") else 0
                 if ts >= cutoff:
-                    export.append({
-                        "event_id": e.event_id,
-                        "plugin_name": e.plugin_name,
-                        "event_type": getattr(e.event_type, "value", str(e.event_type)),
-                        "threat_level": getattr(e.threat_level, "value", str(e.threat_level)),
-                        "description": e.description,
-                        "timestamp": e.timestamp.isoformat(),
-                        "details": e.details,
-                    })
+                    export.append(
+                        {
+                            "event_id": e.event_id,
+                            "plugin_name": e.plugin_name,
+                            "event_type": getattr(
+                                e.event_type, "value", str(e.event_type)
+                            ),
+                            "threat_level": getattr(
+                                e.threat_level, "value", str(e.threat_level)
+                            ),
+                            "description": e.description,
+                            "timestamp": e.timestamp.isoformat(),
+                            "details": e.details,
+                        }
+                    )
             with open(path, "w", encoding="utf-8") as fh:
                 json.dump(export, fh, indent=2)
-            self.print_colored(f"Exported {len(export)} audit events to {path}", "green")
+            self.print_colored(
+                f"Exported {len(export)} audit events to {path}", "green"
+            )
         except Exception as e:
             logger.error(f"Failed to export audit logs: {e}")
             self.print_colored(f"Failed to export audit logs: {e}", "red")
@@ -407,12 +472,20 @@ class SecurityCLI:
                 return
             self.print_colored(" Pending Plugin Permission Requests:", "yellow")
             for r in pending:
-                logger.info(f"{r.plugin_name} - {r.permission_type.value} - requested_at={r.requested_at.isoformat()} - justification={r.justification}")
+                logger.info(
+                    f"{r.plugin_name} - {r.permission_type.value} - requested_at={r.requested_at.isoformat()} - justification={r.justification}"
+                )
         except Exception as e:
             logger.error(f"Error listing pending permissions: {e}")
             self.print_colored(f"Failed to fetch pending permissions: {e}", "red")
 
-    async def approve_plugin_permission(self, plugin_name: str, permission: str, approved_by: str, expires_in_days: int | None = None) -> None:
+    async def approve_plugin_permission(
+        self,
+        plugin_name: str,
+        permission: str,
+        approved_by: str,
+        expires_in_days: int | None = None,
+    ) -> None:
         """Approve a plugin permission."""
         if not self.plugin_sec:
             self.print_colored("Plugin security manager not available.", "red")
@@ -423,16 +496,25 @@ class SecurityCLI:
             else:
                 # Fallback: try string-based handling in manager
                 perm = permission
-            result = self.plugin_sec.approve_permission(plugin_name, perm, approved_by, expires_in_days)
+            result = self.plugin_sec.approve_permission(
+                plugin_name, perm, approved_by, expires_in_days
+            )
             if result:
-                self.print_colored(f"Approved permission {permission} for {plugin_name}", "green")
+                self.print_colored(
+                    f"Approved permission {permission} for {plugin_name}", "green"
+                )
             else:
-                self.print_colored(f"Failed to approve permission (maybe not pending): {permission}", "red")
+                self.print_colored(
+                    f"Failed to approve permission (maybe not pending): {permission}",
+                    "red",
+                )
         except Exception as e:
             logger.error(f"Error approving permission: {e}")
             self.print_colored(f"Failed to approve permission: {e}", "red")
 
-    async def deny_plugin_permission(self, plugin_name: str, permission: str, denied_by: str) -> None:
+    async def deny_plugin_permission(
+        self, plugin_name: str, permission: str, denied_by: str
+    ) -> None:
         """Deny a plugin permission."""
         if not self.plugin_sec:
             self.print_colored("Plugin security manager not available.", "red")
@@ -444,14 +526,21 @@ class SecurityCLI:
                 perm = permission
             result = self.plugin_sec.deny_permission(plugin_name, perm, denied_by)
             if result:
-                self.print_colored(f"Denied permission {permission} for {plugin_name}", "green")
+                self.print_colored(
+                    f"Denied permission {permission} for {plugin_name}", "green"
+                )
             else:
-                self.print_colored(f"Failed to deny permission (maybe not pending): {permission}", "red")
+                self.print_colored(
+                    f"Failed to deny permission (maybe not pending): {permission}",
+                    "red",
+                )
         except Exception as e:
             logger.error(f"Error denying permission: {e}")
             self.print_colored(f"Failed to deny permission: {e}", "red")
 
-    async def revoke_plugin_permission(self, plugin_name: str, permission: str, revoked_by: str) -> None:
+    async def revoke_plugin_permission(
+        self, plugin_name: str, permission: str, revoked_by: str
+    ) -> None:
         """Revoke an approved plugin permission."""
         if not self.plugin_sec:
             self.print_colored("Plugin security manager not available.", "red")
@@ -463,7 +552,9 @@ class SecurityCLI:
                 perm = permission
             result = self.plugin_sec.revoke_permission(plugin_name, perm, revoked_by)
             if result:
-                self.print_colored(f"Revoked permission {permission} for {plugin_name}", "green")
+                self.print_colored(
+                    f"Revoked permission {permission} for {plugin_name}", "green"
+                )
             else:
                 self.print_colored(f"Failed to revoke permission: {permission}", "red")
         except Exception as e:
@@ -479,12 +570,16 @@ class SecurityCLI:
             perms = self.plugin_sec.get_plugin_permissions(plugin_name)
             self.print_colored(f" Permissions for plugin: {plugin_name}", "cyan")
             self.print_colored("=" * 50, "cyan")
-            logger.info(f"Approved: {', '.join(perms.get('approved_permissions', [])) or 'None'}")
+            logger.info(
+                f"Approved: {', '.join(perms.get('approved_permissions', [])) or 'None'}"
+            )
             pending = perms.get("pending_requests", [])
             if pending:
                 self.print_colored("\n Pending Requests:", "yellow")
                 for p in pending:
-                    logger.info(f" {p.get('permission_type')} - {p.get('justification')} - requested_at={p.get('requested_at')}")
+                    logger.info(
+                        f" {p.get('permission_type')} - {p.get('justification')} - requested_at={p.get('requested_at')}"
+                    )
             else:
                 logger.info("No pending requests")
             if perms.get("is_quarantined"):
@@ -535,7 +630,9 @@ class SecurityCLI:
 
             setattr(policy, key, new_value)
             self.plugin_sec.set_security_policy(plugin_name, policy)
-            self.print_colored(f"Updated security policy {key} for {plugin_name}", "green")
+            self.print_colored(
+                f"Updated security policy {key} for {plugin_name}", "green"
+            )
         except Exception as e:
             logger.error(f"Error setting security policy: {e}")
             self.print_colored(f"Failed to set security policy: {e}", "red")
@@ -553,7 +650,9 @@ class SecurityCLI:
                 return
             self.print_colored(" Keys in Vault", "cyan")
             for k in keys:
-                logger.info(f" {k.get('id')} - created_at: {k.get('created_at')} - type: {k.get('type')}")
+                logger.info(
+                    f" {k.get('id')} - created_at: {k.get('created_at')} - type: {k.get('type')}"
+                )
         except Exception as e:
             logger.error(f"Error listing keys: {e}")
             self.print_colored(f"Failed to list keys: {e}", "red")
@@ -602,15 +701,23 @@ class SecurityCLI:
         # Present a simple summary since unified manager doesn't carry rich metadata
         sorted_roles = sorted(roles_mapping.items(), key=lambda r: r[0].value)
         for role_enum, perms in sorted_roles:
-            system_badge = " [SYSTEM]" if getattr(role_enum, "name", "").upper() == "SYSTEM" else ""
+            system_badge = (
+                " [SYSTEM]"
+                if getattr(role_enum, "name", "").upper() == "SYSTEM"
+                else ""
+            )
             default_badge = ""
-            self.print_colored(f"\n {role_enum.value}{system_badge}{default_badge}", "blue")
+            self.print_colored(
+                f"\n {role_enum.value}{system_badge}{default_badge}", "blue"
+            )
             logger.info(f"   Permissions: {len(perms)}")
             if len(perms) <= 10:
                 perms_list = ", ".join(sorted(perms))
                 logger.info(f"    {perms_list}")
             else:
-                logger.info(f"    {len(perms)} permissions (use 'show-role {role_enum.value}' for details)")
+                logger.info(
+                    f"    {len(perms)} permissions (use 'show-role {role_enum.value}' for details)"
+                )
 
     async def show_role(self, role_name: str) -> None:
         """Show detailed information about a role from the unified auth manager."""
@@ -642,8 +749,14 @@ class SecurityCLI:
         Note: Creating new Role enum members at runtime is not supported by the unified auth manager.
         This operation is not available; instruct the operator accordingly.
         """
-        self.print_colored("Creating custom roles is not supported via the unified auth manager CLI.", "red")
-        self.print_colored("Define roles in code/config and restart the service to add new roles.", "yellow")
+        self.print_colored(
+            "Creating custom roles is not supported via the unified auth manager CLI.",
+            "red",
+        )
+        self.print_colored(
+            "Define roles in code/config and restart the service to add new roles.",
+            "yellow",
+        )
 
     async def delete_role(self, role_name: str) -> None:
         """Delete a role.
@@ -651,10 +764,21 @@ class SecurityCLI:
         Note: Removing Role enum members at runtime is not supported.
         Instead, you can remove permissions from a role via update_user_permissions or update the code/config.
         """
-        self.print_colored("Deleting roles is not supported via the unified auth manager CLI.", "red")
-        self.print_colored("Remove or change role definitions in code/config and restart the service.", "yellow")
+        self.print_colored(
+            "Deleting roles is not supported via the unified auth manager CLI.", "red"
+        )
+        self.print_colored(
+            "Remove or change role definitions in code/config and restart the service.",
+            "yellow",
+        )
 
-    async def assign_role(self, user_id: str, role_name: str, scope: str = "global", scope_id: str | None = None) -> None:
+    async def assign_role(
+        self,
+        user_id: str,
+        role_name: str,
+        scope: str = "global",
+        scope_id: str | None = None,
+    ) -> None:
         """Assign a role to a user using unified auth manager."""
         # Resolve role_name to Role enum
         role_enum = None
@@ -670,11 +794,19 @@ class SecurityCLI:
 
         success = self.auth_manager.assign_role(user_id, role_enum)
         if success:
-            self.print_colored(f" Assigned role '{role_enum.value}' to user '{user_id}'", "green")
+            self.print_colored(
+                f" Assigned role '{role_enum.value}' to user '{user_id}'", "green"
+            )
         else:
             self.print_colored(" Failed to assign role", "red")
 
-    async def revoke_role(self, user_id: str, role_name: str, scope: str = "global", scope_id: str | None = None) -> None:
+    async def revoke_role(
+        self,
+        user_id: str,
+        role_name: str,
+        scope: str = "global",
+        scope_id: str | None = None,
+    ) -> None:
         """Revoke a role from a user using unified auth manager."""
         role_enum = None
         try:
@@ -689,11 +821,19 @@ class SecurityCLI:
 
         success = self.auth_manager.revoke_role(user_id, role_enum)
         if success:
-            self.print_colored(f" Revoked role '{role_enum.value}' from user '{user_id}'", "green")
+            self.print_colored(
+                f" Revoked role '{role_enum.value}' from user '{user_id}'", "green"
+            )
         else:
             self.print_colored(" Failed to revoke role", "red")
 
-    async def check_permission(self, user_id: str, permission: str, scope: str = "global", scope_id: str | None = None) -> None:
+    async def check_permission(
+        self,
+        user_id: str,
+        permission: str,
+        scope: str = "global",
+        scope_id: str | None = None,
+    ) -> None:
         """Check if a user has a specific permission using unified auth manager."""
         try:
             # UnifiedAuthManager expects a permission string
@@ -703,7 +843,9 @@ class SecurityCLI:
             return
 
         status = " GRANTED" if granted else " DENIED"
-        self.print_colored(f" Permission Check: {status}", "green" if granted else "red")
+        self.print_colored(
+            f" Permission Check: {status}", "green" if granted else "red"
+        )
         logger.info(f"   User: {user_id}")
         logger.info(f"   Permission: {permission}")
         logger.info(f"   Scope: {scope}")
@@ -733,7 +875,9 @@ class SecurityCLI:
             if roles:
                 self.print_colored("\n Roles:", "yellow")
                 for role in roles:
-                    logger.info(f"    {role.value if hasattr(role, 'value') else str(role)}")
+                    logger.info(
+                        f"    {role.value if hasattr(role, 'value') else str(role)}"
+                    )
 
             if perms:
                 self.print_colored("\n Explicit Permissions:", "green")
@@ -761,8 +905,12 @@ async def handle_security_command(args: list[str]) -> None:
         logger.info("")
         logger.info("DDoS Protection:")
         logger.info("  ddos-status                   - Show DDoS protection status")
-        logger.info("  ddos-list-blocked             - List blocked IPs in DDoS protection")
-        logger.info("  ddos-block <ip> [seconds]     - Manually block IP via DDoS protection")
+        logger.info(
+            "  ddos-list-blocked             - List blocked IPs in DDoS protection"
+        )
+        logger.info(
+            "  ddos-block <ip> [seconds]     - Manually block IP via DDoS protection"
+        )
         logger.info("  ddos-unblock <ip>             - Unblock IP in DDoS protection")
         logger.info("  ddos-alerts [hours]           - Show recent DDoS alerts")
         logger.info("")
@@ -777,8 +925,12 @@ async def handle_security_command(args: list[str]) -> None:
         logger.info("  show-key <key_id>             - Show key metadata")
         logger.info("")
         logger.info("Plugin Permissions:")
-        logger.info("  list-pending                  - List pending plugin permission requests")
-        logger.info("  approve-perm <plugin> <perm> <approver> [days] - Approve permission")
+        logger.info(
+            "  list-pending                  - List pending plugin permission requests"
+        )
+        logger.info(
+            "  approve-perm <plugin> <perm> <approver> [days] - Approve permission"
+        )
         logger.info("  deny-perm <plugin> <perm> <denier>          - Deny permission")
         logger.info("  revoke-perm <plugin> <perm> <revoker>      - Revoke permission")
         logger.info("  show-plugin <plugin>          - Show plugin permissions")
@@ -859,11 +1011,17 @@ async def handle_security_command(args: list[str]) -> None:
             await cli.list_pending_plugin_permissions()
         elif command == "approve-perm" and len(command_args) >= 3:
             expires = int(command_args[3]) if len(command_args) > 3 else None
-            await cli.approve_plugin_permission(command_args[0], command_args[1], command_args[2], expires)
+            await cli.approve_plugin_permission(
+                command_args[0], command_args[1], command_args[2], expires
+            )
         elif command == "deny-perm" and len(command_args) >= 3:
-            await cli.deny_plugin_permission(command_args[0], command_args[1], command_args[2])
+            await cli.deny_plugin_permission(
+                command_args[0], command_args[1], command_args[2]
+            )
         elif command == "revoke-perm" and len(command_args) >= 3:
-            await cli.revoke_plugin_permission(command_args[0], command_args[1], command_args[2])
+            await cli.revoke_plugin_permission(
+                command_args[0], command_args[1], command_args[2]
+            )
         elif command == "show-plugin" and command_args:
             await cli.show_plugin_permissions(command_args[0])
 
@@ -871,7 +1029,9 @@ async def handle_security_command(args: list[str]) -> None:
         elif command == "show-policy" and command_args:
             await cli.show_security_policy(command_args[0])
         elif command == "set-policy" and len(command_args) >= 3:
-            await cli.set_security_policy(command_args[0], command_args[1], command_args[2])
+            await cli.set_security_policy(
+                command_args[0], command_args[1], command_args[2]
+            )
 
         # Permission management (updated)
         elif command == "list-roles":
@@ -893,7 +1053,9 @@ async def handle_security_command(args: list[str]) -> None:
         elif command == "check-perm" and len(command_args) >= 2:
             scope = command_args[2] if len(command_args) > 2 else "global"
             scope_id = command_args[3] if len(command_args) > 3 else None
-            await cli.check_permission(command_args[0], command_args[1], scope, scope_id)
+            await cli.check_permission(
+                command_args[0], command_args[1], scope, scope_id
+            )
         elif command == "show-user" and command_args:
             await cli.show_user_permissions(command_args[0])
         else:

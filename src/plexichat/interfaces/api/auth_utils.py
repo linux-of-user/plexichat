@@ -15,6 +15,7 @@ try:
     from plexichat.core.security.comprehensive_security_manager import (
         get_security_manager,
     )
+
     security_manager = get_security_manager()
 except ImportError:
     security_manager = None
@@ -28,7 +29,10 @@ async def get_current_user(request):
         # Get token from header
         authorization = request.headers.get("Authorization")
         if not authorization or not authorization.startswith("Bearer "):
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing or invalid authorization header")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Missing or invalid authorization header",
+            )
 
         token = authorization.split(" ")[1]
 
@@ -36,13 +40,19 @@ async def get_current_user(request):
         if security_manager:
             payload = security_manager.verify_token(token)
             if not payload:
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid or expired token",
+                )
 
             # Get user data
             if database_manager:
                 user = await database_manager.get_user_by_id(payload["user_id"])
                 if not user or not user.get("is_active"):
-                    raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found or inactive")
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="User not found or inactive",
+                    )
 
                 return user
 
@@ -53,4 +63,6 @@ async def get_current_user(request):
         raise
     except Exception as e:
         logger.error(f"Authentication error: {e}")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed"
+        )

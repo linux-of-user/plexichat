@@ -24,20 +24,25 @@ from enum import Enum
 
 class ModerationAction(str, Enum):
     """Moderation action types."""
+
     ALLOW = "allow"
     FLAG = "flag"
     BLOCK = "block"
     REVIEW = "review"
 
+
 class ModerationSeverity(str, Enum):
     """Moderation severity levels."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
 
+
 class ModerationCategory(str, Enum):
     """Moderation categories."""
+
     SPAM = "spam"
     HARASSMENT = "harassment"
     HATE_SPEECH = "hate_speech"
@@ -45,11 +50,8 @@ class ModerationCategory(str, Enum):
     ADULT_CONTENT = "adult_content"
     MISINFORMATION = "misinformation"
 
-__all__ = [
-    "ModerationAction",
-    "ModerationCategory",
-    "ModerationSeverity"
-]
+
+__all__ = ["ModerationAction", "ModerationCategory", "ModerationSeverity"]
 
 if FeedbackCollector:
     __all__.append("FeedbackCollector")

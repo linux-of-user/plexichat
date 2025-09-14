@@ -17,6 +17,7 @@ from typing import Any
 try:
     import boto3  # type: ignore
     from botocore.exceptions import ClientError  # type: ignore
+
     AWS_AVAILABLE = True
 except ImportError:
     boto3 = None
@@ -28,6 +29,7 @@ try:
         ResourceNotFoundError as AzureResourceNotFoundError,  # type: ignore
     )
     from azure.storage.blob import BlobServiceClient  # type: ignore
+
     AZURE_AVAILABLE = True
 except ImportError:
     BlobServiceClient = None
@@ -37,6 +39,7 @@ except ImportError:
 try:
     from google.api_core.exceptions import NotFound as GCPNotFoundError  # type: ignore
     from google.cloud import storage as gcs  # type: ignore
+
     GCP_AVAILABLE = True
 except ImportError:
     gcs = None
@@ -48,6 +51,7 @@ logger = logging.getLogger(__name__)
 
 class StorageProvider(str, Enum):
     """Supported storage providers."""
+
     LOCAL = "local"
     AWS_S3 = "aws_s3"
     AZURE_BLOB = "azure_blob"
@@ -58,15 +62,17 @@ class StorageProvider(str, Enum):
 
 class StorageClass(str, Enum):
     """Storage classes for different access patterns."""
-    HOT = "hot"          # Frequent access
-    WARM = "warm"        # Infrequent access
-    COLD = "cold"        # Archive storage
+
+    HOT = "hot"  # Frequent access
+    WARM = "warm"  # Infrequent access
+    COLD = "cold"  # Archive storage
     GLACIER = "glacier"  # Deep archive
 
 
 @dataclass
 class StorageLocation:
     """Storage location configuration."""
+
     provider: StorageProvider
     location_id: str
     endpoint: str
@@ -82,6 +88,7 @@ class StorageLocation:
 @dataclass
 class StorageResult:
     """Result of storage operation."""
+
     success: bool
     location: str
     provider: StorageProvider
@@ -115,12 +122,15 @@ class StorageManager:
         # Use centralized directory manager
         try:
             from plexichat.core.logging import get_directory_manager
+
             self.directory_manager = get_directory_manager()
 
             # Use centralized directories
             self.storage_root = self.directory_manager.get_backup_directory()
             self.shard_storage = self.directory_manager.get_directory("backups_shards")
-            self.metadata_storage = self.directory_manager.get_directory("backups_metadata")
+            self.metadata_storage = self.directory_manager.get_directory(
+                "backups_metadata"
+            )
             self.temp_storage = self.directory_manager.get_directory("storage_temp")
             self.cache_storage = self.directory_manager.get_directory("storage_cache")
 
@@ -137,7 +147,12 @@ class StorageManager:
             self.temp_storage = self.storage_root / "temp"
             self.cache_storage = self.storage_root / "cache"
 
-            for directory in [self.shard_storage, self.metadata_storage, self.temp_storage, self.cache_storage]:
+            for directory in [
+                self.shard_storage,
+                self.metadata_storage,
+                self.temp_storage,
+                self.cache_storage,
+            ]:
                 directory.mkdir(exist_ok=True)
 
         # Storage locations
@@ -156,7 +171,7 @@ class StorageManager:
             "average_download_speed_mbps": 0.0,
             "storage_efficiency": 0.0,
             "replication_factor": 0.0,
-            "last_cleanup": None
+            "last_cleanup": None,
         }
 
         # Cloud clients
@@ -171,7 +186,7 @@ class StorageManager:
             location_id="local_primary",
             endpoint=str(self.storage_root),
             priority=1,
-            max_size_gb=self.config.get("local_max_size_gb", 100)
+            max_size_gb=self.config.get("local_max_size_gb", 100),
         )
         self.storage_locations["local_primary"] = local_location
 
@@ -187,11 +202,11 @@ class StorageManager:
                 credentials={
                     "access_key_id": aws_config.get("access_key_id", ""),
                     "secret_access_key": aws_config.get("secret_access_key", ""),
-                    "region": aws_config.get("region", "us-east-1")
+                    "region": aws_config.get("region", "us-east-1"),
                 },
                 storage_class=StorageClass(aws_config.get("storage_class", "hot")),
                 priority=2,
-                max_size_gb=aws_config.get("max_size_gb")
+                max_size_gb=aws_config.get("max_size_gb"),
             )
             self.storage_locations["aws_s3_primary"] = aws_location
 
@@ -204,11 +219,11 @@ class StorageManager:
                 credentials={
                     "connection_string": azure_config.get("connection_string", ""),
                     "account_name": azure_config.get("account_name", ""),
-                    "account_key": azure_config.get("account_key", "")
+                    "account_key": azure_config.get("account_key", ""),
                 },
                 storage_class=StorageClass(azure_config.get("storage_class", "hot")),
                 priority=3,
-                max_size_gb=azure_config.get("max_size_gb")
+                max_size_gb=azure_config.get("max_size_gb"),
             )
             self.storage_locations["azure_blob_primary"] = azure_location
 
@@ -220,11 +235,11 @@ class StorageManager:
                 endpoint=gcp_config.get("bucket_name", ""),
                 credentials={
                     "project": gcp_config.get("project", None),
-                    "credentials_json": gcp_config.get("credentials_json", None)
+                    "credentials_json": gcp_config.get("credentials_json", None),
                 },
                 storage_class=StorageClass(gcp_config.get("storage_class", "hot")),
                 priority=4,
-                max_size_gb=gcp_config.get("max_size_gb")
+                max_size_gb=gcp_config.get("max_size_gb"),
             )
             self.storage_locations["google_cloud_primary"] = gcs_location
 
@@ -235,31 +250,45 @@ class StorageManager:
             if AWS_AVAILABLE and boto3 and "aws_s3_primary" in self.storage_locations:
                 aws_location = self.storage_locations["aws_s3_primary"]
                 self.cloud_clients["aws_s3"] = boto3.client(
-                    's3',
+                    "s3",
                     aws_access_key_id=aws_location.credentials.get("access_key_id"),
-                    aws_secret_access_key=aws_location.credentials.get("secret_access_key"),
-                    region_name=aws_location.credentials.get("region")
+                    aws_secret_access_key=aws_location.credentials.get(
+                        "secret_access_key"
+                    ),
+                    region_name=aws_location.credentials.get("region"),
                 )
                 self.logger.info("AWS S3 client initialized")
 
             # Initialize Azure Blob client
-            if AZURE_AVAILABLE and BlobServiceClient and "azure_blob_primary" in self.storage_locations:
+            if (
+                AZURE_AVAILABLE
+                and BlobServiceClient
+                and "azure_blob_primary" in self.storage_locations
+            ):
                 azure_location = self.storage_locations["azure_blob_primary"]
-                self.cloud_clients["azure_blob"] = BlobServiceClient.from_connection_string(
-                    azure_location.credentials.get("connection_string")
+                self.cloud_clients["azure_blob"] = (
+                    BlobServiceClient.from_connection_string(
+                        azure_location.credentials.get("connection_string")
+                    )
                 )
                 self.logger.info("Azure Blob client initialized")
 
             # Initialize Google Cloud Storage client
-            if GCP_AVAILABLE and gcs and "google_cloud_primary" in self.storage_locations:
+            if (
+                GCP_AVAILABLE
+                and gcs
+                and "google_cloud_primary" in self.storage_locations
+            ):
                 # Allow passing explicit credentials JSON path via config
                 gcs_location = self.storage_locations["google_cloud_primary"]
                 credentials_json = gcs_location.credentials.get("credentials_json")
                 project = gcs_location.credentials.get("project")
                 if credentials_json:
                     # If path to credentials provided, create client with it
-                    self.cloud_clients["google_cloud"] = gcs.Client.from_service_account_json(
-                        credentials_json, project=project
+                    self.cloud_clients["google_cloud"] = (
+                        gcs.Client.from_service_account_json(
+                            credentials_json, project=project
+                        )
                     )
                 else:
                     self.cloud_clients["google_cloud"] = gcs.Client(project=project)
@@ -268,7 +297,14 @@ class StorageManager:
         except Exception as e:
             self.logger.warning(f"Failed to initialize some cloud clients: {e!s}")
 
-    async def _retry_async(self, func: Callable, *args, retries: int = 3, initial_delay: float = 0.5, **kwargs):
+    async def _retry_async(
+        self,
+        func: Callable,
+        *args,
+        retries: int = 3,
+        initial_delay: float = 0.5,
+        **kwargs,
+    ):
         """
         Generic retry wrapper for synchronous blocking cloud SDK calls.
         Runs the function in a thread and retries with exponential backoff on failure.
@@ -281,15 +317,21 @@ class StorageManager:
                 return result
             except Exception as e:
                 last_exc = e
-                self.logger.debug(f"Attempt {attempt} failed for {func.__name__}: {e!s}")
+                self.logger.debug(
+                    f"Attempt {attempt} failed for {func.__name__}: {e!s}"
+                )
                 if attempt < retries:
                     await asyncio.sleep(delay)
                     delay *= 2
                 else:
-                    self.logger.error(f"All {retries} attempts failed for {func.__name__}: {e!s}")
+                    self.logger.error(
+                        f"All {retries} attempts failed for {func.__name__}: {e!s}"
+                    )
         raise last_exc
 
-    async def store_shards_async(self, shards: list[dict[str, Any]], backup_id: str) -> list[StorageResult]:
+    async def store_shards_async(
+        self, shards: list[dict[str, Any]], backup_id: str
+    ) -> list[StorageResult]:
         """Store shards across multiple storage locations with redundancy."""
         try:
             storage_results = []
@@ -306,17 +348,23 @@ class StorageManager:
                 # Store shard in each selected location
                 for location in selected_locations:
                     try:
-                        result = await self._store_shard_to_location(shard, backup_id, location)
+                        result = await self._store_shard_to_location(
+                            shard, backup_id, location
+                        )
                         shard_results.append(result)
 
                         if result.success:
                             self.storage_stats["total_uploads"] += 1
-                            self.storage_stats["total_bytes_stored"] += result.size_bytes
+                            self.storage_stats[
+                                "total_bytes_stored"
+                            ] += result.size_bytes
                         else:
                             self.storage_stats["failed_uploads"] += 1
 
                     except Exception as e:
-                        self.logger.error(f"Failed to store shard {shard.get('shard_id')} to {location.location_id}: {e!s}")
+                        self.logger.error(
+                            f"Failed to store shard {shard.get('shard_id')} to {location.location_id}: {e!s}"
+                        )
                         self.storage_stats["failed_uploads"] += 1
 
                 storage_results.extend(shard_results)
@@ -328,10 +376,13 @@ class StorageManager:
             self.logger.error(f"Failed to store shards for backup {backup_id}: {e!s}")
             raise
 
-    def _select_storage_locations(self, shard_size: int, replication_factor: int) -> list[StorageLocation]:
+    def _select_storage_locations(
+        self, shard_size: int, replication_factor: int
+    ) -> list[StorageLocation]:
         """Select optimal storage locations for a shard."""
         available_locations = [
-            loc for loc in self.storage_locations.values()
+            loc
+            for loc in self.storage_locations.values()
             if loc.enabled and self._has_capacity(loc, shard_size)
         ]
 
@@ -349,8 +400,9 @@ class StorageManager:
         size_gb = size_bytes / (1024 * 1024 * 1024)
         return (location.current_usage_gb + size_gb) <= location.max_size_gb
 
-    async def _store_shard_to_location(self, shard: dict[str, Any], backup_id: str,
-                                     location: StorageLocation) -> StorageResult:
+    async def _store_shard_to_location(
+        self, shard: dict[str, Any], backup_id: str, location: StorageLocation
+    ) -> StorageResult:
         """Store a shard to a specific storage location."""
         start_time = time.time()
 
@@ -375,11 +427,12 @@ class StorageManager:
                 checksum="",
                 storage_path="",
                 upload_time_seconds=time.time() - start_time,
-                error_message=str(e)
+                error_message=str(e),
             )
 
-    async def _store_shard_local(self, shard: dict[str, Any], backup_id: str,
-                               location: StorageLocation) -> StorageResult:
+    async def _store_shard_local(
+        self, shard: dict[str, Any], backup_id: str, location: StorageLocation
+    ) -> StorageResult:
         """Store shard to local filesystem."""
         try:
             # Create backup-specific directory
@@ -389,11 +442,11 @@ class StorageManager:
             # Write shard data
             shard_path = backup_dir / f"{shard['shard_id']}.shard"
 
-            with open(shard_path, 'wb') as f:
+            with open(shard_path, "wb") as f:
                 f.write(shard["data"])
 
             # Verify integrity
-            with open(shard_path, 'rb') as f:
+            with open(shard_path, "rb") as f:
                 stored_data = f.read()
                 stored_checksum = hashlib.sha256(stored_data).hexdigest()
 
@@ -410,14 +463,15 @@ class StorageManager:
                 size_bytes=shard["size"],
                 checksum=stored_checksum,
                 storage_path=str(shard_path),
-                upload_time_seconds=0.1  # Local storage is fast
+                upload_time_seconds=0.1,  # Local storage is fast
             )
 
         except Exception as e:
             raise RuntimeError(f"Local storage failed: {e!s}")
 
-    async def _store_shard_s3(self, shard: dict[str, Any], backup_id: str,
-                            location: StorageLocation) -> StorageResult:
+    async def _store_shard_s3(
+        self, shard: dict[str, Any], backup_id: str, location: StorageLocation
+    ) -> StorageResult:
         """Store shard to AWS S3 with retries."""
         if not AWS_AVAILABLE or "aws_s3" not in self.cloud_clients:
             raise RuntimeError("AWS S3 not available")
@@ -438,13 +492,19 @@ class StorageManager:
                     "backup_id": backup_id,
                     "shard_id": shard["shard_id"],
                     "checksum": shard["checksum"],
-                    "created_at": shard["created_at"].isoformat() if hasattr(shard.get("created_at"), "isoformat") else str(shard.get("created_at"))
+                    "created_at": (
+                        shard["created_at"].isoformat()
+                        if hasattr(shard.get("created_at"), "isoformat")
+                        else str(shard.get("created_at"))
+                    ),
                 },
-                StorageClass=self._map_storage_class_to_s3(location.storage_class)
+                StorageClass=self._map_storage_class_to_s3(location.storage_class),
             )
 
         try:
-            await self._retry_async(do_put, retries=self.config.get("cloud_retries", 3), initial_delay=0.5)
+            await self._retry_async(
+                do_put, retries=self.config.get("cloud_retries", 3), initial_delay=0.5
+            )
             upload_time = time.time() - start_time
 
             # Update location usage
@@ -457,15 +517,16 @@ class StorageManager:
                 size_bytes=shard["size"],
                 checksum=shard["checksum"],
                 storage_path=f"s3://{bucket_name}/{key}",
-                upload_time_seconds=upload_time
+                upload_time_seconds=upload_time,
             )
 
         except Exception as e:
             self.logger.error(f"S3 upload failed for {key}: {e!s}")
             raise RuntimeError(f"S3 storage failed: {e!s}")
 
-    async def _store_shard_azure(self, shard: dict[str, Any], backup_id: str,
-                               location: StorageLocation) -> StorageResult:
+    async def _store_shard_azure(
+        self, shard: dict[str, Any], backup_id: str, location: StorageLocation
+    ) -> StorageResult:
         """Store shard to Azure Blob Storage with retries."""
         if not AZURE_AVAILABLE or "azure_blob" not in self.cloud_clients:
             raise RuntimeError("Azure Blob Storage not available")
@@ -477,21 +538,31 @@ class StorageManager:
         start_time = time.time()
 
         def do_upload():
-            blob_client = blob_service.get_blob_client(container=container_name, blob=blob_name)
+            blob_client = blob_service.get_blob_client(
+                container=container_name, blob=blob_name
+            )
             blob_client.upload_blob(
                 shard["data"],
                 metadata={
                     "backup_id": backup_id,
                     "shard_id": shard["shard_id"],
                     "checksum": shard["checksum"],
-                    "created_at": shard["created_at"].isoformat() if hasattr(shard.get("created_at"), "isoformat") else str(shard.get("created_at"))
+                    "created_at": (
+                        shard["created_at"].isoformat()
+                        if hasattr(shard.get("created_at"), "isoformat")
+                        else str(shard.get("created_at"))
+                    ),
                 },
-                overwrite=True
+                overwrite=True,
             )
             return True
 
         try:
-            await self._retry_async(do_upload, retries=self.config.get("cloud_retries", 3), initial_delay=0.5)
+            await self._retry_async(
+                do_upload,
+                retries=self.config.get("cloud_retries", 3),
+                initial_delay=0.5,
+            )
             upload_time = time.time() - start_time
 
             location.current_usage_gb += shard["size"] / (1024 * 1024 * 1024)
@@ -503,15 +574,16 @@ class StorageManager:
                 size_bytes=shard["size"],
                 checksum=shard["checksum"],
                 storage_path=f"azure://{container_name}/{blob_name}",
-                upload_time_seconds=upload_time
+                upload_time_seconds=upload_time,
             )
 
         except Exception as e:
             self.logger.error(f"Azure Blob upload failed for {blob_name}: {e!s}")
             raise RuntimeError(f"Azure Blob storage failed: {e!s}")
 
-    async def _store_shard_gcs(self, shard: dict[str, Any], backup_id: str,
-                             location: StorageLocation) -> StorageResult:
+    async def _store_shard_gcs(
+        self, shard: dict[str, Any], backup_id: str, location: StorageLocation
+    ) -> StorageResult:
         """Store shard to Google Cloud Storage with retries."""
         if not GCP_AVAILABLE or "google_cloud" not in self.cloud_clients:
             raise RuntimeError("Google Cloud Storage not available")
@@ -530,14 +602,24 @@ class StorageManager:
                 "backup_id": backup_id,
                 "shard_id": shard["shard_id"],
                 "checksum": shard["checksum"],
-                "created_at": shard["created_at"].isoformat() if hasattr(shard.get("created_at"), "isoformat") else str(shard.get("created_at"))
+                "created_at": (
+                    shard["created_at"].isoformat()
+                    if hasattr(shard.get("created_at"), "isoformat")
+                    else str(shard.get("created_at"))
+                ),
             }
             # upload_from_string handles bytes
-            blob.upload_from_string(shard["data"], content_type="application/octet-stream")
+            blob.upload_from_string(
+                shard["data"], content_type="application/octet-stream"
+            )
             return True
 
         try:
-            await self._retry_async(do_upload, retries=self.config.get("cloud_retries", 3), initial_delay=0.5)
+            await self._retry_async(
+                do_upload,
+                retries=self.config.get("cloud_retries", 3),
+                initial_delay=0.5,
+            )
             upload_time = time.time() - start_time
 
             location.current_usage_gb += shard["size"] / (1024 * 1024 * 1024)
@@ -549,7 +631,7 @@ class StorageManager:
                 size_bytes=shard["size"],
                 checksum=shard["checksum"],
                 storage_path=f"gs://{bucket_name}/{blob_name}",
-                upload_time_seconds=upload_time
+                upload_time_seconds=upload_time,
             )
 
         except Exception as e:
@@ -562,7 +644,7 @@ class StorageManager:
             StorageClass.HOT: "STANDARD",
             StorageClass.WARM: "STANDARD_IA",
             StorageClass.COLD: "GLACIER",
-            StorageClass.GLACIER: "DEEP_ARCHIVE"
+            StorageClass.GLACIER: "DEEP_ARCHIVE",
         }
         return mapping.get(storage_class, "STANDARD")
 
@@ -576,7 +658,9 @@ class StorageManager:
                     shutil.rmtree(backup_dir)
                     self.logger.info(f"Cleaned up local partial backup: {backup_id}")
             except Exception as e:
-                self.logger.error(f"Failed to cleanup local partial backup {backup_id}: {e!s}")
+                self.logger.error(
+                    f"Failed to cleanup local partial backup {backup_id}: {e!s}"
+                )
 
             # Cloud cleanup - remove any partial objects for this backup
             tasks = []
@@ -584,11 +668,23 @@ class StorageManager:
                 if not location.enabled:
                     continue
                 if location.provider == StorageProvider.AWS_S3:
-                    tasks.append(self._delete_backup_from_s3(location.endpoint, backup_id, safe=True))
+                    tasks.append(
+                        self._delete_backup_from_s3(
+                            location.endpoint, backup_id, safe=True
+                        )
+                    )
                 elif location.provider == StorageProvider.AZURE_BLOB:
-                    tasks.append(self._delete_backup_from_azure(location.endpoint, backup_id, safe=True))
+                    tasks.append(
+                        self._delete_backup_from_azure(
+                            location.endpoint, backup_id, safe=True
+                        )
+                    )
                 elif location.provider == StorageProvider.GOOGLE_CLOUD:
-                    tasks.append(self._delete_backup_from_gcs(location.endpoint, backup_id, safe=True))
+                    tasks.append(
+                        self._delete_backup_from_gcs(
+                            location.endpoint, backup_id, safe=True
+                        )
+                    )
 
             if tasks:
                 results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -614,14 +710,18 @@ class StorageManager:
                             shard_file.unlink()
                             deleted_count += 1
                         except Exception as e:
-                            self.logger.error(f"Failed to delete local shard file {shard_file}: {e!s}")
+                            self.logger.error(
+                                f"Failed to delete local shard file {shard_file}: {e!s}"
+                            )
                     try:
                         if not any(backup_dir.iterdir()):
                             backup_dir.rmdir()
                     except Exception:
                         pass
             except Exception as e:
-                self.logger.error(f"Failed to delete local shards for backup {backup_id}: {e!s}")
+                self.logger.error(
+                    f"Failed to delete local shards for backup {backup_id}: {e!s}"
+                )
 
             # Cloud deletions
             tasks = []
@@ -629,11 +729,23 @@ class StorageManager:
                 if not location.enabled:
                     continue
                 if location.provider == StorageProvider.AWS_S3:
-                    tasks.append(self._delete_backup_from_s3(location.endpoint, backup_id, safe=False))
+                    tasks.append(
+                        self._delete_backup_from_s3(
+                            location.endpoint, backup_id, safe=False
+                        )
+                    )
                 elif location.provider == StorageProvider.AZURE_BLOB:
-                    tasks.append(self._delete_backup_from_azure(location.endpoint, backup_id, safe=False))
+                    tasks.append(
+                        self._delete_backup_from_azure(
+                            location.endpoint, backup_id, safe=False
+                        )
+                    )
                 elif location.provider == StorageProvider.GOOGLE_CLOUD:
-                    tasks.append(self._delete_backup_from_gcs(location.endpoint, backup_id, safe=False))
+                    tasks.append(
+                        self._delete_backup_from_gcs(
+                            location.endpoint, backup_id, safe=False
+                        )
+                    )
 
             if tasks:
                 results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -658,7 +770,7 @@ class StorageManager:
                 "invalid_shards": 0,
                 "missing_shards": 0,
                 "shard_details": [],
-                "all_shards_valid": False
+                "all_shards_valid": False,
             }
 
             # Check local storage
@@ -669,7 +781,7 @@ class StorageManager:
 
                 for shard_file in shard_files:
                     try:
-                        with open(shard_file, 'rb') as f:
+                        with open(shard_file, "rb") as f:
                             shard_data = f.read()
 
                         # Calculate checksum
@@ -682,7 +794,7 @@ class StorageManager:
                             "shard_file": shard_file.name,
                             "size": len(shard_data),
                             "checksum": calculated_checksum,
-                            "valid": is_valid
+                            "valid": is_valid,
                         }
 
                         verification_results["shard_details"].append(shard_detail)
@@ -697,8 +809,8 @@ class StorageManager:
                         self.logger.error(f"Failed to verify shard {shard_file}: {e!s}")
 
             verification_results["all_shards_valid"] = (
-                verification_results["invalid_shards"] == 0 and
-                verification_results["total_shards"] > 0
+                verification_results["invalid_shards"] == 0
+                and verification_results["total_shards"] > 0
             )
 
             return verification_results
@@ -712,12 +824,14 @@ class StorageManager:
         try:
             usage_stats = {
                 "total_storage_locations": len(self.storage_locations),
-                "enabled_locations": len([loc for loc in self.storage_locations.values() if loc.enabled]),
+                "enabled_locations": len(
+                    [loc for loc in self.storage_locations.values() if loc.enabled]
+                ),
                 "storage_locations": {},
                 "total_usage_gb": 0.0,
                 "total_capacity_gb": 0.0,
                 "usage_percentage": 0.0,
-                "statistics": self.storage_stats.copy()
+                "statistics": self.storage_stats.copy(),
             }
 
             total_usage = 0.0
@@ -731,11 +845,13 @@ class StorageManager:
                     "max_size_gb": location.max_size_gb,
                     "usage_percentage": 0.0,
                     "storage_class": location.storage_class.value,
-                    "priority": location.priority
+                    "priority": location.priority,
                 }
 
                 if location.max_size_gb:
-                    location_stats["usage_percentage"] = (location.current_usage_gb / location.max_size_gb) * 100
+                    location_stats["usage_percentage"] = (
+                        location.current_usage_gb / location.max_size_gb
+                    ) * 100
                     total_capacity += location.max_size_gb
 
                 total_usage += location.current_usage_gb
@@ -759,13 +875,19 @@ class StorageManager:
             # Simple optimization: disable locations that are over 90% capacity
             for location in self.storage_locations.values():
                 if location.max_size_gb:
-                    usage_percentage = (location.current_usage_gb / location.max_size_gb) * 100
+                    usage_percentage = (
+                        location.current_usage_gb / location.max_size_gb
+                    ) * 100
                     if usage_percentage > 90:
                         location.enabled = False
-                        self.logger.warning(f"Disabled storage location {location.location_id} due to high usage: {usage_percentage:.1f}%")
+                        self.logger.warning(
+                            f"Disabled storage location {location.location_id} due to high usage: {usage_percentage:.1f}%"
+                        )
                     elif usage_percentage < 80 and not location.enabled:
                         location.enabled = True
-                        self.logger.info(f"Re-enabled storage location {location.location_id}, usage: {usage_percentage:.1f}%")
+                        self.logger.info(
+                            f"Re-enabled storage location {location.location_id}, usage: {usage_percentage:.1f}%"
+                        )
 
         except Exception as e:
             self.logger.error(f"Failed to optimize storage locations: {e!s}")
@@ -791,7 +913,7 @@ class StorageManager:
                 "unhealthy_locations": 0,
                 "disabled_locations": 0,
                 "location_health": {},
-                "alerts": []
+                "alerts": [],
             }
 
             for location_id, location in self.storage_locations.items():
@@ -801,13 +923,19 @@ class StorageManager:
                     location_health = "disabled"
                     health_status["disabled_locations"] += 1
                 elif location.max_size_gb:
-                    usage_percentage = (location.current_usage_gb / location.max_size_gb) * 100
+                    usage_percentage = (
+                        location.current_usage_gb / location.max_size_gb
+                    ) * 100
                     if usage_percentage > 95:
                         location_health = "critical"
-                        health_status["alerts"].append(f"Storage location {location_id} is critically full: {usage_percentage:.1f}%")
+                        health_status["alerts"].append(
+                            f"Storage location {location_id} is critically full: {usage_percentage:.1f}%"
+                        )
                     elif usage_percentage > 85:
                         location_health = "warning"
-                        health_status["alerts"].append(f"Storage location {location_id} is getting full: {usage_percentage:.1f}%")
+                        health_status["alerts"].append(
+                            f"Storage location {location_id} is getting full: {usage_percentage:.1f}%"
+                        )
 
                 health_status["location_health"][location_id] = location_health
 
@@ -817,7 +945,10 @@ class StorageManager:
                     health_status["unhealthy_locations"] += 1
 
             # Determine overall health
-            if health_status["unhealthy_locations"] > health_status["healthy_locations"]:
+            if (
+                health_status["unhealthy_locations"]
+                > health_status["healthy_locations"]
+            ):
                 health_status["overall_health"] = "critical"
             elif health_status["unhealthy_locations"] > 0:
                 health_status["overall_health"] = "warning"
@@ -848,16 +979,24 @@ class StorageManager:
                         shard_file.unlink()
                         deleted_count += 1
                     except Exception as e:
-                        self.logger.error(f"Failed to delete shard file {shard_file}: {e!s}")
+                        self.logger.error(
+                            f"Failed to delete shard file {shard_file}: {e!s}"
+                        )
 
-                for metadata_file in self.metadata_storage.glob(f"{backup_id}_shard_*_metadata.json"):
+                for metadata_file in self.metadata_storage.glob(
+                    f"{backup_id}_shard_*_metadata.json"
+                ):
                     try:
                         metadata_file.unlink()
                         deleted_count += 1
                     except Exception as e:
-                        self.logger.error(f"Failed to delete metadata file {metadata_file}: {e!s}")
+                        self.logger.error(
+                            f"Failed to delete metadata file {metadata_file}: {e!s}"
+                        )
             except Exception as e:
-                self.logger.error(f"Error during local deletion for backup {backup_id}: {e!s}")
+                self.logger.error(
+                    f"Error during local deletion for backup {backup_id}: {e!s}"
+                )
 
             # Delete cloud objects related to backup
             tasks = []
@@ -866,13 +1005,27 @@ class StorageManager:
                     continue
                 try:
                     if location.provider == StorageProvider.AWS_S3:
-                        tasks.append(self._delete_backup_from_s3(location.endpoint, backup_id, safe=False))
+                        tasks.append(
+                            self._delete_backup_from_s3(
+                                location.endpoint, backup_id, safe=False
+                            )
+                        )
                     elif location.provider == StorageProvider.AZURE_BLOB:
-                        tasks.append(self._delete_backup_from_azure(location.endpoint, backup_id, safe=False))
+                        tasks.append(
+                            self._delete_backup_from_azure(
+                                location.endpoint, backup_id, safe=False
+                            )
+                        )
                     elif location.provider == StorageProvider.GOOGLE_CLOUD:
-                        tasks.append(self._delete_backup_from_gcs(location.endpoint, backup_id, safe=False))
+                        tasks.append(
+                            self._delete_backup_from_gcs(
+                                location.endpoint, backup_id, safe=False
+                            )
+                        )
                 except Exception as e:
-                    self.logger.error(f"Failed to schedule deletion for {location.location_id}: {e!s}")
+                    self.logger.error(
+                        f"Failed to schedule deletion for {location.location_id}: {e!s}"
+                    )
 
             if tasks:
                 results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -891,7 +1044,9 @@ class StorageManager:
 
     # Cloud deletion helpers
 
-    async def _delete_backup_from_s3(self, bucket_name: str, backup_id: str, safe: bool = False) -> dict[str, Any]:
+    async def _delete_backup_from_s3(
+        self, bucket_name: str, backup_id: str, safe: bool = False
+    ) -> dict[str, Any]:
         """Delete all objects under backups/{backup_id}/ in S3 bucket."""
         if not AWS_AVAILABLE or "aws_s3" not in self.cloud_clients:
             msg = "AWS S3 not available for deletion"
@@ -908,9 +1063,13 @@ class StorageManager:
             return s3_client.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
 
         try:
-            response = await self._retry_async(list_objects, retries=self.config.get("cloud_retries", 3))
+            response = await self._retry_async(
+                list_objects, retries=self.config.get("cloud_retries", 3)
+            )
             # If no contents, nothing to delete
-            contents = response.get("Contents", []) if isinstance(response, dict) else []
+            contents = (
+                response.get("Contents", []) if isinstance(response, dict) else []
+            )
             if not contents:
                 return {"deleted_count": 0}
 
@@ -918,24 +1077,34 @@ class StorageManager:
             keys = [{"Key": obj["Key"]} for obj in contents]
             # AWS supports deleting up to 1000 keys per request
             for i in range(0, len(keys), 1000):
-                batch = keys[i:i+1000]
+                batch = keys[i : i + 1000]
 
                 def do_delete(batch_keys):
-                    return s3_client.delete_objects(Bucket=bucket_name, Delete={"Objects": batch_keys})
+                    return s3_client.delete_objects(
+                        Bucket=bucket_name, Delete={"Objects": batch_keys}
+                    )
 
-                del_resp = await self._retry_async(do_delete, batch, retries=self.config.get("cloud_retries", 3))
+                del_resp = await self._retry_async(
+                    do_delete, batch, retries=self.config.get("cloud_retries", 3)
+                )
                 deleted += len(batch)
 
-            self.logger.info(f"Deleted {deleted} objects from s3://{bucket_name}/{prefix}")
+            self.logger.info(
+                f"Deleted {deleted} objects from s3://{bucket_name}/{prefix}"
+            )
             return {"deleted_count": deleted}
 
         except Exception as e:
-            self.logger.error(f"Failed to delete S3 backup objects for {backup_id} in {bucket_name}: {e!s}")
+            self.logger.error(
+                f"Failed to delete S3 backup objects for {backup_id} in {bucket_name}: {e!s}"
+            )
             if safe:
                 return {"deleted_count": 0}
             raise
 
-    async def _delete_backup_from_azure(self, container_name: str, backup_id: str, safe: bool = False) -> dict[str, Any]:
+    async def _delete_backup_from_azure(
+        self, container_name: str, backup_id: str, safe: bool = False
+    ) -> dict[str, Any]:
         """Delete all blobs under backups/{backup_id}/ in Azure container."""
         if not AZURE_AVAILABLE or "azure_blob" not in self.cloud_clients:
             msg = "Azure Blob Storage not available for deletion"
@@ -956,18 +1125,26 @@ class StorageManager:
             return len(blobs)
 
         try:
-            count = await self._retry_async(list_and_delete, retries=self.config.get("cloud_retries", 3))
+            count = await self._retry_async(
+                list_and_delete, retries=self.config.get("cloud_retries", 3)
+            )
             deleted += count or 0
-            self.logger.info(f"Deleted {deleted} blobs from azure://{container_name}/{prefix}")
+            self.logger.info(
+                f"Deleted {deleted} blobs from azure://{container_name}/{prefix}"
+            )
             return {"deleted_count": deleted}
 
         except Exception as e:
-            self.logger.error(f"Failed to delete Azure blobs for {backup_id} in {container_name}: {e!s}")
+            self.logger.error(
+                f"Failed to delete Azure blobs for {backup_id} in {container_name}: {e!s}"
+            )
             if safe:
                 return {"deleted_count": 0}
             raise
 
-    async def _delete_backup_from_gcs(self, bucket_name: str, backup_id: str, safe: bool = False) -> dict[str, Any]:
+    async def _delete_backup_from_gcs(
+        self, bucket_name: str, backup_id: str, safe: bool = False
+    ) -> dict[str, Any]:
         """Delete all objects under backups/{backup_id}/ in GCS bucket."""
         if not GCP_AVAILABLE or "google_cloud" not in self.cloud_clients:
             msg = "Google Cloud Storage not available for deletion"
@@ -988,13 +1165,19 @@ class StorageManager:
             return len(blobs)
 
         try:
-            count = await self._retry_async(do_delete, retries=self.config.get("cloud_retries", 3))
+            count = await self._retry_async(
+                do_delete, retries=self.config.get("cloud_retries", 3)
+            )
             deleted += count or 0
-            self.logger.info(f"Deleted {deleted} objects from gs://{bucket_name}/{prefix}")
+            self.logger.info(
+                f"Deleted {deleted} objects from gs://{bucket_name}/{prefix}"
+            )
             return {"deleted_count": deleted}
 
         except Exception as e:
-            self.logger.error(f"Failed to delete GCS objects for {backup_id} in {bucket_name}: {e!s}")
+            self.logger.error(
+                f"Failed to delete GCS objects for {backup_id} in {bucket_name}: {e!s}"
+            )
             if safe:
                 return {"deleted_count": 0}
             raise
@@ -1019,7 +1202,7 @@ class StorageManager:
                 "shard_count": shard_count,
                 "metadata_count": metadata_count,
                 "total_size_bytes": total_size,
-                "storage_root": str(self.storage_root)
+                "storage_root": str(self.storage_root),
             }
 
         except Exception as e:

@@ -38,6 +38,7 @@ ai_layer = AIAbstractionLayer()
 # Create router
 router = APIRouter(prefix="/ui/ai", tags=["AI Management UI"])
 
+
 @router.get("/", response_class=HTMLResponse)
 async def ai_dashboard(request: Request):
     """AI management dashboard."""
@@ -52,7 +53,9 @@ async def ai_dashboard(request: Request):
         providers = ai_layer.providers
 
         # Get recent requests (last 10)
-        recent_requests = ai_layer.request_history[-10:] if ai_layer.request_history else []
+        recent_requests = (
+            ai_layer.request_history[-10:] if ai_layer.request_history else []
+        )
 
         context = {
             "request": request,
@@ -62,7 +65,7 @@ async def ai_dashboard(request: Request):
             "recent_requests": recent_requests,
             "model_capabilities": [cap.value for cap in ModelCapability],
             "ai_providers": [provider.value for provider in AIProvider],
-            "model_statuses": [status.value for status in ModelStatus]
+            "model_statuses": [status.value for status in ModelStatus],
         }
 
         return templates.TemplateResponse("ai_dashboard.html", context)
@@ -70,6 +73,7 @@ async def ai_dashboard(request: Request):
     except Exception as e:
         logger.error(f"AI dashboard error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/models", response_class=HTMLResponse)
 async def models_management(request: Request):
@@ -84,7 +88,7 @@ async def models_management(request: Request):
             "model_health": model_health,
             "model_capabilities": [cap.value for cap in ModelCapability],
             "ai_providers": [provider.value for provider in AIProvider],
-            "model_statuses": [status.value for status in ModelStatus]
+            "model_statuses": [status.value for status in ModelStatus],
         }
 
         return templates.TemplateResponse("ai_models.html", context)
@@ -92,6 +96,7 @@ async def models_management(request: Request):
     except Exception as e:
         logger.error(f"Models management error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/models/add")
 async def add_model_form(
@@ -105,7 +110,7 @@ async def add_model_form(
     context_window: int = Form(...),
     priority: int = Form(1),
     supports_streaming: bool = Form(False),
-    supports_functions: bool = Form(False)
+    supports_functions: bool = Form(False),
 ):
     """Add new AI model via form."""
     try:
@@ -119,7 +124,7 @@ async def add_model_form(
             context_window=context_window,
             priority=priority,
             supports_streaming=supports_streaming,
-            supports_functions=supports_functions
+            supports_functions=supports_functions,
         )
 
         success = await ai_layer.add_model(model)
@@ -131,6 +136,7 @@ async def add_model_form(
     except Exception as e:
         logger.error(f"Add model form error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/models/{model_id}/delete")
 async def delete_model_form(model_id: str):
@@ -146,6 +152,7 @@ async def delete_model_form(model_id: str):
         logger.error(f"Delete model form error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.post("/models/{model_id}/status")
 async def update_model_status_form(model_id: str, status: str = Form(...)):
     """Update model status via form."""
@@ -160,6 +167,7 @@ async def update_model_status_form(model_id: str, status: str = Form(...)):
         logger.error(f"Update model status form error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.get("/providers", response_class=HTMLResponse)
 async def providers_management(request: Request):
     """AI providers management page."""
@@ -169,7 +177,7 @@ async def providers_management(request: Request):
         context = {
             "request": request,
             "providers": providers,
-            "ai_providers": [provider.value for provider in AIProvider]
+            "ai_providers": [provider.value for provider in AIProvider],
         }
 
         return templates.TemplateResponse("ai_providers.html", context)
@@ -177,6 +185,7 @@ async def providers_management(request: Request):
     except Exception as e:
         logger.error(f"Providers management error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/providers/configure")
 async def configure_provider_form(
@@ -187,15 +196,11 @@ async def configure_provider_form(
     enabled: bool = Form(False),
     organization: str = Form(""),
     timeout: int = Form(30),
-    max_retries: int = Form(3)
+    max_retries: int = Form(3),
 ):
     """Configure AI provider via form."""
     try:
-        config = {
-            "enabled": enabled,
-            "timeout": timeout,
-            "max_retries": max_retries
-        }
+        config = {"enabled": enabled, "timeout": timeout, "max_retries": max_retries}
 
         if api_key:
             config["api_key"] = api_key
@@ -208,11 +213,15 @@ async def configure_provider_form(
         if not success:
             raise HTTPException(status_code=400, detail="Failed to configure provider")
 
-        return {"success": True, "message": f"Provider {provider} configured successfully"}
+        return {
+            "success": True,
+            "message": f"Provider {provider} configured successfully",
+        }
 
     except Exception as e:
         logger.error(f"Configure provider form error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/permissions", response_class=HTMLResponse)
 async def permissions_management(request: Request):
@@ -227,7 +236,7 @@ async def permissions_management(request: Request):
             "user_permissions": user_permissions,
             "admin_users": admin_users,
             "models": models,
-            "model_capabilities": [cap.value for cap in ModelCapability]
+            "model_capabilities": [cap.value for cap in ModelCapability],
         }
 
         return templates.TemplateResponse("ai_permissions.html", context)
@@ -236,19 +245,18 @@ async def permissions_management(request: Request):
         logger.error(f"Permissions management error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.post("/permissions/add")
 async def add_permission_form(
     request: Request,
     user_id: str = Form(...),
     model_id: str = Form(...),
-    capabilities: list[str] = Form(...)
+    capabilities: list[str] = Form(...),
 ):
     """Add user permission via form."""
     try:
         ai_layer.access_control.add_user_permission(
-            user_id,
-            model_id,
-            [ModelCapability(cap) for cap in capabilities]
+            user_id, model_id, [ModelCapability(cap) for cap in capabilities]
         )
         ai_layer.save_config()
 
@@ -257,6 +265,7 @@ async def add_permission_form(
     except Exception as e:
         logger.error(f"Add permission form error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/monitoring", response_class=HTMLResponse)
 async def ai_monitoring(request: Request):
@@ -272,8 +281,12 @@ async def ai_monitoring(request: Request):
         model_health = ai_layer.model_health
 
         # Get recent activity
-        recent_requests = ai_layer.request_history[-20:] if ai_layer.request_history else []
-        recent_responses = ai_layer.response_history[-20:] if ai_layer.response_history else []
+        recent_requests = (
+            ai_layer.request_history[-20:] if ai_layer.request_history else []
+        )
+        recent_responses = (
+            ai_layer.response_history[-20:] if ai_layer.response_history else []
+        )
 
         # Calculate statistics
         total_requests = len(ai_layer.request_history)
@@ -282,7 +295,9 @@ async def ai_monitoring(request: Request):
 
         avg_latency = 0
         if ai_layer.response_history:
-            avg_latency = sum(r.latency_ms for r in ai_layer.response_history) / len(ai_layer.response_history)
+            avg_latency = sum(r.latency_ms for r in ai_layer.response_history) / len(
+                ai_layer.response_history
+            )
 
         total_cost = sum(r.cost for r in ai_layer.response_history)
 
@@ -297,11 +312,15 @@ async def ai_monitoring(request: Request):
                 "total_requests": total_requests,
                 "successful_requests": successful_requests,
                 "failed_requests": failed_requests,
-                "success_rate": (successful_requests / total_requests * 100) if total_requests > 0 else 0,
+                "success_rate": (
+                    (successful_requests / total_requests * 100)
+                    if total_requests > 0
+                    else 0
+                ),
                 "avg_latency": avg_latency,
                 "total_cost": total_cost,
-                "cache_size": len(ai_layer.request_cache)
-            }
+                "cache_size": len(ai_layer.request_cache),
+            },
         }
 
         return templates.TemplateResponse("ai_monitoring.html", context)
@@ -309,6 +328,7 @@ async def ai_monitoring(request: Request):
     except Exception as e:
         logger.error(f"AI monitoring error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/test", response_class=HTMLResponse)
 async def ai_test_interface(request: Request):
@@ -320,7 +340,7 @@ async def ai_test_interface(request: Request):
         context = {
             "request": request,
             "models": available_models,
-            "model_capabilities": [cap.value for cap in ModelCapability]
+            "model_capabilities": [cap.value for cap in ModelCapability],
         }
 
         return templates.TemplateResponse("ai_test.html", context)
@@ -328,6 +348,7 @@ async def ai_test_interface(request: Request):
     except Exception as e:
         logger.error(f"AI test interface error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/test/request")
 async def test_ai_request(
@@ -337,7 +358,7 @@ async def test_ai_request(
     prompt: str = Form(...),
     max_tokens: int = Form(100),
     temperature: float = Form(0.7),
-    system_prompt: str = Form("")
+    system_prompt: str = Form(""),
 ):
     """Test AI request via form."""
     try:
@@ -347,7 +368,7 @@ async def test_ai_request(
             prompt=prompt,
             max_tokens=max_tokens,
             temperature=temperature,
-            system_prompt=system_prompt if system_prompt else None
+            system_prompt=system_prompt if system_prompt else None,
         )
 
         response = await ai_layer.process_request(ai_request)
@@ -362,13 +383,14 @@ async def test_ai_request(
                 "provider": response.provider,
                 "cached": response.cached,
                 "fallback_used": response.fallback_used,
-                "error": response.error
-            }
+                "error": response.error,
+            },
         }
 
     except Exception as e:
         logger.error(f"Test AI request error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/cache/clear")
 async def clear_cache_form():

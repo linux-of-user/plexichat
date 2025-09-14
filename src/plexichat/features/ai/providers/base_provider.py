@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 class ProviderStatus(Enum):
     """Provider status enumeration."""
+
     AVAILABLE = "available"
     UNAVAILABLE = "unavailable"
     ERROR = "error"
@@ -35,6 +36,7 @@ class ProviderStatus(Enum):
 @dataclass
 class ProviderConfig:
     """Base configuration for AI providers."""
+
     api_key: str | None = None
     base_url: str | None = None
     timeout: int = 30
@@ -68,7 +70,9 @@ class BaseAIProvider(ABC):
                 logger.info(f"Provider disabled: {self.__class__.__name__}")
         except Exception as e:
             self.status = ProviderStatus.ERROR
-            logger.error(f"Failed to initialize provider {self.__class__.__name__}: {e}")
+            logger.error(
+                f"Failed to initialize provider {self.__class__.__name__}: {e}"
+            )
 
     @abstractmethod
     async def test_connection(self) -> bool:
@@ -140,8 +144,10 @@ class BaseAIProvider(ABC):
         return {
             "status": self.status.value,
             "models_count": len(self.models),
-            "last_health_check": self.last_health_check.isoformat() if self.last_health_check else None,
-            "metrics": self.metrics
+            "last_health_check": (
+                self.last_health_check.isoformat() if self.last_health_check else None
+            ),
+            "metrics": self.metrics,
         }
 
     def update_metrics(self, metric_name: str, value: Any) -> None:

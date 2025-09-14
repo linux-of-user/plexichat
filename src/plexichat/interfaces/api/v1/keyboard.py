@@ -21,20 +21,31 @@ logger = logging.getLogger(__name__)
 
 class ShortcutCreate(BaseModel):
     """Model for creating a new shortcut."""
+
     shortcut_key: str = Field(..., description="The keyboard shortcut key combination")
-    action: str = Field(..., description="The action to perform when shortcut is triggered")
-    description: str | None = Field(None, description="Optional description of the shortcut")
+    action: str = Field(
+        ..., description="The action to perform when shortcut is triggered"
+    )
+    description: str | None = Field(
+        None, description="Optional description of the shortcut"
+    )
 
 
 class ShortcutUpdate(BaseModel):
     """Model for updating an existing shortcut."""
+
     shortcut_key: str = Field(..., description="The keyboard shortcut key combination")
-    action: str = Field(..., description="The action to perform when shortcut is triggered")
-    description: str | None = Field(None, description="Optional description of the shortcut")
+    action: str = Field(
+        ..., description="The action to perform when shortcut is triggered"
+    )
+    description: str | None = Field(
+        None, description="Optional description of the shortcut"
+    )
 
 
 class ShortcutResponse(BaseModel):
     """Response model for shortcut data."""
+
     id: str
     user_id: str
     shortcut_key: str
@@ -47,6 +58,7 @@ class ShortcutResponse(BaseModel):
 
 class DefaultShortcutResponse(BaseModel):
     """Response model for default shortcuts."""
+
     shortcut_key: str
     action: str
     description: str
@@ -55,11 +67,13 @@ class DefaultShortcutResponse(BaseModel):
 
 class ValidationRequest(BaseModel):
     """Request model for shortcut validation."""
+
     shortcut_key: str = Field(..., description="The shortcut key to validate")
 
 
 class ValidationResponse(BaseModel):
     """Response model for shortcut validation."""
+
     is_conflict: bool
     message: str
 
@@ -74,7 +88,7 @@ def _shortcut_to_response(shortcut: KeyboardShortcut) -> ShortcutResponse:
         description=shortcut.description,
         is_custom=shortcut.is_custom,
         created_at=shortcut.created_at.isoformat(),
-        updated_at=shortcut.updated_at.isoformat()
+        updated_at=shortcut.updated_at.isoformat(),
     )
 
 
@@ -90,7 +104,7 @@ async def get_user_shortcuts(current_user: dict = Depends(get_current_user)):
         if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not authenticated"
+                detail="User not authenticated",
             )
 
         shortcuts = await keyboard_shortcuts_service.get_shortcuts(user_id)
@@ -104,14 +118,15 @@ async def get_user_shortcuts(current_user: dict = Depends(get_current_user)):
         logger.error(f"Error getting shortcuts for user: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve shortcuts"
+            detail="Failed to retrieve shortcuts",
         )
 
 
-@router.post("/shortcuts", response_model=ShortcutResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/shortcuts", response_model=ShortcutResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_shortcut(
-    shortcut_data: ShortcutCreate,
-    current_user: dict = Depends(get_current_user)
+    shortcut_data: ShortcutCreate, current_user: dict = Depends(get_current_user)
 ):
     """
     Create a new keyboard shortcut for the current user.
@@ -123,7 +138,7 @@ async def create_shortcut(
         if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not authenticated"
+                detail="User not authenticated",
             )
 
         # Convert to dict for service
@@ -131,7 +146,7 @@ async def create_shortcut(
             "shortcut_key": shortcut_data.shortcut_key,
             "action": shortcut_data.action,
             "description": shortcut_data.description or "",
-            "is_custom": True
+            "is_custom": True,
         }
 
         shortcut = await keyboard_shortcuts_service.add_shortcut(user_id, shortcut_dict)
@@ -139,7 +154,7 @@ async def create_shortcut(
         if not shortcut:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail="Shortcut key conflicts with existing shortcut"
+                detail="Shortcut key conflicts with existing shortcut",
             )
 
         logger.info(f"Created shortcut {shortcut.id} for user {user_id}")
@@ -151,7 +166,7 @@ async def create_shortcut(
         logger.error(f"Error creating shortcut for user: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to create shortcut"
+            detail="Failed to create shortcut",
         )
 
 
@@ -159,7 +174,7 @@ async def create_shortcut(
 async def update_shortcut(
     shortcut_id: str,
     shortcut_data: ShortcutUpdate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
 ):
     """
     Update an existing keyboard shortcut.
@@ -171,22 +186,24 @@ async def update_shortcut(
         if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not authenticated"
+                detail="User not authenticated",
             )
 
         # Convert to dict for service
         shortcut_dict = {
             "shortcut_key": shortcut_data.shortcut_key,
             "action": shortcut_data.action,
-            "description": shortcut_data.description or ""
+            "description": shortcut_data.description or "",
         }
 
-        shortcut = await keyboard_shortcuts_service.update_shortcut(user_id, shortcut_id, shortcut_dict)
+        shortcut = await keyboard_shortcuts_service.update_shortcut(
+            user_id, shortcut_id, shortcut_dict
+        )
 
         if not shortcut:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Shortcut not found or access denied"
+                detail="Shortcut not found or access denied",
             )
 
         logger.info(f"Updated shortcut {shortcut_id} for user {user_id}")
@@ -198,14 +215,13 @@ async def update_shortcut(
         logger.error(f"Error updating shortcut {shortcut_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update shortcut"
+            detail="Failed to update shortcut",
         )
 
 
 @router.delete("/shortcuts/{shortcut_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_shortcut(
-    shortcut_id: str,
-    current_user: dict = Depends(get_current_user)
+    shortcut_id: str, current_user: dict = Depends(get_current_user)
 ):
     """
     Delete a keyboard shortcut.
@@ -217,7 +233,7 @@ async def delete_shortcut(
         if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not authenticated"
+                detail="User not authenticated",
             )
 
         success = await keyboard_shortcuts_service.remove_shortcut(user_id, shortcut_id)
@@ -225,7 +241,7 @@ async def delete_shortcut(
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Shortcut not found or access denied"
+                detail="Shortcut not found or access denied",
             )
 
         logger.info(f"Deleted shortcut {shortcut_id} for user {user_id}")
@@ -236,7 +252,7 @@ async def delete_shortcut(
         logger.error(f"Error deleting shortcut {shortcut_id}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete shortcut"
+            detail="Failed to delete shortcut",
         )
 
 
@@ -252,12 +268,14 @@ async def get_default_shortcuts():
 
         response = []
         for default in defaults:
-            response.append(DefaultShortcutResponse(
-                shortcut_key=default["shortcut_key"],
-                action=default["action"],
-                description=default["description"],
-                is_custom=default["is_custom"]
-            ))
+            response.append(
+                DefaultShortcutResponse(
+                    shortcut_key=default["shortcut_key"],
+                    action=default["action"],
+                    description=default["description"],
+                    is_custom=default["is_custom"],
+                )
+            )
 
         logger.info(f"Retrieved {len(response)} default shortcuts")
         return response
@@ -266,14 +284,13 @@ async def get_default_shortcuts():
         logger.error(f"Error getting default shortcuts: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to retrieve default shortcuts"
+            detail="Failed to retrieve default shortcuts",
         )
 
 
 @router.post("/validate", response_model=ValidationResponse)
 async def validate_shortcut(
-    validation_data: ValidationRequest,
-    current_user: dict = Depends(get_current_user)
+    validation_data: ValidationRequest, current_user: dict = Depends(get_current_user)
 ):
     """
     Validate if a shortcut key conflicts with existing shortcuts.
@@ -285,12 +302,11 @@ async def validate_shortcut(
         if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User not authenticated"
+                detail="User not authenticated",
             )
 
         is_conflict = await keyboard_shortcuts_service.validate_shortcut_conflicts(
-            validation_data.shortcut_key,
-            user_id
+            validation_data.shortcut_key, user_id
         )
 
         if is_conflict:
@@ -298,7 +314,9 @@ async def validate_shortcut(
         else:
             message = f"Shortcut key '{validation_data.shortcut_key}' is available"
 
-        logger.info(f"Validated shortcut key '{validation_data.shortcut_key}' for user {user_id}: conflict={is_conflict}")
+        logger.info(
+            f"Validated shortcut key '{validation_data.shortcut_key}' for user {user_id}: conflict={is_conflict}"
+        )
         return ValidationResponse(is_conflict=is_conflict, message=message)
 
     except HTTPException:
@@ -307,5 +325,5 @@ async def validate_shortcut(
         logger.error(f"Error validating shortcut: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to validate shortcut"
+            detail="Failed to validate shortcut",
         )

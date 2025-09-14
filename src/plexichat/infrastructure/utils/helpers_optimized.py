@@ -33,8 +33,10 @@ logger = logging.getLogger(__name__)
 # Initialize EXISTING performance systems
 performance_logger = get_performance_logger() if get_performance_logger else None
 
+
 class HelperUtilities:
     """Enhanced helper utilities using EXISTING systems."""
+
     def __init__(self):
         self.performance_logger = performance_logger
 
@@ -45,9 +47,11 @@ class HelperUtilities:
     def generate_short_id(self, length: int = 8) -> str:
         """Generate short ID."""
         alphabet = string.ascii_letters + string.digits
-        return ''.join(secrets.choice(alphabet) for _ in range(length))
+        return "".join(secrets.choice(alphabet) for _ in range(length))
 
-    def format_datetime(self, dt: datetime, format_str: str = "%Y-%m-%d %H:%M:%S") -> str:
+    def format_datetime(
+        self, dt: datetime, format_str: str = "%Y-%m-%d %H:%M:%S"
+    ) -> str:
         """Format datetime to string."""
         try:
             return dt.strftime(format_str)
@@ -55,7 +59,9 @@ class HelperUtilities:
             logger.error(f"Datetime formatting error: {e}")
             return str(dt)
 
-    def parse_datetime(self, dt_str: str, format_str: str = "%Y-%m-%d %H:%M:%S") -> datetime | None:
+    def parse_datetime(
+        self, dt_str: str, format_str: str = "%Y-%m-%d %H:%M:%S"
+    ) -> datetime | None:
         """Parse datetime from string."""
         try:
             return datetime.strptime(dt_str, format_str)
@@ -78,7 +84,9 @@ class HelperUtilities:
             logger.error(f"File size formatting error: {e}")
             return f"{size_bytes} B"
 
-    def truncate_text(self, text: str, max_length: int = 100, suffix: str = "...") -> str:
+    def truncate_text(
+        self, text: str, max_length: int = 100, suffix: str = "..."
+    ) -> str:
         """Truncate text to specified length."""
         try:
             if not text:
@@ -87,7 +95,7 @@ class HelperUtilities:
             if len(text) <= max_length:
                 return text
 
-            return text[:max_length - len(suffix)] + suffix
+            return text[: max_length - len(suffix)] + suffix
         except Exception as e:
             logger.error(f"Text truncation error: {e}")
             return str(text)[:max_length] if text else ""
@@ -99,24 +107,30 @@ class HelperUtilities:
             text = text.lower()
 
             # Replace spaces and special characters with hyphens
-            text = re.sub(r'[^\w\s-]', '', text)
-            text = re.sub(r'[-\s]+', '-', text)
+            text = re.sub(r"[^\w\s-]", "", text)
+            text = re.sub(r"[-\s]+", "-", text)
 
             # Remove leading/trailing hyphens
-            text = text.strip('-')
+            text = text.strip("-")
 
             return text
         except Exception as e:
             logger.error(f"Slugify error: {e}")
-            return str(text).lower().replace(' ', '-')
+            return str(text).lower().replace(" ", "-")
 
-    def deep_merge_dicts(self, dict1: dict[str, Any], dict2: dict[str, Any]) -> dict[str, Any]:
+    def deep_merge_dicts(
+        self, dict1: dict[str, Any], dict2: dict[str, Any]
+    ) -> dict[str, Any]:
         """Deep merge two dictionaries."""
         try:
             result = dict1.copy()
 
             for key, value in dict2.items():
-                if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                if (
+                    key in result
+                    and isinstance(result[key], dict)
+                    and isinstance(value, dict)
+                ):
                     result[key] = self.deep_merge_dicts(result[key], value)
                 else:
                     result[key] = value
@@ -145,7 +159,7 @@ class HelperUtilities:
     def extract_mentions(self, text: str) -> list[str]:
         """Extract @mentions from text."""
         try:
-            mentions = re.findall(r'@(\w+)', text)
+            mentions = re.findall(r"@(\w+)", text)
             return list(set(mentions))  # Remove duplicates
         except Exception as e:
             logger.error(f"Mention extraction error: {e}")
@@ -154,7 +168,7 @@ class HelperUtilities:
     def extract_hashtags(self, text: str) -> list[str]:
         """Extract #hashtags from text."""
         try:
-            hashtags = re.findall(r'#(\w+)', text)
+            hashtags = re.findall(r"#(\w+)", text)
             return list(set(hashtags))  # Remove duplicates
         except Exception as e:
             logger.error(f"Hashtag extraction error: {e}")
@@ -195,7 +209,9 @@ class HelperUtilities:
             logger.error(f"Color generation error: {e}")
             return "#000000"
 
-    def paginate_list(self, items: list[Any], page: int, per_page: int) -> dict[str, Any]:
+    def paginate_list(
+        self, items: list[Any], page: int, per_page: int
+    ) -> dict[str, Any]:
         """Paginate a list of items."""
         try:
             total_items = len(items)
@@ -213,7 +229,7 @@ class HelperUtilities:
                 "total_items": total_items,
                 "total_pages": total_pages,
                 "has_next": page < total_pages,
-                "has_prev": page > 1
+                "has_prev": page > 1,
             }
         except Exception as e:
             logger.error(f"Pagination error: {e}")
@@ -224,11 +240,12 @@ class HelperUtilities:
                 "total_items": 0,
                 "total_pages": 0,
                 "has_next": False,
-                "has_prev": False
+                "has_prev": False,
             }
 
     def debounce(self, wait_time: float):
         """Debounce decorator for functions."""
+
         def decorator(func):
             last_called = [0.0]
 
@@ -242,10 +259,12 @@ class HelperUtilities:
                 return None
 
             return wrapper
+
         return decorator
 
     def retry_on_failure(self, max_retries: int = 3, delay: float = 1.0):
         """Retry decorator for functions."""
+
         def decorator(func):
             def wrapper(*args, **kwargs):
                 last_exception = None
@@ -258,16 +277,20 @@ class HelperUtilities:
                         if attempt < max_retries:
                             time.sleep(delay * (attempt + 1))
                         else:
-                            logger.error(f"Function {func.__name__} failed after {max_retries} retries: {e}")
+                            logger.error(
+                                f"Function {func.__name__} failed after {max_retries} retries: {e}"
+                            )
 
                 if last_exception:
                     raise last_exception
 
             return wrapper
+
         return decorator
 
     async def async_retry_on_failure(self, max_retries: int = 3, delay: float = 1.0):
         """Async retry decorator for functions."""
+
         def decorator(func):
             async def wrapper(*args, **kwargs):
                 last_exception = None
@@ -280,75 +303,97 @@ class HelperUtilities:
                         if attempt < max_retries:
                             await asyncio.sleep(delay * (attempt + 1))
                         else:
-                            logger.error(f"Async function {func.__name__} failed after {max_retries} retries: {e}")
+                            logger.error(
+                                f"Async function {func.__name__} failed after {max_retries} retries: {e}"
+                            )
 
                 if last_exception:
                     raise last_exception
 
             return wrapper
+
         return decorator
+
 
 # Global helper utilities
 helper_utils = HelperUtilities()
+
 
 # Convenience functions
 def generate_uuid() -> str:
     """Generate UUID string."""
     return helper_utils.generate_uuid()
 
+
 def generate_short_id(length: int = 8) -> str:
     """Generate short ID."""
     return helper_utils.generate_short_id(length)
+
 
 def format_datetime(dt: datetime, format_str: str = "%Y-%m-%d %H:%M:%S") -> str:
     """Format datetime to string."""
     return helper_utils.format_datetime(dt, format_str)
 
-def parse_datetime(dt_str: str, format_str: str = "%Y-%m-%d %H:%M:%S") -> datetime | None:
+
+def parse_datetime(
+    dt_str: str, format_str: str = "%Y-%m-%d %H:%M:%S"
+) -> datetime | None:
     """Parse datetime from string."""
     return helper_utils.parse_datetime(dt_str, format_str)
+
 
 def format_file_size(size_bytes: int) -> str:
     """Format file size in human readable format."""
     return helper_utils.format_file_size(size_bytes)
 
+
 def truncate_text(text: str, max_length: int = 100, suffix: str = "...") -> str:
     """Truncate text to specified length."""
     return helper_utils.truncate_text(text, max_length, suffix)
+
 
 def slugify(text: str) -> str:
     """Convert text to URL-friendly slug."""
     return helper_utils.slugify(text)
 
+
 def safe_json_loads(json_str: str, default: Any = None) -> Any:
     """Safely load JSON with default fallback."""
     return helper_utils.safe_json_loads(json_str, default)
+
 
 def safe_json_dumps(data: Any, default: str = "{}") -> str:
     """Safely dump JSON with default fallback."""
     return helper_utils.safe_json_dumps(data, default)
 
+
 def extract_mentions(text: str) -> list[str]:
     """Extract @mentions from text."""
     return helper_utils.extract_mentions(text)
+
 
 def extract_hashtags(text: str) -> list[str]:
     """Extract #hashtags from text."""
     return helper_utils.extract_hashtags(text)
 
+
 def extract_urls(text: str) -> list[str]:
     """Extract URLs from text."""
     return helper_utils.extract_urls(text)
+
 
 def paginate_list(items: list[Any], page: int, per_page: int) -> dict[str, Any]:
     """Paginate a list of items."""
     return helper_utils.paginate_list(items, page, per_page)
 
+
 class DateTimeUtils:
     """Optimized datetime utilities using existing helper functions."""
 
     @staticmethod
-    def parse_datetime(dt_str: str, format_str: str = "%Y-%m-%d %H:%M:%S") -> datetime | None:
+    def parse_datetime(
+        dt_str: str, format_str: str = "%Y-%m-%d %H:%M:%S"
+    ) -> datetime | None:
         """Parse datetime from string using optimized helper."""
         return helper_utils.parse_datetime(dt_str, format_str)
 
@@ -356,6 +401,6 @@ class DateTimeUtils:
     def parse_iso(iso_str: str) -> datetime | None:
         """Parse ISO format datetime string."""
         try:
-            return datetime.fromisoformat(iso_str.replace('Z', '+00:00'))
+            return datetime.fromisoformat(iso_str.replace("Z", "+00:00"))
         except ValueError:
             return None

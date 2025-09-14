@@ -253,9 +253,7 @@ class MonitorBase(ABC):
         # Check alert rules
         self._check_alerts(metric)
 
-    def get_metrics(
-        self, name: str, since: datetime | None = None
-    ) -> list[MetricData]:
+    def get_metrics(self, name: str, since: datetime | None = None) -> list[MetricData]:
         """Get metrics by name."""
         if name not in self.metrics:
             return []

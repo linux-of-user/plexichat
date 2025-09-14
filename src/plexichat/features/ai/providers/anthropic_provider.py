@@ -12,6 +12,7 @@ from typing import Any
 try:
     import anthropic  # type: ignore
     from anthropic import Anthropic  # type: ignore
+
     ANTHROPIC_AVAILABLE = True
 except ImportError:
     ANTHROPIC_AVAILABLE = False
@@ -38,6 +39,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class AnthropicConfig(ProviderConfig):
     """Anthropic-specific configuration."""
+
     pass
 
 
@@ -61,8 +63,8 @@ class AnthropicProvider(BaseAIProvider):
                     api_key=config.api_key,
                     base_url=config.base_url,
                     timeout=config.timeout,
-                    max_retries=config.max_retries
-            )
+                    max_retries=config.max_retries,
+                )
             self._load_models()
         except Exception as e:
             logger.error(f"Failed to initialize Anthropic client: {e}")
@@ -76,24 +78,33 @@ class AnthropicProvider(BaseAIProvider):
                 {
                     "id": "claude-3-opus-20240229",
                     "name": "Claude 3 Opus",
-                    "capabilities": [ModelCapability.CHAT, ModelCapability.TEXT_GENERATION],
+                    "capabilities": [
+                        ModelCapability.CHAT,
+                        ModelCapability.TEXT_GENERATION,
+                    ],
                     "max_tokens": 4096,
-                    "cost_per_token": 0.000015
+                    "cost_per_token": 0.000015,
                 },
                 {
                     "id": "claude-3-sonnet-20240229",
                     "name": "Claude 3 Sonnet",
-                    "capabilities": [ModelCapability.CHAT, ModelCapability.TEXT_GENERATION],
+                    "capabilities": [
+                        ModelCapability.CHAT,
+                        ModelCapability.TEXT_GENERATION,
+                    ],
                     "max_tokens": 4096,
-                    "cost_per_token": 0.000003
+                    "cost_per_token": 0.000003,
                 },
                 {
                     "id": "claude-3-haiku-20240307",
                     "name": "Claude 3 Haiku",
-                    "capabilities": [ModelCapability.CHAT, ModelCapability.TEXT_GENERATION],
+                    "capabilities": [
+                        ModelCapability.CHAT,
+                        ModelCapability.TEXT_GENERATION,
+                    ],
                     "max_tokens": 4096,
-                    "cost_per_token": 0.00000025
-                }
+                    "cost_per_token": 0.00000025,
+                },
             ]
 
             for model_data in models_data:
@@ -104,7 +115,7 @@ class AnthropicProvider(BaseAIProvider):
                     capabilities=model_data["capabilities"],
                     max_tokens=model_data["max_tokens"],
                     cost_per_token=model_data["cost_per_token"],
-                    status=ModelStatus.AVAILABLE
+                    status=ModelStatus.AVAILABLE,
                 )
                 self.models[model.id] = model
 
@@ -121,7 +132,7 @@ class AnthropicProvider(BaseAIProvider):
             message = self.client.messages.create(
                 model="claude-3-haiku-20240307",
                 max_tokens=10,
-                messages=[{"role": "user", "content": "Hi"}]
+                messages=[{"role": "user", "content": "Hi"}],
             )
             return message is not None
         except Exception as e:
@@ -145,7 +156,7 @@ class AnthropicProvider(BaseAIProvider):
                 model_id=request.model_id,
                 provider=AIProvider.ANTHROPIC.value,
                 status="error",
-                error="Anthropic client not initialized"
+                error="Anthropic client not initialized",
             )
 
         try:
@@ -155,10 +166,18 @@ class AnthropicProvider(BaseAIProvider):
             # Make the API call
             response = self.client.messages.create(
                 model=request.model_id,
-                max_tokens=request.parameters.get("max_tokens", 1000) if request.parameters else 1000,
-                temperature=request.parameters.get("temperature", 0.7) if request.parameters else 0.7,
+                max_tokens=(
+                    request.parameters.get("max_tokens", 1000)
+                    if request.parameters
+                    else 1000
+                ),
+                temperature=(
+                    request.parameters.get("temperature", 0.7)
+                    if request.parameters
+                    else 0.7
+                ),
                 system=request.context if request.context else "",
-                messages=messages
+                messages=messages,
             )
 
             # Extract response content
@@ -168,7 +187,11 @@ class AnthropicProvider(BaseAIProvider):
             usage = {
                 "input_tokens": response.usage.input_tokens if response.usage else 0,
                 "output_tokens": response.usage.output_tokens if response.usage else 0,
-                "total_tokens": (response.usage.input_tokens + response.usage.output_tokens) if response.usage else 0
+                "total_tokens": (
+                    (response.usage.input_tokens + response.usage.output_tokens)
+                    if response.usage
+                    else 0
+                ),
             }
 
             return AIResponse(
@@ -177,7 +200,7 @@ class AnthropicProvider(BaseAIProvider):
                 model_id=request.model_id,
                 provider=AIProvider.ANTHROPIC.value,
                 usage=usage,
-                metadata={"model": response.model}
+                metadata={"model": response.model},
             )
 
         except Exception as e:
@@ -188,5 +211,5 @@ class AnthropicProvider(BaseAIProvider):
                 model_id=request.model_id,
                 provider=AIProvider.ANTHROPIC.value,
                 status="error",
-                error=str(e)
+                error=str(e),
             )

@@ -339,10 +339,7 @@ class L2RedisCache:
                     entry = CacheEntry(**entry_data)
 
                     # Check expiration
-                    if (
-                        entry.expires_at
-                        and datetime.now(UTC) > entry.expires_at
-                    ):
+                    if entry.expires_at and datetime.now(UTC) > entry.expires_at:
                         await self.delete(key)
                         self.stats.misses += 1
                         return None

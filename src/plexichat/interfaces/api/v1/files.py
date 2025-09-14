@@ -48,7 +48,9 @@ def _get_allowed_extensions() -> set:
             # ensure set of lower-case extensions
             return {e.lower() if e.startswith(".") else f".{e.lower()}" for e in exts}
     except Exception:
-        logger.debug("Could not load allowed extensions from file_manager; using defaults.")
+        logger.debug(
+            "Could not load allowed extensions from file_manager; using defaults."
+        )
     return DEFAULT_ALLOWED_EXTENSIONS
 
 
@@ -76,47 +78,67 @@ def _parse_sanitized_filename_from_message(message: str) -> str | None:
 
 
 @router.post("/upload", response_model=FileInfo)
-@rate_limit(action="file_upload", limit=10, window_seconds=60)  # limit to 10 uploads per minute per user
+@rate_limit(
+    action="file_upload", limit=10, window_seconds=60
+)  # limit to 10 uploads per minute per user
 async def upload_file(
-    file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_user)
+    file: UploadFile = File(...), current_user: dict = Depends(get_current_user)
 ):
     """Upload a file with security checks, sanitization, rate limiting and persistence via file manager."""
     filename = file.filename or ""
-    content_type = file.content_type or mimetypes.guess_type(filename)[0] or "application/octet-stream"
+    content_type = (
+        file.content_type
+        or mimetypes.guess_type(filename)[0]
+        or "application/octet-stream"
+    )
 
     # Basic filename presence check
     if not filename or not isinstance(filename, str) or filename.strip() == "":
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Filename is required.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Filename is required."
+        )
 
     # Enforce filename maximum length early
     if len(filename) > 120:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Filename is too long (maximum 120 characters).")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Filename is too long (maximum 120 characters).",
+        )
 
     # Read content to get file size; reading into memory is necessary to pass bytes to file_manager
     try:
         content = await file.read()
     except Exception as e:
         logger.error(f"Failed to read uploaded file content: {e}")
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to read uploaded file.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Failed to read uploaded file.",
+        )
 
     file_size = len(content)
     max_size = _get_max_file_size()
     if file_size > max_size:
-        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail=f"File is too large. Maximum allowed size is {max_size} bytes.")
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"File is too large. Maximum allowed size is {max_size} bytes.",
+        )
 
     # Allowed extension check (basic)
     allowed_exts = _get_allowed_extensions()
     ext = ""
     try:
         import os as _os
+
         _, ext = _os.path.splitext(filename)
         ext = ext.lower()
     except Exception:
         ext = ""
 
     if not ext or ext not in allowed_exts:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"File type not allowed: '{ext}'")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"File type not allowed: '{ext}'",
+        )
 
     # Use centralized security system for thorough validation and sanitization
     security_system = None
@@ -129,10 +151,14 @@ async def upload_file(
 
     if security_system:
         try:
-            allowed, message = security_system.validate_file_upload(filename, content_type, file_size, policy_name="default")
+            allowed, message = security_system.validate_file_upload(
+                filename, content_type, file_size, policy_name="default"
+            )
             if not allowed:
                 # Security-aware error message
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=message)
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST, detail=message
+                )
             # Try to extract sanitized filename from message; if not present, use sanitizer directly
             sanitized = _parse_sanitized_filename_from_message(message)
             if not sanitized and hasattr(security_system, "_sanitize_filename"):
@@ -144,11 +170,15 @@ async def upload_file(
             raise
         except Exception as e:
             logger.error(f"Security validation error: {e}")
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File failed security validation.")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File failed security validation.",
+            )
     else:
         # If no security system, do a minimal sanitize: strip path components
         try:
             from pathlib import Path
+
             sanitized = Path(filename).name
         except Exception:
             sanitized = filename
@@ -157,16 +187,25 @@ async def upload_file(
     if file_manager:
         try:
             # file_manager.upload_file signature: (file_data: bytes, filename: str, uploaded_by: int, content_type: str = None, ...)
-            file_meta = await file_manager.upload_file(content, sanitized, current_user.get("id"), content_type=content_type)
+            file_meta = await file_manager.upload_file(
+                content, sanitized, current_user.get("id"), content_type=content_type
+            )
             if not file_meta:
-                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to store file.")
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to store file.",
+                )
             # Map FileMetadata to FileInfo
             return FileInfo(
                 id=getattr(file_meta, "file_id", getattr(file_meta, "fileId", "")),
-                filename=getattr(file_meta, "original_filename", getattr(file_meta, "filename", sanitized)),
+                filename=getattr(
+                    file_meta,
+                    "original_filename",
+                    getattr(file_meta, "filename", sanitized),
+                ),
                 content_type=getattr(file_meta, "content_type", content_type),
                 size=int(getattr(file_meta, "file_size", file_size)),
-                uploaded_at=getattr(file_meta, "uploaded_at", datetime.now())
+                uploaded_at=getattr(file_meta, "uploaded_at", datetime.now()),
             )
         except ValueError as ve:
             # File validation from file_manager failed (size/type etc.)
@@ -176,7 +215,10 @@ async def upload_file(
             raise
         except Exception as e:
             logger.error(f"Unexpected error during file upload persistence: {e}")
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal error while storing file.")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Internal error while storing file.",
+            )
     else:
         # Fallback to in-memory storage (deprecated, only if file_manager missing)
         # Keep a simple in-memory map scoped to the module
@@ -194,7 +236,7 @@ async def upload_file(
             "size": file_size,
             "content": content,
             "uploaded_by": current_user.get("id"),
-            "uploaded_at": datetime.now()
+            "uploaded_at": datetime.now(),
         }
         _fallback_files_db[file_id] = record
         return FileInfo(**record)
@@ -208,31 +250,47 @@ async def download_file(file_id: str, current_user: dict = Depends(get_current_u
         try:
             metadata = await file_manager.get_file_metadata(file_id)
             if not metadata:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found.")
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail="File not found."
+                )
 
             # Check ownership (uploaded_by may be int or str in different setups)
             uploaded_by = getattr(metadata, "uploaded_by", None)
-            if uploaded_by is not None and str(uploaded_by) != str(current_user.get("id")):
-                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied to this file.")
+            if uploaded_by is not None and str(uploaded_by) != str(
+                current_user.get("id")
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied to this file.",
+                )
 
             data = await file_manager.get_file_data(file_id)
             if data is None:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File data not found.")
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND, detail="File data not found."
+                )
 
             # Use the original filename if available
-            filename = getattr(metadata, "original_filename", getattr(metadata, "filename", file_id))
+            filename = getattr(
+                metadata, "original_filename", getattr(metadata, "filename", file_id)
+            )
             # Ensure safe Content-Disposition by quoting the filename
             disposition = f'attachment; filename="{filename}"'
             return StreamingResponse(
                 io.BytesIO(data),
-                media_type=getattr(metadata, "content_type", "application/octet-stream"),
-                headers={"Content-Disposition": disposition}
+                media_type=getattr(
+                    metadata, "content_type", "application/octet-stream"
+                ),
+                headers={"Content-Disposition": disposition},
             )
         except HTTPException:
             raise
         except Exception as e:
             logger.error(f"Error during file download: {e}")
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to retrieve file.")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to retrieve file.",
+            )
     else:
         # Fallback to in-memory
         try:
@@ -242,12 +300,15 @@ async def download_file(file_id: str, current_user: dict = Depends(get_current_u
 
         record = _fallback_files_db.get(file_id)
         if not record or str(record.get("uploaded_by")) != str(current_user.get("id")):
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found or access denied.")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="File not found or access denied.",
+            )
         disposition = f'attachment; filename="{record["filename"]}"'
         return StreamingResponse(
             io.BytesIO(record["content"]),
             media_type=record["content_type"],
-            headers={"Content-Disposition": disposition}
+            headers={"Content-Disposition": disposition},
         )
 
 
@@ -284,22 +345,39 @@ async def list_my_files(current_user: dict = Depends(get_current_user)):
                     if rows:
                         for row in rows:
                             try:
-                                uploaded_at = row.get("uploaded_at") if isinstance(row.get("uploaded_at"), datetime) else datetime.fromisoformat(row.get("uploaded_at")) if row.get("uploaded_at") else datetime.now()
+                                uploaded_at = (
+                                    row.get("uploaded_at")
+                                    if isinstance(row.get("uploaded_at"), datetime)
+                                    else (
+                                        datetime.fromisoformat(row.get("uploaded_at"))
+                                        if row.get("uploaded_at")
+                                        else datetime.now()
+                                    )
+                                )
                             except Exception:
                                 uploaded_at = datetime.now()
-                            results.append(FileInfo(
-                                id=row.get("file_id") or row.get("id"),
-                                filename=row.get("original_filename") or row.get("filename") or "",
-                                content_type=row.get("content_type") or "application/octet-stream",
-                                size=int(row.get("file_size") or 0),
-                                uploaded_at=uploaded_at
-                            ))
+                            results.append(
+                                FileInfo(
+                                    id=row.get("file_id") or row.get("id"),
+                                    filename=row.get("original_filename")
+                                    or row.get("filename")
+                                    or "",
+                                    content_type=row.get("content_type")
+                                    or "application/octet-stream",
+                                    size=int(row.get("file_size") or 0),
+                                    uploaded_at=uploaded_at,
+                                )
+                            )
                         return results
             except Exception as db_err:
-                logger.debug(f"Could not query files table from file_manager.db_manager: {db_err}")
+                logger.debug(
+                    f"Could not query files table from file_manager.db_manager: {db_err}"
+                )
 
     except Exception:
-        logger.debug("Error while attempting to list files via file_manager database access; falling back if possible.")
+        logger.debug(
+            "Error while attempting to list files via file_manager database access; falling back if possible."
+        )
 
     # Fallback: if file_manager offers no DB access, try scanning uploads directory metadata (best-effort)
     try:
@@ -334,12 +412,18 @@ async def delete_file(file_id: str, current_user: dict = Depends(get_current_use
             if success:
                 return {"message": "File deleted"}
             # If deletion failed due to permissions or not found, return 404 to avoid information disclosure
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found or access denied.")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="File not found or access denied.",
+            )
         except HTTPException:
             raise
         except Exception as e:
             logger.error(f"Error deleting file: {e}")
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete file.")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to delete file.",
+            )
     else:
         try:
             _fallback_files_db
@@ -348,12 +432,15 @@ async def delete_file(file_id: str, current_user: dict = Depends(get_current_use
 
         rec = _fallback_files_db.get(file_id)
         if not rec or str(rec.get("uploaded_by")) != str(current_user.get("id")):
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="File not found or access denied.")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="File not found or access denied.",
+            )
         del _fallback_files_db[file_id]
         return {"message": "File deleted"}
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Example of how to run this API with uvicorn
     from uuid import uuid4  # used by fallback
 

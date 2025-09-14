@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class ContainerStatus(Enum):
     """Container status enumeration."""
+
     CREATING = "creating"
     RUNNING = "running"
     STOPPED = "stopped"
@@ -29,6 +30,7 @@ class ContainerStatus(Enum):
 
 class OrchestrationPlatform(Enum):
     """Supported orchestration platforms."""
+
     DOCKER_COMPOSE = "docker_compose"
     KUBERNETES = "kubernetes"
     DOCKER_SWARM = "docker_swarm"
@@ -38,6 +40,7 @@ class OrchestrationPlatform(Enum):
 @dataclass
 class ContainerConfig:
     """Container configuration."""
+
     name: str
     image: str
     ports: dict[str, str] = field(default_factory=dict)
@@ -53,6 +56,7 @@ class ContainerConfig:
 @dataclass
 class ContainerInfo:
     """Container runtime information."""
+
     id: str
     name: str
     status: ContainerStatus
@@ -66,7 +70,9 @@ class ContainerInfo:
 class ContainerOrchestrator:
     """Container orchestration manager."""
 
-    def __init__(self, platform: OrchestrationPlatform = OrchestrationPlatform.DOCKER_COMPOSE):
+    def __init__(
+        self, platform: OrchestrationPlatform = OrchestrationPlatform.DOCKER_COMPOSE
+    ):
         self.platform = platform
         self.containers: dict[str, ContainerInfo] = {}
         self.configs: dict[str, ContainerConfig] = {}
@@ -76,7 +82,9 @@ class ContainerOrchestrator:
         try:
             await self._check_platform_availability()
             await self._load_existing_containers()
-            logger.info(f"Container orchestrator initialized with {self.platform.value}")
+            logger.info(
+                f"Container orchestrator initialized with {self.platform.value}"
+            )
         except Exception as e:
             logger.error(f"Failed to initialize orchestrator: {e}")
             raise
@@ -94,9 +102,10 @@ class ContainerOrchestrator:
         """Check Docker availability."""
         try:
             result = await asyncio.create_subprocess_exec(
-                'docker', '--version',
+                "docker",
+                "--version",
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
             await result.communicate()
             if result.returncode != 0:
@@ -108,9 +117,11 @@ class ContainerOrchestrator:
         """Check Kubernetes availability."""
         try:
             result = await asyncio.create_subprocess_exec(
-                'kubectl', 'version', '--client',
+                "kubectl",
+                "version",
+                "--client",
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
             await result.communicate()
             if result.returncode != 0:
@@ -123,12 +134,15 @@ class ContainerOrchestrator:
         await self._check_docker()
         try:
             result = await asyncio.create_subprocess_exec(
-                'docker', 'info', '--format', '{{.Swarm.LocalNodeState}}',
+                "docker",
+                "info",
+                "--format",
+                "{{.Swarm.LocalNodeState}}",
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
             stdout, _ = await result.communicate()
-            if stdout.decode().strip() != 'active':
+            if stdout.decode().strip() != "active":
                 raise RuntimeError("Docker Swarm is not active")
         except Exception as e:
             raise RuntimeError(f"Docker Swarm check failed: {e}")
@@ -144,14 +158,18 @@ class ContainerOrchestrator:
         """Load Docker containers."""
         try:
             result = await asyncio.create_subprocess_exec(
-                'docker', 'ps', '-a', '--format', 'json',
+                "docker",
+                "ps",
+                "-a",
+                "--format",
+                "json",
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
             stdout, stderr = await result.communicate()
 
             if result.returncode == 0:
-                for line in stdout.decode().strip().split('\n'):
+                for line in stdout.decode().strip().split("\n"):
                     if line:
                         container_data = json.loads(line)
                         container_info = self._parse_docker_container(container_data)
@@ -162,40 +180,44 @@ class ContainerOrchestrator:
     def _parse_docker_container(self, data: dict[str, Any]) -> ContainerInfo:
         """Parse Docker container data."""
         status_map = {
-            'running': ContainerStatus.RUNNING,
-            'exited': ContainerStatus.STOPPED,
-            'created': ContainerStatus.CREATING,
-            'restarting': ContainerStatus.RESTARTING,
-            'dead': ContainerStatus.FAILED,
+            "running": ContainerStatus.RUNNING,
+            "exited": ContainerStatus.STOPPED,
+            "created": ContainerStatus.CREATING,
+            "restarting": ContainerStatus.RESTARTING,
+            "dead": ContainerStatus.FAILED,
         }
 
-        status_str = data.get('State', 'unknown').lower()
+        status_str = data.get("State", "unknown").lower()
         status = status_map.get(status_str, ContainerStatus.UNKNOWN)
 
         return ContainerInfo(
-            id=data.get('ID', ''),
-            name=data.get('Names', '').lstrip('/'),
+            id=data.get("ID", ""),
+            name=data.get("Names", "").lstrip("/"),
             status=status,
-            image=data.get('Image', ''),
+            image=data.get("Image", ""),
             created=datetime.now(UTC),  # Simplified
             ports={},  # Would need to parse ports
             networks=[],  # Would need to parse networks
-            labels={}  # Would need to parse labels
+            labels={},  # Would need to parse labels
         )
 
     async def _load_kubernetes_pods(self):
         """Load Kubernetes pods."""
         try:
             result = await asyncio.create_subprocess_exec(
-                'kubectl', 'get', 'pods', '-o', 'json',
+                "kubectl",
+                "get",
+                "pods",
+                "-o",
+                "json",
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
             stdout, stderr = await result.communicate()
 
             if result.returncode == 0:
                 pods_data = json.loads(stdout.decode())
-                for pod in pods_data.get('items', []):
+                for pod in pods_data.get("items", []):
                     container_info = self._parse_kubernetes_pod(pod)
                     self.containers[container_info.name] = container_info
         except Exception as e:
@@ -203,28 +225,28 @@ class ContainerOrchestrator:
 
     def _parse_kubernetes_pod(self, pod_data: dict[str, Any]) -> ContainerInfo:
         """Parse Kubernetes pod data."""
-        metadata = pod_data.get('metadata', {})
-        status = pod_data.get('status', {})
+        metadata = pod_data.get("metadata", {})
+        status = pod_data.get("status", {})
 
-        phase = status.get('phase', 'Unknown').lower()
+        phase = status.get("phase", "Unknown").lower()
         status_map = {
-            'running': ContainerStatus.RUNNING,
-            'pending': ContainerStatus.CREATING,
-            'succeeded': ContainerStatus.STOPPED,
-            'failed': ContainerStatus.FAILED,
+            "running": ContainerStatus.RUNNING,
+            "pending": ContainerStatus.CREATING,
+            "succeeded": ContainerStatus.STOPPED,
+            "failed": ContainerStatus.FAILED,
         }
 
         container_status = status_map.get(phase, ContainerStatus.UNKNOWN)
 
         return ContainerInfo(
-            id=metadata.get('uid', ''),
-            name=metadata.get('name', ''),
+            id=metadata.get("uid", ""),
+            name=metadata.get("name", ""),
             status=container_status,
-            image='',  # Would need to extract from containers
+            image="",  # Would need to extract from containers
             created=datetime.now(UTC),  # Simplified
             ports={},
             networks=[],
-            labels=metadata.get('labels', {})
+            labels=metadata.get("labels", {}),
         )
 
     async def deploy_container(self, config: ContainerConfig) -> bool:
@@ -246,40 +268,38 @@ class ContainerOrchestrator:
 
     async def _deploy_docker_container(self, config: ContainerConfig) -> bool:
         """Deploy container using Docker."""
-        cmd = ['docker', 'run', '-d', '--name', config.name]
+        cmd = ["docker", "run", "-d", "--name", config.name]
 
         # Add ports
         for host_port, container_port in config.ports.items():
-            cmd.extend(['-p', f"{host_port}:{container_port}"])
+            cmd.extend(["-p", f"{host_port}:{container_port}"])
 
         # Add environment variables
         for key, value in config.environment.items():
-            cmd.extend(['-e', f"{key}={value}"])
+            cmd.extend(["-e", f"{key}={value}"])
 
         # Add volumes
         for volume in config.volumes:
-            cmd.extend(['-v', volume])
+            cmd.extend(["-v", volume])
 
         # Add restart policy
-        cmd.extend(['--restart', config.restart_policy])
+        cmd.extend(["--restart", config.restart_policy])
 
         # Add resource limits
         if config.memory_limit:
-            cmd.extend(['--memory', config.memory_limit])
+            cmd.extend(["--memory", config.memory_limit])
         if config.cpu_limit:
-            cmd.extend(['--cpus', config.cpu_limit])
+            cmd.extend(["--cpus", config.cpu_limit])
 
         # Add labels
         for key, value in config.labels.items():
-            cmd.extend(['--label', f"{key}={value}"])
+            cmd.extend(["--label", f"{key}={value}"])
 
         cmd.append(config.image)
 
         try:
             result = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
             stdout, stderr = await result.communicate()
 
@@ -300,41 +320,49 @@ class ContainerOrchestrator:
         """Deploy pod using Kubernetes."""
         # Create a simple pod manifest
         pod_manifest = {
-            'apiVersion': 'v1',
-            'kind': 'Pod',
-            'metadata': {
-                'name': config.name,
-                'labels': config.labels
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {"name": config.name, "labels": config.labels},
+            "spec": {
+                "containers": [
+                    {
+                        "name": config.name,
+                        "image": config.image,
+                        "env": [
+                            {"name": k, "value": v}
+                            for k, v in config.environment.items()
+                        ],
+                        "ports": [
+                            {"containerPort": int(port)}
+                            for port in config.ports.values()
+                        ],
+                    }
+                ],
+                "restartPolicy": "Always",
             },
-            'spec': {
-                'containers': [{
-                    'name': config.name,
-                    'image': config.image,
-                    'env': [{'name': k, 'value': v} for k, v in config.environment.items()],
-                    'ports': [{'containerPort': int(port)} for port in config.ports.values()]
-                }],
-                'restartPolicy': 'Always'
-            }
         }
 
         # Add resource limits if specified
         if config.memory_limit or config.cpu_limit:
             resources = {}
             if config.memory_limit:
-                resources['memory'] = config.memory_limit
+                resources["memory"] = config.memory_limit
             if config.cpu_limit:
-                resources['cpu'] = config.cpu_limit
-            pod_manifest['spec']['containers'][0]['resources'] = {'limits': resources}
+                resources["cpu"] = config.cpu_limit
+            pod_manifest["spec"]["containers"][0]["resources"] = {"limits": resources}
 
         try:
             # Write manifest to temporary file
             manifest_yaml = yaml.dump(pod_manifest)
 
             result = await asyncio.create_subprocess_exec(
-                'kubectl', 'apply', '-f', '-',
+                "kubectl",
+                "apply",
+                "-f",
+                "-",
                 stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
             stdout, stderr = await result.communicate(input=manifest_yaml.encode())
 
@@ -368,9 +396,11 @@ class ContainerOrchestrator:
         """Stop Docker container."""
         try:
             result = await asyncio.create_subprocess_exec(
-                'docker', 'stop', name,
+                "docker",
+                "stop",
+                name,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
             await result.communicate()
             return result.returncode == 0
@@ -382,9 +412,12 @@ class ContainerOrchestrator:
         """Stop Kubernetes pod."""
         try:
             result = await asyncio.create_subprocess_exec(
-                'kubectl', 'delete', 'pod', name,
+                "kubectl",
+                "delete",
+                "pod",
+                name,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
             await result.communicate()
             return result.returncode == 0
@@ -406,15 +439,23 @@ class ContainerOrchestrator:
         try:
             if self.platform == OrchestrationPlatform.DOCKER_COMPOSE:
                 result = await asyncio.create_subprocess_exec(
-                    'docker', 'logs', '--tail', str(lines), name,
+                    "docker",
+                    "logs",
+                    "--tail",
+                    str(lines),
+                    name,
                     stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE
+                    stderr=asyncio.subprocess.PIPE,
                 )
             elif self.platform == OrchestrationPlatform.KUBERNETES:
                 result = await asyncio.create_subprocess_exec(
-                    'kubectl', 'logs', '--tail', str(lines), name,
+                    "kubectl",
+                    "logs",
+                    "--tail",
+                    str(lines),
+                    name,
                     stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE
+                    stderr=asyncio.subprocess.PIPE,
                 )
             else:
                 return "Logs not supported for this platform"

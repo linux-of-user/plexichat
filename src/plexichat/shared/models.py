@@ -29,6 +29,7 @@ except ImportError:
 
 class Priority(Enum):
     """Priority levels."""
+
     LOW = 1
     NORMAL = 5
     HIGH = 10
@@ -37,6 +38,7 @@ class Priority(Enum):
 
 class Status(Enum):
     """Generic status enumeration."""
+
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -47,6 +49,7 @@ class Status(Enum):
 
 class LogLevel(Enum):
     """Log level enumeration."""
+
     DEBUG = "debug"
     INFO = "info"
     WARNING = "warning"
@@ -57,6 +60,7 @@ class LogLevel(Enum):
 @dataclass
 class BaseDataModel:
     """Base data model with common fields."""
+
     id: str = field(default_factory=lambda: str(uuid4()))
     created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
@@ -70,6 +74,7 @@ class BaseDataModel:
 @dataclass
 class User(BaseDataModel):
     """User model."""
+
     username: str = ""
     email: str = ""
     display_name: str = ""
@@ -89,6 +94,7 @@ class User(BaseDataModel):
 @dataclass
 class Message(BaseDataModel):
     """Message model."""
+
     content: str = ""
     user_id: str = ""
     channel_id: str = ""
@@ -104,6 +110,7 @@ class Message(BaseDataModel):
 @dataclass
 class Channel(BaseDataModel):
     """Channel model."""
+
     name: str = ""
     description: str = ""
     channel_type: str = "public"
@@ -116,6 +123,7 @@ class Channel(BaseDataModel):
 @dataclass
 class Plugin(BaseDataModel):
     """Plugin model."""
+
     name: str = ""
     version: str = "1.0.0"
     description: str = ""
@@ -130,6 +138,7 @@ class Plugin(BaseDataModel):
 @dataclass
 class Event(BaseDataModel):
     """Event model."""
+
     event_type: str = ""
     source: str = ""
     target: str | None = None
@@ -142,6 +151,7 @@ class Event(BaseDataModel):
 @dataclass
 class Task(BaseDataModel):
     """Task model."""
+
     name: str = ""
     description: str = ""
     task_type: str = "generic"
@@ -159,6 +169,7 @@ class Task(BaseDataModel):
 @dataclass
 class Metric(BaseDataModel):
     """Metric model."""
+
     name: str = ""
     value: int | float = 0
     metric_type: str = "gauge"
@@ -169,6 +180,7 @@ class Metric(BaseDataModel):
 @dataclass
 class Alert(BaseDataModel):
     """Alert model."""
+
     name: str = ""
     message: str = ""
     severity: str = "info"
@@ -183,6 +195,7 @@ class Alert(BaseDataModel):
 @dataclass
 class Configuration(BaseDataModel):
     """Configuration model."""
+
     key: str = ""
     value: Any = None
     config_type: str = "string"
@@ -195,6 +208,7 @@ class Configuration(BaseDataModel):
 @dataclass
 class Session(BaseDataModel):
     """Session model."""
+
     user_id: str = ""
     session_token: str = ""
     expires_at: datetime = field(default_factory=lambda: datetime.now(UTC))
@@ -207,6 +221,7 @@ class Session(BaseDataModel):
 @dataclass
 class Permission(BaseDataModel):
     """Permission model."""
+
     name: str = ""
     description: str = ""
     resource: str = ""
@@ -217,6 +232,7 @@ class Permission(BaseDataModel):
 @dataclass
 class Role(BaseDataModel):
     """Role model."""
+
     name: str = ""
     description: str = ""
     permissions: list[str] = field(default_factory=list)
@@ -226,6 +242,7 @@ class Role(BaseDataModel):
 @dataclass
 class ApiResponse:
     """Standard API response model."""
+
     success: bool = True
     message: str = "Success"
     data: Any | None = None
@@ -237,7 +254,7 @@ class ApiResponse:
         result: dict[str, Any] = {
             "success": self.success,
             "message": self.message,
-            "timestamp": self.timestamp.isoformat()
+            "timestamp": self.timestamp.isoformat(),
         }
 
         if self.data is not None:
@@ -255,11 +272,9 @@ __all__ = [
     "Priority",
     "Status",
     "LogLevel",
-
     # Base models
     "BaseModel",
     "ApiResponse",
-
     # Core models
     "User",
     "Message",

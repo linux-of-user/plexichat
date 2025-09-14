@@ -18,8 +18,10 @@ except ImportError:
 logger = logging.getLogger(__name__)
 console = Console()
 
+
 class CommandCategory(Enum):
     """CLI command categories."""
+
     CORE = "core"
     SYSTEM = "system"
     SECURITY = "security"
@@ -28,9 +30,11 @@ class CommandCategory(Enum):
     USERS = "users"
     # ... add other categories as needed
 
+
 @dataclass
 class UltimateCommand:
     """Ultimate CLI command definition."""
+
     name: str
     description: str
     category: CommandCategory
@@ -39,12 +43,15 @@ class UltimateCommand:
     examples: list[str] = field(default_factory=list)
     admin_only: bool = False
 
+
 class UltimateCLICoordinator:
     """Coordinates all commands for the Ultimate CLI."""
 
     def __init__(self):
         self.commands: dict[str, UltimateCommand] = {}
-        self.categories: dict[CommandCategory, list[str]] = {cat: [] for cat in CommandCategory}
+        self.categories: dict[CommandCategory, list[str]] = {
+            cat: [] for cat in CommandCategory
+        }
         self.aliases: dict[str, str] = {}
         self.stats = {"total_commands": 0, "commands_by_category": {}}
 
@@ -69,7 +76,9 @@ class UltimateCLICoordinator:
         table.add_column("Category", style="magenta")
         table.add_column("Description", style="green")
 
-        for cmd in sorted(self.commands.values(), key=lambda c: (c.category.value, c.name)):
+        for cmd in sorted(
+            self.commands.values(), key=lambda c: (c.category.value, c.name)
+        ):
             if not category_filter or cmd.category.value == category_filter:
                 table.add_row(cmd.name, cmd.category.value, cmd.description)
 
@@ -89,14 +98,20 @@ class UltimateCLICoordinator:
         """Shows detailed help for a specific command."""
         command = self.get_command(command_name)
         if not command:
-            console.print(f"[bold red]Error: Command '{command_name}' not found.[/bold red]")
+            console.print(
+                f"[bold red]Error: Command '{command_name}' not found.[/bold red]"
+            )
             return
 
-        panel_content = f"[bold]{command.name}[/bold]\n[dim]{command.description}[/dim]\n\n"
+        panel_content = (
+            f"[bold]{command.name}[/bold]\n[dim]{command.description}[/dim]\n\n"
+        )
         if command.aliases:
             panel_content += f"[bold]Aliases:[/] {', '.join(command.aliases)}\n"
         if command.examples:
-            panel_content += "[bold]Examples:[/]\n" + "\n".join(f"  {ex}" for ex in command.examples)
+            panel_content += "[bold]Examples:[/]\n" + "\n".join(
+                f"  {ex}" for ex in command.examples
+            )
 
         console.print(Panel(panel_content, title="Command Help", border_style="blue"))
 
@@ -104,12 +119,16 @@ class UltimateCLICoordinator:
         """Executes a registered command."""
         command = self.get_command(command_name)
         if not command:
-            console.print(f"[bold red]Error: Command '{command_name}' not found.[/bold red]")
+            console.print(
+                f"[bold red]Error: Command '{command_name}' not found.[/bold red]"
+            )
             return
 
         # Placeholder for permission checks
         if command.admin_only:
-            console.print("[bold yellow]Warning: This is an admin-only command.[/bold yellow]")
+            console.print(
+                "[bold yellow]Warning: This is an admin-only command.[/bold yellow]"
+            )
 
         console.print(f"Executing command: [bold cyan]{command.name}[/bold cyan]")
         try:
@@ -118,7 +137,9 @@ class UltimateCLICoordinator:
             else:
                 return command.handler(*args, **kwargs)
         except Exception as e:
-            console.print(f"[bold red]An error occurred during execution: {e}[/bold red]")
+            console.print(
+                f"[bold red]An error occurred during execution: {e}[/bold red]"
+            )
             logger.exception(f"Error executing command '{command_name}'")
 
     def _update_stats(self):
@@ -132,28 +153,39 @@ class UltimateCLICoordinator:
         """Registers all commands for the CLI."""
         # This is a placeholder. In a real app, this would import modules
         # that register their own commands.
-        self.register_command(UltimateCommand(
-            name="status",
-            description="Display the system status.",
-            category=CommandCategory.CORE,
-            handler=lambda: console.print("[green]System is operational.[/green]"),
-            aliases=["info"],
-            examples=["plexichat status"]
-        ))
-        self.register_command(UltimateCommand(
-            name="config.show",
-            description="Show current configuration.",
-            category=CommandCategory.SYSTEM,
-            handler=lambda: console.print("[yellow]Configuration details would be shown here.[/yellow]"),
-            admin_only=True
-        ))
-        self.register_command(UltimateCommand(
-            name="security.scan",
-            description="Run a security scan.",
-            category=CommandCategory.SECURITY,
-            handler=lambda: console.print("[cyan]Running security scan... done.[/cyan]"),
-            admin_only=True
-        ))
+        self.register_command(
+            UltimateCommand(
+                name="status",
+                description="Display the system status.",
+                category=CommandCategory.CORE,
+                handler=lambda: console.print("[green]System is operational.[/green]"),
+                aliases=["info"],
+                examples=["plexichat status"],
+            )
+        )
+        self.register_command(
+            UltimateCommand(
+                name="config.show",
+                description="Show current configuration.",
+                category=CommandCategory.SYSTEM,
+                handler=lambda: console.print(
+                    "[yellow]Configuration details would be shown here.[/yellow]"
+                ),
+                admin_only=True,
+            )
+        )
+        self.register_command(
+            UltimateCommand(
+                name="security.scan",
+                description="Run a security scan.",
+                category=CommandCategory.SECURITY,
+                handler=lambda: console.print(
+                    "[cyan]Running security scan... done.[/cyan]"
+                ),
+                admin_only=True,
+            )
+        )
+
 
 # Singleton instance
 ultimate_cli = UltimateCLICoordinator()

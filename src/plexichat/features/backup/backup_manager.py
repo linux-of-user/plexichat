@@ -47,6 +47,7 @@ INCREMENTAL_BACKUP_THRESHOLD = 0.1  # 10% change threshold
 
 class BackupStrategy(str, Enum):
     """Backup strategies for different scenarios."""
+
     IMMEDIATE = "immediate"
     SCHEDULED = "scheduled"
     INCREMENTAL = "incremental"
@@ -57,6 +58,7 @@ class BackupStrategy(str, Enum):
 
 class RecoveryMode(str, Enum):
     """Recovery modes for different scenarios."""
+
     FULL_RESTORE = "full_restore"
     PARTIAL_RESTORE = "partial_restore"
     POINT_IN_TIME = "point_in_time"
@@ -66,6 +68,7 @@ class RecoveryMode(str, Enum):
 
 class ClusterNodeType(str, Enum):
     """Types of cluster nodes for backup distribution."""
+
     PRIMARY = "primary"
     SECONDARY = "secondary"
     ARCHIVE = "archive"
@@ -74,6 +77,7 @@ class ClusterNodeType(str, Enum):
 
 class ShardAssignmentStrategy(str, Enum):
     """Strategies for assigning shards to peers."""
+
     RANDOM = "random"
     DETERMINISTIC = "deterministic"
     GEOGRAPHIC_DISTRIBUTION = "geographic_distribution"
@@ -83,9 +87,12 @@ class ShardAssignmentStrategy(str, Enum):
 @dataclass
 class ShardDistributionConstraints:
     """Constraints for shard distribution to ensure security and reliability."""
+
     min_replication_factor: int = 3
     max_replication_factor: int = 5
-    max_complementary_shards_per_peer: int = 1  # No single peer gets complementary shards
+    max_complementary_shards_per_peer: int = (
+        1  # No single peer gets complementary shards
+    )
     geographic_distribution_required: bool = True
     min_geographic_regions: int = 2
     assignment_strategy: ShardAssignmentStrategy = ShardAssignmentStrategy.DETERMINISTIC
@@ -97,18 +104,20 @@ class ShardDistributionConstraints:
 @dataclass
 class QuantumEncryptionConfig:
     """Configuration for quantum-ready encryption."""
+
     use_post_quantum: bool = True
     primary_algorithm: str = "ML-KEM-768"  # NIST standardized
-    backup_algorithm: str = "HQC-128"      # NIST backup algorithm
-    hybrid_mode: bool = True               # Combine classical + PQC
+    backup_algorithm: str = "HQC-128"  # NIST backup algorithm
+    hybrid_mode: bool = True  # Combine classical + PQC
     key_rotation_interval: int = QUANTUM_KEY_ROTATION_INTERVAL
-    quantum_random: bool = True            # Use quantum RNG if available
-    time_based_keys: bool = True           # Time-based key derivation
+    quantum_random: bool = True  # Use quantum RNG if available
+    time_based_keys: bool = True  # Time-based key derivation
 
 
 @dataclass
 class ClusterNode:
     """Represents a cluster node for distributed backup (local view)."""
+
     node_id: str
     node_type: ClusterNodeType
     endpoint: str
@@ -122,12 +131,15 @@ class ClusterNode:
     # Enhanced fields for design constraints
     geographic_region: str | None = None
     stored_shard_ids: set[str] = field(default_factory=set)
-    complementary_shard_groups: set[str] = field(default_factory=set)  # Groups this node has shards from
+    complementary_shard_groups: set[str] = field(
+        default_factory=set
+    )  # Groups this node has shards from
 
 
 @dataclass
 class BackupSchedule:
     """Enhanced backup schedule configuration."""
+
     schedule_id: str
     name: str
     cron_expression: str
@@ -151,6 +163,7 @@ class BackupSchedule:
 @dataclass
 class RecoveryPlan:
     """Disaster recovery plan configuration."""
+
     plan_id: str
     name: str
     recovery_mode: RecoveryMode
@@ -169,6 +182,7 @@ class RecoveryPlan:
 @dataclass
 class BackupVerificationResult:
     """Result of backup verification."""
+
     backup_id: str
     verification_id: str
     status: str  # "passed", "failed", "warning"
@@ -189,7 +203,9 @@ class QuantumEncryptionManager:
         self._key_cache = {}
         self._last_rotation = datetime.now(UTC)
 
-    async def encrypt_data(self, data: bytes, context: dict[str, Any] = None) -> tuple[bytes, dict[str, Any]]:
+    async def encrypt_data(
+        self, data: bytes, context: dict[str, Any] = None
+    ) -> tuple[bytes, dict[str, Any]]:
         """Encrypt data using quantum-ready algorithms."""
         try:
             context = context or {}
@@ -199,7 +215,7 @@ class QuantumEncryptionManager:
                 time_factor = int(time.time() // 3600)  # Hourly rotation
                 key_seed = f"{time_factor}_{context.get('backup_id', '')}"
             else:
-                key_seed = context.get('backup_id', str(uuid.uuid4()))
+                key_seed = context.get("backup_id", str(uuid.uuid4()))
 
             # Use quantum random if available
             if self.config.quantum_random:
@@ -208,29 +224,35 @@ class QuantumEncryptionManager:
                 salt = secrets.token_bytes(32)
 
             # Derive encryption key
-            key = hashlib.pbkdf2_hmac('sha256', key_seed.encode(), salt, 100000, 32)
+            key = hashlib.pbkdf2_hmac("sha256", key_seed.encode(), salt, 100000, 32)
 
             # Simulate post-quantum encryption (in real implementation, use actual PQC libraries)
             if self.config.use_post_quantum:
-                encrypted_data = self._pqc_encrypt(data, key, self.config.primary_algorithm)
+                encrypted_data = self._pqc_encrypt(
+                    data, key, self.config.primary_algorithm
+                )
 
                 # Hybrid mode: also encrypt with backup algorithm
                 if self.config.hybrid_mode:
-                    backup_key = hashlib.pbkdf2_hmac('sha256', key, salt, 50000, 32)
-                    encrypted_data = self._pqc_encrypt(encrypted_data, backup_key, self.config.backup_algorithm)
+                    backup_key = hashlib.pbkdf2_hmac("sha256", key, salt, 50000, 32)
+                    encrypted_data = self._pqc_encrypt(
+                        encrypted_data, backup_key, self.config.backup_algorithm
+                    )
             else:
                 # Fallback to classical encryption
                 encrypted_data = self._classical_encrypt(data, key)
 
             encryption_metadata = {
                 "algorithm": self.config.primary_algorithm,
-                "backup_algorithm": self.config.backup_algorithm if self.config.hybrid_mode else None,
+                "backup_algorithm": (
+                    self.config.backup_algorithm if self.config.hybrid_mode else None
+                ),
                 "hybrid_mode": self.config.hybrid_mode,
                 "salt": salt.hex(),
                 "key_derivation": "pbkdf2_hmac_sha256",
                 "iterations": 100000,
                 "encrypted_at": datetime.now(UTC).isoformat(),
-                "quantum_random": self.config.quantum_random
+                "quantum_random": self.config.quantum_random,
             }
 
             return encrypted_data, encryption_metadata
@@ -239,8 +261,12 @@ class QuantumEncryptionManager:
             self.logger.error(f"Quantum encryption failed: {e!s}")
             raise
 
-    async def decrypt_data(self, encrypted_data: bytes, encryption_metadata: dict[str, Any],
-                          context: dict[str, Any] = None) -> bytes:
+    async def decrypt_data(
+        self,
+        encrypted_data: bytes,
+        encryption_metadata: dict[str, Any],
+        context: dict[str, Any] = None,
+    ) -> bytes:
         """Decrypt data using quantum-ready algorithms."""
         try:
             context = context or {}
@@ -251,22 +277,28 @@ class QuantumEncryptionManager:
                     time_factor = int(time.time() // 3600)  # Try current hour
                     key_seed = f"{time_factor}_{context.get('backup_id', '')}"
                 else:
-                    key_seed = context.get('backup_id', '')
+                    key_seed = context.get("backup_id", "")
 
                 salt = bytes.fromhex(encryption_metadata["salt"])
                 iterations = encryption_metadata.get("iterations", 100000)
-                key = hashlib.pbkdf2_hmac('sha256', key_seed.encode(), salt, iterations, 32)
+                key = hashlib.pbkdf2_hmac(
+                    "sha256", key_seed.encode(), salt, iterations, 32
+                )
             else:
                 raise ValueError("Unsupported key derivation method")
 
             # Decrypt based on algorithm used
             if encryption_metadata.get("hybrid_mode"):
                 # Reverse hybrid decryption
-                backup_key = hashlib.pbkdf2_hmac('sha256', key, salt, 50000, 32)
-                data = self._pqc_decrypt(encrypted_data, backup_key, encryption_metadata["backup_algorithm"])
+                backup_key = hashlib.pbkdf2_hmac("sha256", key, salt, 50000, 32)
+                data = self._pqc_decrypt(
+                    encrypted_data, backup_key, encryption_metadata["backup_algorithm"]
+                )
                 data = self._pqc_decrypt(data, key, encryption_metadata["algorithm"])
             elif encryption_metadata["algorithm"] in ["ML-KEM-768", "HQC-128"]:
-                data = self._pqc_decrypt(encrypted_data, key, encryption_metadata["algorithm"])
+                data = self._pqc_decrypt(
+                    encrypted_data, key, encryption_metadata["algorithm"]
+                )
             else:
                 data = self._classical_decrypt(encrypted_data, key)
 
@@ -293,14 +325,18 @@ class QuantumEncryptionManager:
         if algorithm == "ML-KEM-768":
             # Simulate Kyber-768 behavior
             nonce = secrets.token_bytes(12)
-            cipher = Cipher(algorithms.AES(key), modes.GCM(nonce), backend=default_backend())
+            cipher = Cipher(
+                algorithms.AES(key), modes.GCM(nonce), backend=default_backend()
+            )
             encryptor = cipher.encryptor()
             ciphertext = encryptor.update(data) + encryptor.finalize()
             return nonce + encryptor.tag + ciphertext
         elif algorithm == "HQC-128":
             # Simulate HQC-128 behavior with different parameters
             nonce = secrets.token_bytes(16)
-            cipher = Cipher(algorithms.AES(key), modes.CTR(nonce), backend=default_backend())
+            cipher = Cipher(
+                algorithms.AES(key), modes.CTR(nonce), backend=default_backend()
+            )
             encryptor = cipher.encryptor()
             ciphertext = encryptor.update(data) + encryptor.finalize()
             return nonce + ciphertext
@@ -316,13 +352,17 @@ class QuantumEncryptionManager:
             nonce = encrypted_data[:12]
             tag = encrypted_data[12:28]
             ciphertext = encrypted_data[28:]
-            cipher = Cipher(algorithms.AES(key), modes.GCM(nonce, tag), backend=default_backend())
+            cipher = Cipher(
+                algorithms.AES(key), modes.GCM(nonce, tag), backend=default_backend()
+            )
             decryptor = cipher.decryptor()
             return decryptor.update(ciphertext) + decryptor.finalize()
         elif algorithm == "HQC-128":
             nonce = encrypted_data[:16]
             ciphertext = encrypted_data[16:]
-            cipher = Cipher(algorithms.AES(key), modes.CTR(nonce), backend=default_backend())
+            cipher = Cipher(
+                algorithms.AES(key), modes.CTR(nonce), backend=default_backend()
+            )
             decryptor = cipher.decryptor()
             return decryptor.update(ciphertext) + decryptor.finalize()
         else:
@@ -334,7 +374,9 @@ class QuantumEncryptionManager:
         from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
         nonce = secrets.token_bytes(12)
-        cipher = Cipher(algorithms.AES(key), modes.GCM(nonce), backend=default_backend())
+        cipher = Cipher(
+            algorithms.AES(key), modes.GCM(nonce), backend=default_backend()
+        )
         encryptor = cipher.encryptor()
         ciphertext = encryptor.update(data) + encryptor.finalize()
         return nonce + encryptor.tag + ciphertext
@@ -347,7 +389,9 @@ class QuantumEncryptionManager:
         nonce = encrypted_data[:12]
         tag = encrypted_data[12:28]
         ciphertext = encrypted_data[28:]
-        cipher = Cipher(algorithms.AES(key), modes.GCM(nonce, tag), backend=default_backend())
+        cipher = Cipher(
+            algorithms.AES(key), modes.GCM(nonce, tag), backend=default_backend()
+        )
         decryptor = cipher.decryptor()
         return decryptor.update(ciphertext) + decryptor.finalize()
 
@@ -355,7 +399,9 @@ class QuantumEncryptionManager:
         """Rotate encryption keys based on schedule."""
         try:
             current_time = datetime.now(UTC)
-            if (current_time - self._last_rotation).total_seconds() >= self.config.key_rotation_interval:
+            if (
+                current_time - self._last_rotation
+            ).total_seconds() >= self.config.key_rotation_interval:
                 # Clear key cache to force regeneration
                 self._key_cache.clear()
                 self._last_rotation = current_time
@@ -370,7 +416,7 @@ class QuantumEncryptionManager:
 class BackupManager:
     """
     Comprehensive backup manager with quantum-ready encryption and distributed storage.
-    
+
     Features:
     - Quantum-ready encryption with post-quantum cryptography
     - Distributed backup storage across cluster nodes
@@ -382,11 +428,13 @@ class BackupManager:
     - Integration with key vault for secure key management
     """
 
-    def __init__(self,
-                 backup_engine: BackupEngine | None = None,
-                 key_manager: DistributedKeyManager | None = None,
-                 cluster_manager: Any | None = None,
-                 config: dict[str, Any] | None = None):
+    def __init__(
+        self,
+        backup_engine: BackupEngine | None = None,
+        key_manager: DistributedKeyManager | None = None,
+        cluster_manager: Any | None = None,
+        config: dict[str, Any] | None = None,
+    ):
 
         self.backup_engine = backup_engine or BackupEngine()
         self.key_manager = key_manager
@@ -407,13 +455,17 @@ class BackupManager:
                 # We will manage lifecycle for the global manager only if it was not already started.
                 # To be conservative, we will default to managing its lifecycle.
                 self._manage_cluster_lifecycle = True
-                self.logger.debug("Using global cluster manager (managed by BackupManager)")
+                self.logger.debug(
+                    "Using global cluster manager (managed by BackupManager)"
+                )
             except Exception as e:
                 self.cluster_manager = None
                 self.logger.warning(f"Failed to get global cluster manager: {e}")
         else:
             self.cluster_manager = None
-            self.logger.debug("No cluster manager available; running in standalone compatibility mode")
+            self.logger.debug(
+                "No cluster manager available; running in standalone compatibility mode"
+            )
 
         # If no explicit key manager provided, attempt to instantiate a local KeyVault for compatibility
         if not self.key_manager:
@@ -422,7 +474,9 @@ class BackupManager:
                 self.logger.debug("Initialized local KeyVault for key management")
             except Exception:
                 self.key_manager = None
-                self.logger.debug("No key manager available; encryption metadata will be stored with backups only")
+                self.logger.debug(
+                    "No key manager available; encryption metadata will be stored with backups only"
+                )
 
         # Initialize quantum encryption
         quantum_config = QuantumEncryptionConfig(
@@ -430,9 +484,11 @@ class BackupManager:
             primary_algorithm=self.config.get("primary_algorithm", "ML-KEM-768"),
             backup_algorithm=self.config.get("backup_algorithm", "HQC-128"),
             hybrid_mode=self.config.get("hybrid_mode", True),
-            key_rotation_interval=self.config.get("key_rotation_interval", QUANTUM_KEY_ROTATION_INTERVAL),
+            key_rotation_interval=self.config.get(
+                "key_rotation_interval", QUANTUM_KEY_ROTATION_INTERVAL
+            ),
             quantum_random=self.config.get("quantum_random", True),
-            time_based_keys=self.config.get("time_based_keys", True)
+            time_based_keys=self.config.get("time_based_keys", True),
         )
         self.quantum_encryption = QuantumEncryptionManager(quantum_config)
 
@@ -469,7 +525,7 @@ class BackupManager:
             "cluster_nodes_active": 0,
             "last_backup": None,
             "last_verification": None,
-            "last_key_rotation": None
+            "last_key_rotation": None,
         }
 
     async def start(self):
@@ -506,7 +562,7 @@ class BackupManager:
             self._scheduler_task,
             self._verification_task,
             self._cleanup_task,
-            self._key_rotation_task
+            self._key_rotation_task,
         ]
 
         for task in tasks:
@@ -535,30 +591,36 @@ class BackupManager:
 
         self.logger.info("Backup manager stopped")
 
-    async def create_backup(self,
-                          data: dict[str, Any] | bytes | str,
-                          backup_strategy: BackupStrategy = BackupStrategy.IMMEDIATE,
-                          backup_type: BackupType = BackupType.FULL,
-                          security_level: SecurityLevel = SecurityLevel.STANDARD,
-                          user_id: str | None = None,
-                          data_source: str | None = None,
-                          tags: list[str] | None = None,
-                          retention_days: int | None = None,
-                          target_nodes: list[str] | None = None,
-                          metadata: dict[str, Any] | None = None) -> BackupMetadata:
+    async def create_backup(
+        self,
+        data: dict[str, Any] | bytes | str,
+        backup_strategy: BackupStrategy = BackupStrategy.IMMEDIATE,
+        backup_type: BackupType = BackupType.FULL,
+        security_level: SecurityLevel = SecurityLevel.STANDARD,
+        user_id: str | None = None,
+        data_source: str | None = None,
+        tags: list[str] | None = None,
+        retention_days: int | None = None,
+        target_nodes: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> BackupMetadata:
         """
         Create a comprehensive backup with quantum encryption and distributed storage.
         """
         try:
             backup_id = f"backup_{int(time.time() * 1000)}_{secrets.token_hex(12)}"
-            self.logger.info(f"Creating backup {backup_id} with strategy {backup_strategy}")
+            self.logger.info(
+                f"Creating backup {backup_id} with strategy {backup_strategy}"
+            )
 
             # Determine if this should be incremental
             if backup_strategy == BackupStrategy.INCREMENTAL and data_source:
                 if data_source in self.incremental_baselines:
                     backup_type = BackupType.INCREMENTAL
                     baseline_backup_id = self.incremental_baselines[data_source]
-                    self.logger.info(f"Creating incremental backup from baseline {baseline_backup_id}")
+                    self.logger.info(
+                        f"Creating incremental backup from baseline {baseline_backup_id}"
+                    )
                 else:
                     # First backup for this source, make it full
                     backup_type = BackupType.FULL
@@ -574,18 +636,27 @@ class BackupManager:
                 "user_id": user_id,
                 "data_source": data_source,
                 "backup_strategy": backup_strategy.value,
-                "timestamp": datetime.now(UTC).isoformat()
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
             # Enhanced metadata
             enhanced_metadata = metadata or {}
-            enhanced_metadata.update({
-                "backup_strategy": backup_strategy.value,
-                "data_source": data_source,
-                "quantum_encrypted": True,
-                "distributed_storage": bool(target_nodes or (self.cluster_manager is not None and hasattr(self.cluster_manager, "nodes") and len(getattr(self.cluster_manager, "nodes", {})) > 0)),
-                "backup_context": backup_context
-            })
+            enhanced_metadata.update(
+                {
+                    "backup_strategy": backup_strategy.value,
+                    "data_source": data_source,
+                    "quantum_encrypted": True,
+                    "distributed_storage": bool(
+                        target_nodes
+                        or (
+                            self.cluster_manager is not None
+                            and hasattr(self.cluster_manager, "nodes")
+                            and len(getattr(self.cluster_manager, "nodes", {})) > 0
+                        )
+                    ),
+                    "backup_context": backup_context,
+                }
+            )
 
             # Create backup using enhanced engine with quantum encryption
             backup_metadata = await self.backup_engine.create_backup(
@@ -595,14 +666,16 @@ class BackupManager:
                 user_id=user_id,
                 tags=tags,
                 retention_days=retention_days,
-                metadata=enhanced_metadata
+                metadata=enhanced_metadata,
             )
 
             # Apply quantum encryption to backup shards and manage keys
             await self._apply_quantum_encryption(backup_metadata, backup_context)
 
             # Distribute backup across cluster nodes if available
-            if (target_nodes and len(target_nodes) > 0) or (self.cluster_manager is not None):
+            if (target_nodes and len(target_nodes) > 0) or (
+                self.cluster_manager is not None
+            ):
                 await self._distribute_backup(backup_metadata, target_nodes)
 
             # Update statistics
@@ -611,7 +684,9 @@ class BackupManager:
             # Schedule verification
             await self._schedule_verification(backup_metadata.backup_id)
 
-            self.logger.info(f"Backup {backup_id} created successfully with quantum encryption")
+            self.logger.info(
+                f"Backup {backup_id} created successfully with quantum encryption"
+            )
             return backup_metadata
 
         except Exception as e:
@@ -619,11 +694,13 @@ class BackupManager:
             self.stats["failed_backups"] += 1
             raise
 
-    async def create_incremental_backup(self,
-                                      data: dict[str, Any] | bytes | str,
-                                      data_source: str,
-                                      baseline_backup_id: str | None = None,
-                                      **kwargs) -> BackupMetadata:
+    async def create_incremental_backup(
+        self,
+        data: dict[str, Any] | bytes | str,
+        data_source: str,
+        baseline_backup_id: str | None = None,
+        **kwargs,
+    ) -> BackupMetadata:
         """Create an incremental backup based on changes since baseline."""
         try:
             # Determine baseline
@@ -631,17 +708,21 @@ class BackupManager:
                 baseline_backup_id = self.incremental_baselines.get(data_source)
                 if not baseline_backup_id:
                     # No baseline exists, create full backup
-                    self.logger.info(f"No baseline found for {data_source}, creating full backup")
+                    self.logger.info(
+                        f"No baseline found for {data_source}, creating full backup"
+                    )
                     return await self.create_backup(
                         data=data,
                         backup_strategy=BackupStrategy.IMMEDIATE,
                         backup_type=BackupType.FULL,
                         data_source=data_source,
-                        **kwargs
+                        **kwargs,
                     )
 
             # Get baseline backup for comparison
-            baseline_metadata = await self.backup_engine.get_backup_details(baseline_backup_id)
+            baseline_metadata = await self.backup_engine.get_backup_details(
+                baseline_backup_id
+            )
             if not baseline_metadata:
                 raise ValueError(f"Baseline backup {baseline_backup_id} not found")
 
@@ -649,7 +730,9 @@ class BackupManager:
             changes = await self._calculate_incremental_changes(data, baseline_metadata)
 
             if not changes or len(changes) == 0:
-                self.logger.info(f"No changes detected for {data_source}, skipping backup")
+                self.logger.info(
+                    f"No changes detected for {data_source}, skipping backup"
+                )
                 return baseline_metadata
 
             # Create incremental backup with only changes
@@ -660,10 +743,17 @@ class BackupManager:
                 data_source=data_source,
                 metadata={
                     "baseline_backup_id": baseline_backup_id,
-                    "change_count": len(changes) if isinstance(changes, (list, dict)) else len(str(changes)),
-                    "incremental_sequence": baseline_metadata.get("incremental_sequence", 0) + 1
+                    "change_count": (
+                        len(changes)
+                        if isinstance(changes, (list, dict))
+                        else len(str(changes))
+                    ),
+                    "incremental_sequence": baseline_metadata.get(
+                        "incremental_sequence", 0
+                    )
+                    + 1,
                 },
-                **kwargs
+                **kwargs,
             )
 
             self.stats["incremental_backups"] += 1
@@ -673,17 +763,19 @@ class BackupManager:
             self.logger.error(f"Failed to create incremental backup: {e!s}")
             raise
 
-    async def create_backup_schedule(self,
-                                   name: str,
-                                   cron_expression: str,
-                                   data_sources: list[str],
-                                   backup_strategy: BackupStrategy = BackupStrategy.SCHEDULED,
-                                   backup_type: BackupType = BackupType.INCREMENTAL,
-                                   security_level: SecurityLevel = SecurityLevel.STANDARD,
-                                   retention_days: int = DEFAULT_BACKUP_RETENTION_DAYS,
-                                   target_nodes: list[str] | None = None,
-                                   tags: list[str] | None = None,
-                                   metadata: dict[str, Any] | None = None) -> str:
+    async def create_backup_schedule(
+        self,
+        name: str,
+        cron_expression: str,
+        data_sources: list[str],
+        backup_strategy: BackupStrategy = BackupStrategy.SCHEDULED,
+        backup_type: BackupType = BackupType.INCREMENTAL,
+        security_level: SecurityLevel = SecurityLevel.STANDARD,
+        retention_days: int = DEFAULT_BACKUP_RETENTION_DAYS,
+        target_nodes: list[str] | None = None,
+        tags: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> str:
         """Create a new backup schedule."""
         try:
             schedule_id = f"schedule_{int(time.time())}_{secrets.token_hex(8)}"
@@ -699,7 +791,7 @@ class BackupManager:
                 data_sources=data_sources,
                 target_nodes=target_nodes or [],
                 tags=tags or [],
-                metadata=metadata or {}
+                metadata=metadata or {},
             )
 
             # Calculate next run time
@@ -714,17 +806,19 @@ class BackupManager:
             self.logger.error(f"Failed to create backup schedule: {e!s}")
             raise
 
-    async def create_recovery_plan(self,
-                                 name: str,
-                                 recovery_mode: RecoveryMode,
-                                 backup_sources: list[str],
-                                 target_location: str,
-                                 priority: int = 5,
-                                 estimated_time: int = 3600,
-                                 dependencies: list[str] | None = None,
-                                 verification_steps: list[str] | None = None,
-                                 rollback_plan: str | None = None,
-                                 metadata: dict[str, Any] | None = None) -> str:
+    async def create_recovery_plan(
+        self,
+        name: str,
+        recovery_mode: RecoveryMode,
+        backup_sources: list[str],
+        target_location: str,
+        priority: int = 5,
+        estimated_time: int = 3600,
+        dependencies: list[str] | None = None,
+        verification_steps: list[str] | None = None,
+        rollback_plan: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> str:
         """Create a disaster recovery plan."""
         try:
             plan_id = f"recovery_{int(time.time())}_{secrets.token_hex(8)}"
@@ -740,7 +834,7 @@ class BackupManager:
                 dependencies=dependencies or [],
                 verification_steps=verification_steps or [],
                 rollback_plan=rollback_plan,
-                metadata=metadata or {}
+                metadata=metadata or {},
             )
 
             self.recovery_plans[plan_id] = plan
@@ -752,18 +846,22 @@ class BackupManager:
             self.logger.error(f"Failed to create recovery plan: {e!s}")
             raise
 
-    async def execute_recovery(self,
-                             plan_id: str,
-                             backup_id: str | None = None,
-                             target_time: datetime | None = None,
-                             dry_run: bool = False) -> dict[str, Any]:
+    async def execute_recovery(
+        self,
+        plan_id: str,
+        backup_id: str | None = None,
+        target_time: datetime | None = None,
+        dry_run: bool = False,
+    ) -> dict[str, Any]:
         """Execute a disaster recovery plan."""
         try:
             plan = self.recovery_plans.get(plan_id)
             if not plan:
                 raise ValueError(f"Recovery plan {plan_id} not found")
 
-            self.logger.info(f"Executing recovery plan: {plan_id} ({'dry run' if dry_run else 'live'})")
+            self.logger.info(
+                f"Executing recovery plan: {plan_id} ({'dry run' if dry_run else 'live'})"
+            )
 
             recovery_start = datetime.now(UTC)
             recovery_log = []
@@ -776,7 +874,9 @@ class BackupManager:
             # Determine backup to restore
             if not backup_id:
                 # Find most recent backup from sources
-                backup_id = await self._find_latest_backup(plan.backup_sources, target_time)
+                backup_id = await self._find_latest_backup(
+                    plan.backup_sources, target_time
+                )
                 if not backup_id:
                     raise ValueError("No suitable backup found for recovery")
 
@@ -789,13 +889,21 @@ class BackupManager:
 
             # Execute recovery based on mode
             if plan.recovery_mode == RecoveryMode.FULL_RESTORE:
-                result = await self._execute_full_restore(backup_metadata, plan, dry_run)
+                result = await self._execute_full_restore(
+                    backup_metadata, plan, dry_run
+                )
             elif plan.recovery_mode == RecoveryMode.PARTIAL_RESTORE:
-                result = await self._execute_partial_restore(backup_metadata, plan, dry_run)
+                result = await self._execute_partial_restore(
+                    backup_metadata, plan, dry_run
+                )
             elif plan.recovery_mode == RecoveryMode.POINT_IN_TIME:
-                result = await self._execute_point_in_time_restore(backup_metadata, plan, target_time, dry_run)
+                result = await self._execute_point_in_time_restore(
+                    backup_metadata, plan, target_time, dry_run
+                )
             elif plan.recovery_mode == RecoveryMode.INCREMENTAL_RESTORE:
-                result = await self._execute_incremental_restore(backup_metadata, plan, dry_run)
+                result = await self._execute_incremental_restore(
+                    backup_metadata, plan, dry_run
+                )
             else:
                 raise ValueError(f"Unsupported recovery mode: {plan.recovery_mode}")
 
@@ -804,7 +912,9 @@ class BackupManager:
             # Execute verification steps
             if not dry_run:
                 for step in plan.verification_steps:
-                    verification_result = await self._execute_verification_step(step, result)
+                    verification_result = await self._execute_verification_step(
+                        step, result
+                    )
                     recovery_log.append(f"Verification: {step} - {verification_result}")
 
             recovery_end = datetime.now(UTC)
@@ -826,11 +936,13 @@ class BackupManager:
                 "started_at": recovery_start,
                 "completed_at": recovery_end,
                 "data_restored": result.get("data_restored", 0),
-                "files_restored": result.get("files_restored", 0)
+                "files_restored": result.get("files_restored", 0),
             }
 
             self.stats["disaster_recovery_tests"] += 1
-            self.logger.info(f"Recovery plan {plan_id} executed successfully in {recovery_time:.2f}s")
+            self.logger.info(
+                f"Recovery plan {plan_id} executed successfully in {recovery_time:.2f}s"
+            )
 
             return recovery_result
 
@@ -841,10 +953,12 @@ class BackupManager:
                 "status": "failed",
                 "error": str(e),
                 "dry_run": dry_run,
-                "completed_at": datetime.now(UTC)
+                "completed_at": datetime.now(UTC),
             }
 
-    async def verify_backup(self, backup_id: str, deep_verify: bool = False) -> BackupVerificationResult:
+    async def verify_backup(
+        self, backup_id: str, deep_verify: bool = False
+    ) -> BackupVerificationResult:
         """Verify backup integrity and accessibility."""
         try:
             verification_id = f"verify_{int(time.time())}_{secrets.token_hex(8)}"
@@ -861,7 +975,7 @@ class BackupManager:
                     status="failed",
                     integrity_score=0.0,
                     issues_found=["Backup metadata not found"],
-                    verification_time=time.time() - verification_start
+                    verification_time=time.time() - verification_start,
                 )
 
             issues_found = []
@@ -869,23 +983,31 @@ class BackupManager:
             integrity_score = 1.0
 
             # Basic integrity check using backup engine
-            engine_verification = await self.backup_engine.verify_backup_integrity(backup_id)
+            engine_verification = await self.backup_engine.verify_backup_integrity(
+                backup_id
+            )
             if engine_verification.get("status") != "healthy":
                 issues_found.append("Backup engine verification failed")
                 integrity_score -= 0.3
 
             # Verify quantum encryption integrity
             if backup_metadata.get("metadata", {}).get("quantum_encrypted"):
-                quantum_integrity = await self._verify_quantum_encryption(backup_metadata)
+                quantum_integrity = await self._verify_quantum_encryption(
+                    backup_metadata
+                )
                 if not quantum_integrity:
                     issues_found.append("Quantum encryption verification failed")
                     integrity_score -= 0.2
 
             # Verify distributed storage if applicable
             if backup_metadata.get("metadata", {}).get("distributed_storage"):
-                distribution_integrity = await self._verify_distributed_storage(backup_metadata)
+                distribution_integrity = await self._verify_distributed_storage(
+                    backup_metadata
+                )
                 if distribution_integrity < 0.8:
-                    issues_found.append(f"Distributed storage integrity low: {distribution_integrity:.2%}")
+                    issues_found.append(
+                        f"Distributed storage integrity low: {distribution_integrity:.2%}"
+                    )
                     integrity_score -= (1.0 - distribution_integrity) * 0.3
 
             # Deep verification (restore test)
@@ -901,8 +1023,10 @@ class BackupManager:
 
             # Check backup age and recommend actions
             try:
-                backup_age = (datetime.now(UTC) -
-                             datetime.fromisoformat(backup_metadata.get("created_at", ""))).days
+                backup_age = (
+                    datetime.now(UTC)
+                    - datetime.fromisoformat(backup_metadata.get("created_at", ""))
+                ).days
             except Exception:
                 backup_age = 0
 
@@ -933,9 +1057,13 @@ class BackupManager:
                     "deep_verify": deep_verify,
                     "backup_age_days": backup_age,
                     "engine_verification": engine_verification,
-                    "quantum_encrypted": backup_metadata.get("metadata", {}).get("quantum_encrypted", False),
-                    "distributed_storage": backup_metadata.get("metadata", {}).get("distributed_storage", False)
-                }
+                    "quantum_encrypted": backup_metadata.get("metadata", {}).get(
+                        "quantum_encrypted", False
+                    ),
+                    "distributed_storage": backup_metadata.get("metadata", {}).get(
+                        "distributed_storage", False
+                    ),
+                },
             )
 
             self.verification_results[verification_id] = result
@@ -943,11 +1071,18 @@ class BackupManager:
 
             # Update verification success rate
             total_verifications = len(self.verification_results)
-            successful_verifications = sum(1 for r in self.verification_results.values()
-                                         if r.status in ["passed", "warning"])
-            self.stats["verification_success_rate"] = successful_verifications / max(total_verifications, 1)
+            successful_verifications = sum(
+                1
+                for r in self.verification_results.values()
+                if r.status in ["passed", "warning"]
+            )
+            self.stats["verification_success_rate"] = successful_verifications / max(
+                total_verifications, 1
+            )
 
-            self.logger.info(f"Backup verification completed: {status} (score: {integrity_score:.2%})")
+            self.logger.info(
+                f"Backup verification completed: {status} (score: {integrity_score:.2%})"
+            )
             return result
 
         except Exception as e:
@@ -958,20 +1093,26 @@ class BackupManager:
                 status="failed",
                 integrity_score=0.0,
                 issues_found=[f"Verification error: {e!s}"],
-                verification_time=time.time() - verification_start if 'verification_start' in locals() else 0.0
+                verification_time=(
+                    time.time() - verification_start
+                    if "verification_start" in locals()
+                    else 0.0
+                ),
             )
 
-    async def list_backups(self,
-                         user_id: str | None = None,
-                         data_source: str | None = None,
-                         backup_strategy: BackupStrategy | None = None,
-                         backup_type: BackupType | None = None,
-                         status: BackupStatus | None = None,
-                         tags: list[str] | None = None,
-                         start_date: datetime | None = None,
-                         end_date: datetime | None = None,
-                         limit: int = 100,
-                         offset: int = 0) -> list[dict[str, Any]]:
+    async def list_backups(
+        self,
+        user_id: str | None = None,
+        data_source: str | None = None,
+        backup_strategy: BackupStrategy | None = None,
+        backup_type: BackupType | None = None,
+        status: BackupStatus | None = None,
+        tags: list[str] | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
         """List backups with advanced filtering."""
         try:
             # Build filters
@@ -992,7 +1133,7 @@ class BackupManager:
                 status=status,
                 tags=tags,
                 limit=limit,
-                offset=offset
+                offset=offset,
             )
 
             # Apply additional filters
@@ -1006,14 +1147,18 @@ class BackupManager:
 
                 # Filter by backup strategy
                 if backup_strategy:
-                    backup_backup_strategy = backup.get("metadata", {}).get("backup_strategy")
+                    backup_backup_strategy = backup.get("metadata", {}).get(
+                        "backup_strategy"
+                    )
                     if backup_backup_strategy != backup_strategy.value:
                         continue
 
                 # Filter by date range
                 if start_date or end_date:
                     try:
-                        backup_date = datetime.fromisoformat(backup.get("created_at", ""))
+                        backup_date = datetime.fromisoformat(
+                            backup.get("created_at", "")
+                        )
                     except Exception:
                         continue
                     if start_date and backup_date < start_date:
@@ -1022,9 +1167,15 @@ class BackupManager:
                         continue
 
                 # Add enhanced information
-                backup["quantum_encrypted"] = backup.get("metadata", {}).get("quantum_encrypted", False)
-                backup["distributed_storage"] = backup.get("metadata", {}).get("distributed_storage", False)
-                backup["backup_strategy"] = backup.get("metadata", {}).get("backup_strategy", "unknown")
+                backup["quantum_encrypted"] = backup.get("metadata", {}).get(
+                    "quantum_encrypted", False
+                )
+                backup["distributed_storage"] = backup.get("metadata", {}).get(
+                    "distributed_storage", False
+                )
+                backup["backup_strategy"] = backup.get("metadata", {}).get(
+                    "backup_strategy", "unknown"
+                )
 
                 filtered_backups.append(backup)
 
@@ -1040,11 +1191,16 @@ class BackupManager:
             # Update cluster statistics
             try:
                 if self.cluster_manager and hasattr(self.cluster_manager, "nodes"):
-                    self.stats["cluster_nodes_active"] = len([
-                        n for n in getattr(self.cluster_manager, "nodes", {}).values()
-                        if getattr(n, "is_online", True)
-                    ])
-                elif self.cluster_manager and hasattr(self.cluster_manager, "get_healthy_nodes"):
+                    self.stats["cluster_nodes_active"] = len(
+                        [
+                            n
+                            for n in getattr(self.cluster_manager, "nodes", {}).values()
+                            if getattr(n, "is_online", True)
+                        ]
+                    )
+                elif self.cluster_manager and hasattr(
+                    self.cluster_manager, "get_healthy_nodes"
+                ):
                     healthy_nodes = await self.cluster_manager.get_healthy_nodes()
                     self.stats["cluster_nodes_active"] = len(healthy_nodes)
                 else:
@@ -1061,29 +1217,58 @@ class BackupManager:
                 "backup_engine": engine_stats,
                 "schedules": {
                     "total_schedules": len(self.schedules),
-                    "enabled_schedules": len([s for s in self.schedules.values() if s.enabled]),
-                    "next_scheduled_backup": min([s.next_run for s in self.schedules.values()
-                                                if s.next_run], default=None)
+                    "enabled_schedules": len(
+                        [s for s in self.schedules.values() if s.enabled]
+                    ),
+                    "next_scheduled_backup": min(
+                        [s.next_run for s in self.schedules.values() if s.next_run],
+                        default=None,
+                    ),
                 },
                 "recovery_plans": {
                     "total_plans": len(self.recovery_plans),
-                    "high_priority_plans": len([p for p in self.recovery_plans.values() if p.priority >= 8]),
-                    "last_tested": max([p.last_tested for p in self.recovery_plans.values()
-                                      if p.last_tested], default=None)
+                    "high_priority_plans": len(
+                        [p for p in self.recovery_plans.values() if p.priority >= 8]
+                    ),
+                    "last_tested": max(
+                        [
+                            p.last_tested
+                            for p in self.recovery_plans.values()
+                            if p.last_tested
+                        ],
+                        default=None,
+                    ),
                 },
                 "verification": {
                     "total_verifications": len(self.verification_results),
                     "success_rate": self.stats["verification_success_rate"],
-                    "last_verification": self.stats["last_verification"]
+                    "last_verification": self.stats["last_verification"],
                 },
                 "cluster": {
-                    "total_nodes": len(getattr(self.cluster_manager, "nodes", {})) if self.cluster_manager and hasattr(self.cluster_manager, "nodes") else None,
+                    "total_nodes": (
+                        len(getattr(self.cluster_manager, "nodes", {}))
+                        if self.cluster_manager
+                        and hasattr(self.cluster_manager, "nodes")
+                        else None
+                    ),
                     "active_nodes": self.stats["cluster_nodes_active"],
-                    "node_types": {
-                        node_type.value: len([n for n in getattr(self.cluster_manager, "nodes", {}).values()
-                                            if getattr(n, "node_type", None) == node_type])
-                        for node_type in ClusterNodeType
-                    } if self.cluster_manager and hasattr(self.cluster_manager, "nodes") else {}
+                    "node_types": (
+                        {
+                            node_type.value: len(
+                                [
+                                    n
+                                    for n in getattr(
+                                        self.cluster_manager, "nodes", {}
+                                    ).values()
+                                    if getattr(n, "node_type", None) == node_type
+                                ]
+                            )
+                            for node_type in ClusterNodeType
+                        }
+                        if self.cluster_manager
+                        and hasattr(self.cluster_manager, "nodes")
+                        else {}
+                    ),
                 },
                 "quantum_encryption": {
                     "enabled": self.quantum_encryption.config.use_post_quantum,
@@ -1091,8 +1276,8 @@ class BackupManager:
                     "backup_algorithm": self.quantum_encryption.config.backup_algorithm,
                     "hybrid_mode": self.quantum_encryption.config.hybrid_mode,
                     "last_key_rotation": self.stats["last_key_rotation"],
-                    "key_rotations": self.stats["key_rotations"]
-                }
+                    "key_rotations": self.stats["key_rotations"],
+                },
             }
 
             return combined_stats
@@ -1103,7 +1288,9 @@ class BackupManager:
 
     # Private helper methods
 
-    async def _apply_quantum_encryption(self, backup_metadata: BackupMetadata, context: dict[str, Any]):
+    async def _apply_quantum_encryption(
+        self, backup_metadata: BackupMetadata, context: dict[str, Any]
+    ):
         """Apply quantum encryption to backup data and manage keys via key manager."""
         try:
             # This would integrate with the backup engine's encryption process
@@ -1112,32 +1299,42 @@ class BackupManager:
                 backup_metadata.metadata = {}
 
             backup_metadata.metadata["quantum_encryption_applied"] = True
-            backup_metadata.metadata["encryption_algorithm"] = self.quantum_encryption.config.primary_algorithm
-            backup_metadata.metadata["hybrid_encryption"] = self.quantum_encryption.config.hybrid_mode
+            backup_metadata.metadata["encryption_algorithm"] = (
+                self.quantum_encryption.config.primary_algorithm
+            )
+            backup_metadata.metadata["hybrid_encryption"] = (
+                self.quantum_encryption.config.hybrid_mode
+            )
 
             # Attempt to register a key or key reference with the key manager (if available)
             key_reference = None
             encryption_record = {
                 "algorithm": self.quantum_encryption.config.primary_algorithm,
                 "hybrid_mode": self.quantum_encryption.config.hybrid_mode,
-                "registered_at": datetime.now(UTC).isoformat()
+                "registered_at": datetime.now(UTC).isoformat(),
             }
 
             if self.key_manager:
                 try:
                     # Common key store API names: store_key, store_key_for_backup, register_key
                     if hasattr(self.key_manager, "store_key_for_backup"):
-                        res = self.key_manager.store_key_for_backup(backup_metadata.backup_id, encryption_record)
+                        res = self.key_manager.store_key_for_backup(
+                            backup_metadata.backup_id, encryption_record
+                        )
                         if asyncio.iscoroutine(res):
                             await res
                         key_reference = f"key_ref:{secrets.token_hex(8)}"
                     elif hasattr(self.key_manager, "store_key"):
-                        res = self.key_manager.store_key(backup_metadata.backup_id, encryption_record)
+                        res = self.key_manager.store_key(
+                            backup_metadata.backup_id, encryption_record
+                        )
                         if asyncio.iscoroutine(res):
                             await res
                         key_reference = f"key_ref:{secrets.token_hex(8)}"
                     elif hasattr(self.key_manager, "register_key"):
-                        res = self.key_manager.register_key(backup_metadata.backup_id, encryption_record)
+                        res = self.key_manager.register_key(
+                            backup_metadata.backup_id, encryption_record
+                        )
                         if asyncio.iscoroutine(res):
                             await res
                         key_reference = f"key_ref:{secrets.token_hex(8)}"
@@ -1146,20 +1343,27 @@ class BackupManager:
                         try:
                             # Best effort: if KeyVault class supports set_item-like API
                             if hasattr(self.key_manager, "set"):
-                                res = self.key_manager.set(f"backup:{backup_metadata.backup_id}:encryption", encryption_record)
+                                res = self.key_manager.set(
+                                    f"backup:{backup_metadata.backup_id}:encryption",
+                                    encryption_record,
+                                )
                                 if asyncio.iscoroutine(res):
                                     await res
                                 key_reference = f"key_ref:{secrets.token_hex(8)}"
                         except Exception:
                             key_reference = None
                 except Exception as e:
-                    self.logger.warning(f"Failed to register encryption key with key manager: {e}")
+                    self.logger.warning(
+                        f"Failed to register encryption key with key manager: {e}"
+                    )
                     key_reference = None
 
             # If no key manager or registration failed, store a local key reference marker
             if not key_reference:
                 key_reference = f"insecure_local_ref:{secrets.token_hex(8)}"
-                self.logger.debug("No external key manager available; using local key reference marker")
+                self.logger.debug(
+                    "No external key manager available; using local key reference marker"
+                )
 
             backup_metadata.metadata["key_reference"] = key_reference
             backup_metadata.metadata["encryption_record"] = encryption_record
@@ -1170,8 +1374,12 @@ class BackupManager:
             self.logger.error(f"Failed to apply quantum encryption: {e!s}")
             raise
 
-    async def _select_target_nodes(self, required_capacity: int, count: int = 3,
-                                   preferred_node_type: ClusterNodeType | None = None) -> list[str]:
+    async def _select_target_nodes(
+        self,
+        required_capacity: int,
+        count: int = 3,
+        preferred_node_type: ClusterNodeType | None = None,
+    ) -> list[str]:
         """
         Select target nodes using the injected/global cluster manager.
 
@@ -1192,7 +1400,7 @@ class BackupManager:
                     nodes = await self.cluster_manager.get_optimal_nodes(
                         required_capacity=required_capacity,
                         node_type=preferred_node_type,
-                        count=count
+                        count=count,
                     )
                     # Convert nodes to node IDs if they are objects
                     node_ids = []
@@ -1200,7 +1408,10 @@ class BackupManager:
                         if isinstance(n, (str,)):
                             node_ids.append(n)
                         else:
-                            node_ids.append(getattr(n, "node_id", None) or getattr(n, "nodeId", None))
+                            node_ids.append(
+                                getattr(n, "node_id", None)
+                                or getattr(n, "nodeId", None)
+                            )
                     return [nid for nid in node_ids if nid]
                 except Exception as e:
                     self.logger.debug(f"get_optimal_nodes failed: {e}")
@@ -1221,7 +1432,9 @@ class BackupManager:
                         # If metrics object exists in core ClusterNode, compute an approximate health_score
                         if hasattr(n, "metrics") and n.metrics is not None:
                             try:
-                                health_score_val = getattr(n.metrics, "health_score", None)
+                                health_score_val = getattr(
+                                    n.metrics, "health_score", None
+                                )
                             except Exception:
                                 health_score_val = None
                         else:
@@ -1236,10 +1449,22 @@ class BackupManager:
                         # Use heuristic: prefer nodes with available >= required_capacity
                         score = 0.0
                         try:
-                            if available is not None and capacity is not None and capacity > 0:
-                                score = (available / max(capacity, 1)) * (health_score_val if health_score_val is not None else 1.0)
+                            if (
+                                available is not None
+                                and capacity is not None
+                                and capacity > 0
+                            ):
+                                score = (available / max(capacity, 1)) * (
+                                    health_score_val
+                                    if health_score_val is not None
+                                    else 1.0
+                                )
                             else:
-                                score = health_score_val if health_score_val is not None else 0.5
+                                score = (
+                                    health_score_val
+                                    if health_score_val is not None
+                                    else 0.5
+                                )
                         except Exception:
                             score = 0.5
 
@@ -1265,7 +1490,9 @@ class BackupManager:
                         health_score_val = getattr(n, "metrics", None)
                         if hasattr(n, "metrics") and n.metrics is not None:
                             try:
-                                health_score_val = getattr(n.metrics, "health_score", None)
+                                health_score_val = getattr(
+                                    n.metrics, "health_score", None
+                                )
                             except Exception:
                                 health_score_val = None
                         else:
@@ -1277,10 +1504,22 @@ class BackupManager:
                             capacity = capacity or meta.get("capacity")
 
                         try:
-                            if available is not None and capacity is not None and capacity > 0:
-                                score = (available / max(capacity, 1)) * (health_score_val if health_score_val is not None else 1.0)
+                            if (
+                                available is not None
+                                and capacity is not None
+                                and capacity > 0
+                            ):
+                                score = (available / max(capacity, 1)) * (
+                                    health_score_val
+                                    if health_score_val is not None
+                                    else 1.0
+                                )
                             else:
-                                score = health_score_val if health_score_val is not None else 0.5
+                                score = (
+                                    health_score_val
+                                    if health_score_val is not None
+                                    else 0.5
+                                )
                         except Exception:
                             score = 0.5
 
@@ -1301,16 +1540,31 @@ class BackupManager:
                     for nid, n in nodes_map.items():
                         available = getattr(n, "available", None)
                         capacity = getattr(n, "capacity", None)
-                        health_score_val = getattr(n, "health_score", None) or (getattr(n, "metrics", None) and getattr(n.metrics, "health_score", None))
+                        health_score_val = getattr(n, "health_score", None) or (
+                            getattr(n, "metrics", None)
+                            and getattr(n.metrics, "health_score", None)
+                        )
                         if available is None or capacity is None:
                             meta = getattr(n, "metadata", {}) or {}
                             available = available or meta.get("available")
                             capacity = capacity or meta.get("capacity")
                         try:
-                            if available is not None and capacity is not None and capacity > 0:
-                                score = (available / max(capacity, 1)) * (health_score_val if health_score_val is not None else 1.0)
+                            if (
+                                available is not None
+                                and capacity is not None
+                                and capacity > 0
+                            ):
+                                score = (available / max(capacity, 1)) * (
+                                    health_score_val
+                                    if health_score_val is not None
+                                    else 1.0
+                                )
                             else:
-                                score = health_score_val if health_score_val is not None else 0.5
+                                score = (
+                                    health_score_val
+                                    if health_score_val is not None
+                                    else 0.5
+                                )
                         except Exception:
                             score = 0.5
                         candidates.append((score, nid))
@@ -1325,42 +1579,62 @@ class BackupManager:
             self.logger.error(f"Error selecting target nodes: {e}")
             return []
 
-    async def _distribute_backup(self, backup_metadata: BackupMetadata, target_nodes: list[str] | None):
+    async def _distribute_backup(
+        self, backup_metadata: BackupMetadata, target_nodes: list[str] | None
+    ):
         """Distribute backup across cluster nodes, using injected/global cluster manager."""
         try:
             # Determine target nodes
             if not target_nodes:
-                required_capacity = getattr(backup_metadata, "encrypted_size", getattr(backup_metadata, "original_size", 0))
+                required_capacity = getattr(
+                    backup_metadata,
+                    "encrypted_size",
+                    getattr(backup_metadata, "original_size", 0),
+                )
                 try:
-                    selected_nodes = await self._select_target_nodes(required_capacity=required_capacity, count=3)
+                    selected_nodes = await self._select_target_nodes(
+                        required_capacity=required_capacity, count=3
+                    )
                 except Exception as e:
                     self.logger.error(f"Node selection failed: {e}")
                     selected_nodes = []
                 target_nodes = selected_nodes
 
             if not target_nodes:
-                self.logger.info("No target nodes selected for distribution; backup will remain local")
+                self.logger.info(
+                    "No target nodes selected for distribution; backup will remain local"
+                )
                 return
 
             # Update node usage - be resilient to different cluster manager APIs
-            shard_size = getattr(backup_metadata, "encrypted_size", getattr(backup_metadata, "original_size", 0)) // max(len(target_nodes), 1)
+            shard_size = getattr(
+                backup_metadata,
+                "encrypted_size",
+                getattr(backup_metadata, "original_size", 0),
+            ) // max(len(target_nodes), 1)
             for node_id in target_nodes:
                 try:
                     # Preferred API: update_node_usage(node_id, used_capacity)
                     if hasattr(self.cluster_manager, "update_node_usage"):
-                        res = self.cluster_manager.update_node_usage(node_id, shard_size)
+                        res = self.cluster_manager.update_node_usage(
+                            node_id, shard_size
+                        )
                         if asyncio.iscoroutine(res):
                             await res
                     # Alternative: update_node_metrics(node_id, NodeMetrics) - best effort (skip if not applicable)
                     elif hasattr(self.cluster_manager, "update_node_metrics"):
                         # Build a minimal metrics object if possible
                         try:
-                            NodeMetricsClass = getattr(self.cluster_manager, "__class__", None)
+                            NodeMetricsClass = getattr(
+                                self.cluster_manager, "__class__", None
+                            )
                         except Exception:
                             NodeMetricsClass = None
                         # We won't attempt to construct a complex NodeMetrics; instead, call whatever method is available if safe
                         try:
-                            res = self.cluster_manager.update_node_metrics(node_id, shard_size)
+                            res = self.cluster_manager.update_node_metrics(
+                                node_id, shard_size
+                            )
                             if asyncio.iscoroutine(res):
                                 await res
                         except Exception:
@@ -1368,29 +1642,41 @@ class BackupManager:
                             pass
                     else:
                         # If no update APIs, log the info
-                        self.logger.debug(f"No node usage update API available for node {node_id}")
+                        self.logger.debug(
+                            f"No node usage update API available for node {node_id}"
+                        )
                 except Exception as e:
-                    self.logger.warning(f"Failed to update usage for node {node_id}: {e}")
+                    self.logger.warning(
+                        f"Failed to update usage for node {node_id}: {e}"
+                    )
 
             # Update metadata
             if not backup_metadata.metadata:
                 backup_metadata.metadata = {}
             backup_metadata.metadata["distributed_nodes"] = target_nodes
             backup_metadata.metadata["distribution_strategy"] = "optimal_selection"
-            backup_metadata.metadata.setdefault("distributed_shards", {})  # placeholder for shard references
+            backup_metadata.metadata.setdefault(
+                "distributed_shards", {}
+            )  # placeholder for shard references
 
             self.stats["distributed_backups"] += 1
         except Exception as e:
             self.logger.error(f"Failed to distribute backup: {e!s}")
             # Don't raise - backup can still succeed without distribution
 
-    async def _update_backup_stats(self, backup_metadata: BackupMetadata, backup_strategy: BackupStrategy):
+    async def _update_backup_stats(
+        self, backup_metadata: BackupMetadata, backup_strategy: BackupStrategy
+    ):
         """Update backup statistics."""
         try:
             self.stats["total_backups_managed"] += 1
             self.stats["successful_backups"] += 1
-            self.stats["total_data_protected"] += getattr(backup_metadata, "original_size", 0)
-            self.stats["last_backup"] = getattr(backup_metadata, "completed_at", datetime.now(UTC))
+            self.stats["total_data_protected"] += getattr(
+                backup_metadata, "original_size", 0
+            )
+            self.stats["last_backup"] = getattr(
+                backup_metadata, "completed_at", datetime.now(UTC)
+            )
 
             if backup_strategy == BackupStrategy.INCREMENTAL:
                 self.stats["incremental_backups"] += 1
@@ -1404,7 +1690,9 @@ class BackupManager:
         """Schedule backup verification."""
         try:
             # Schedule verification for later (would use a proper scheduler in production)
-            asyncio.create_task(self._delayed_verification(backup_id, delay=300))  # 5 minutes
+            asyncio.create_task(
+                self._delayed_verification(backup_id, delay=300)
+            )  # 5 minutes
         except Exception as e:
             self.logger.error(f"Failed to schedule verification: {e!s}")
 
@@ -1416,15 +1704,18 @@ class BackupManager:
         except Exception as e:
             self.logger.error(f"Delayed verification failed: {e!s}")
 
-    async def _calculate_incremental_changes(self, data: dict[str, Any] | bytes | str,
-                                           baseline_metadata: dict[str, Any]) -> dict[str, Any] | bytes | str:
+    async def _calculate_incremental_changes(
+        self, data: dict[str, Any] | bytes | str, baseline_metadata: dict[str, Any]
+    ) -> dict[str, Any] | bytes | str:
         """Calculate changes for incremental backup."""
         try:
             # Simplified change detection - in real implementation, use proper diff algorithms
             if isinstance(data, dict):
                 # For dict data, return only changed keys
                 baseline_checksum = baseline_metadata.get("checksum", "")
-                current_checksum = hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()
+                current_checksum = hashlib.sha256(
+                    json.dumps(data, sort_keys=True).encode()
+                ).hexdigest()
 
                 if current_checksum == baseline_checksum:
                     return {}  # No changes
@@ -1434,11 +1725,11 @@ class BackupManager:
             else:
                 # For other data types, return if different from baseline
                 if isinstance(data, str):
-                    data_bytes = data.encode('utf-8')
+                    data_bytes = data.encode("utf-8")
                 elif isinstance(data, bytes):
                     data_bytes = data
                 else:
-                    data_bytes = str(data).encode('utf-8')
+                    data_bytes = str(data).encode("utf-8")
 
                 current_checksum = hashlib.sha256(data_bytes).hexdigest()
                 baseline_checksum = baseline_metadata.get("checksum", "")
@@ -1462,8 +1753,9 @@ class BackupManager:
             self.logger.error(f"Failed to calculate next run: {e!s}")
             return datetime.now(UTC) + timedelta(hours=1)
 
-    async def _find_latest_backup(self, backup_sources: list[str],
-                                target_time: datetime | None = None) -> str | None:
+    async def _find_latest_backup(
+        self, backup_sources: list[str], target_time: datetime | None = None
+    ) -> str | None:
         """Find the latest backup for recovery."""
         try:
             all_backups = await self.backup_engine.list_backups(limit=1000)
@@ -1474,7 +1766,9 @@ class BackupManager:
                 backup_source = backup.get("metadata", {}).get("data_source")
                 if backup_source in backup_sources:
                     try:
-                        backup_time = datetime.fromisoformat(backup.get("created_at", ""))
+                        backup_time = datetime.fromisoformat(
+                            backup.get("created_at", "")
+                        )
                     except Exception:
                         continue
                     if not target_time or backup_time <= target_time:
@@ -1491,8 +1785,9 @@ class BackupManager:
             self.logger.error(f"Failed to find latest backup: {e!s}")
             return None
 
-    async def _execute_full_restore(self, backup_metadata: dict[str, Any],
-                                  plan: RecoveryPlan, dry_run: bool) -> dict[str, Any]:
+    async def _execute_full_restore(
+        self, backup_metadata: dict[str, Any], plan: RecoveryPlan, dry_run: bool
+    ) -> dict[str, Any]:
         """Execute full restore recovery."""
         try:
             if dry_run:
@@ -1500,7 +1795,7 @@ class BackupManager:
                     "status": "simulated",
                     "data_restored": backup_metadata.get("original_size", 0),
                     "files_restored": 1,
-                    "log": ["Full restore simulation completed"]
+                    "log": ["Full restore simulation completed"],
                 }
 
             # In real implementation, this would restore the actual data
@@ -1508,15 +1803,16 @@ class BackupManager:
                 "status": "completed",
                 "data_restored": backup_metadata.get("original_size", 0),
                 "files_restored": 1,
-                "log": ["Full restore completed successfully"]
+                "log": ["Full restore completed successfully"],
             }
 
         except Exception as e:
             self.logger.error(f"Full restore failed: {e!s}")
             raise
 
-    async def _execute_partial_restore(self, backup_metadata: dict[str, Any],
-                                     plan: RecoveryPlan, dry_run: bool) -> dict[str, Any]:
+    async def _execute_partial_restore(
+        self, backup_metadata: dict[str, Any], plan: RecoveryPlan, dry_run: bool
+    ) -> dict[str, Any]:
         """Execute partial restore recovery."""
         try:
             if dry_run:
@@ -1524,7 +1820,7 @@ class BackupManager:
                     "status": "simulated",
                     "data_restored": backup_metadata.get("original_size", 0) // 2,
                     "files_restored": 1,
-                    "log": ["Partial restore simulation completed"]
+                    "log": ["Partial restore simulation completed"],
                 }
 
             # In real implementation, this would restore selected data
@@ -1532,16 +1828,20 @@ class BackupManager:
                 "status": "completed",
                 "data_restored": backup_metadata.get("original_size", 0) // 2,
                 "files_restored": 1,
-                "log": ["Partial restore completed successfully"]
+                "log": ["Partial restore completed successfully"],
             }
 
         except Exception as e:
             self.logger.error(f"Partial restore failed: {e!s}")
             raise
 
-    async def _execute_point_in_time_restore(self, backup_metadata: dict[str, Any],
-                                           plan: RecoveryPlan, target_time: datetime | None,
-                                           dry_run: bool) -> dict[str, Any]:
+    async def _execute_point_in_time_restore(
+        self,
+        backup_metadata: dict[str, Any],
+        plan: RecoveryPlan,
+        target_time: datetime | None,
+        dry_run: bool,
+    ) -> dict[str, Any]:
         """Execute point-in-time restore recovery."""
         try:
             if dry_run:
@@ -1550,7 +1850,7 @@ class BackupManager:
                     "data_restored": backup_metadata.get("original_size", 0),
                     "files_restored": 1,
                     "target_time": target_time.isoformat() if target_time else None,
-                    "log": ["Point-in-time restore simulation completed"]
+                    "log": ["Point-in-time restore simulation completed"],
                 }
 
             # In real implementation, this would restore data to specific point in time
@@ -1559,15 +1859,16 @@ class BackupManager:
                 "data_restored": backup_metadata.get("original_size", 0),
                 "files_restored": 1,
                 "target_time": target_time.isoformat() if target_time else None,
-                "log": ["Point-in-time restore completed successfully"]
+                "log": ["Point-in-time restore completed successfully"],
             }
 
         except Exception as e:
             self.logger.error(f"Point-in-time restore failed: {e!s}")
             raise
 
-    async def _execute_incremental_restore(self, backup_metadata: dict[str, Any],
-                                         plan: RecoveryPlan, dry_run: bool) -> dict[str, Any]:
+    async def _execute_incremental_restore(
+        self, backup_metadata: dict[str, Any], plan: RecoveryPlan, dry_run: bool
+    ) -> dict[str, Any]:
         """Execute incremental restore recovery."""
         try:
             if dry_run:
@@ -1575,7 +1876,7 @@ class BackupManager:
                     "status": "simulated",
                     "data_restored": backup_metadata.get("original_size", 0),
                     "files_restored": 1,
-                    "log": ["Incremental restore simulation completed"]
+                    "log": ["Incremental restore simulation completed"],
                 }
 
             # In real implementation, this would restore incremental changes
@@ -1583,14 +1884,16 @@ class BackupManager:
                 "status": "completed",
                 "data_restored": backup_metadata.get("original_size", 0),
                 "files_restored": 1,
-                "log": ["Incremental restore completed successfully"]
+                "log": ["Incremental restore completed successfully"],
             }
 
         except Exception as e:
             self.logger.error(f"Incremental restore failed: {e!s}")
             raise
 
-    async def _execute_verification_step(self, step: str, restore_result: dict[str, Any]) -> str:
+    async def _execute_verification_step(
+        self, step: str, restore_result: dict[str, Any]
+    ) -> str:
         """Execute a verification step."""
         try:
             # Simplified verification step execution
@@ -1611,15 +1914,17 @@ class BackupManager:
             # Check if quantum encryption metadata is present and valid
             metadata = backup_metadata.get("metadata", {})
             return (
-                metadata.get("quantum_encryption_applied", False) and
-                metadata.get("encryption_algorithm") in ["ML-KEM-768", "HQC-128"] and
-                isinstance(metadata.get("hybrid_encryption"), bool)
+                metadata.get("quantum_encryption_applied", False)
+                and metadata.get("encryption_algorithm") in ["ML-KEM-768", "HQC-128"]
+                and isinstance(metadata.get("hybrid_encryption"), bool)
             )
         except Exception as e:
             self.logger.error(f"Quantum encryption verification failed: {e!s}")
             return False
 
-    async def _verify_distributed_storage(self, backup_metadata: dict[str, Any]) -> float:
+    async def _verify_distributed_storage(
+        self, backup_metadata: dict[str, Any]
+    ) -> float:
         """Verify distributed storage integrity."""
         try:
             metadata = backup_metadata.get("metadata", {})
@@ -1634,7 +1939,10 @@ class BackupManager:
             for node_id in distributed_nodes:
                 try:
                     # Different cluster managers expose different APIs
-                    if hasattr(self.cluster_manager, "nodes") and node_id in self.cluster_manager.nodes:
+                    if (
+                        hasattr(self.cluster_manager, "nodes")
+                        and node_id in self.cluster_manager.nodes
+                    ):
                         node = self.cluster_manager.nodes[node_id]
                         if getattr(node, "is_online", True):
                             online_nodes += 1
@@ -1680,18 +1988,25 @@ class BackupManager:
                 current_time = datetime.now(UTC)
 
                 for schedule in list(self.schedules.values()):
-                    if (schedule.enabled and
-                        schedule.next_run and
-                        schedule.next_run <= current_time):
+                    if (
+                        schedule.enabled
+                        and schedule.next_run
+                        and schedule.next_run <= current_time
+                    ):
 
                         # Execute scheduled backup
                         try:
-                            self.logger.info(f"Executing scheduled backup: {schedule.schedule_id}")
+                            self.logger.info(
+                                f"Executing scheduled backup: {schedule.schedule_id}"
+                            )
 
                             # Create backup for each data source
                             for data_source in schedule.data_sources:
                                 # In real implementation, fetch actual data from source
-                                dummy_data = {"source": data_source, "timestamp": current_time.isoformat()}
+                                dummy_data = {
+                                    "source": data_source,
+                                    "timestamp": current_time.isoformat(),
+                                }
 
                                 await self.create_backup(
                                     data=dummy_data,
@@ -1702,19 +2017,26 @@ class BackupManager:
                                     tags=schedule.tags,
                                     retention_days=schedule.retention_days,
                                     target_nodes=schedule.target_nodes,
-                                    metadata={"scheduled": True, "schedule_id": schedule.schedule_id}
+                                    metadata={
+                                        "scheduled": True,
+                                        "schedule_id": schedule.schedule_id,
+                                    },
                                 )
 
                             # Update schedule
                             schedule.last_run = current_time
-                            schedule.next_run = self._calculate_next_run(schedule.cron_expression)
+                            schedule.next_run = self._calculate_next_run(
+                                schedule.cron_expression
+                            )
                             schedule.run_count += 1
                             schedule.success_count += 1
 
                         except Exception as e:
                             self.logger.error(f"Scheduled backup failed: {e!s}")
                             schedule.failure_count += 1
-                            schedule.next_run = self._calculate_next_run(schedule.cron_expression)
+                            schedule.next_run = self._calculate_next_run(
+                                schedule.cron_expression
+                            )
 
                 await asyncio.sleep(60)  # Check every minute
 
@@ -1740,18 +2062,26 @@ class BackupManager:
                     last_verified = None
                     for verification in self.verification_results.values():
                         if verification.backup_id == backup_id:
-                            if not last_verified or verification.verified_at > last_verified:
+                            if (
+                                not last_verified
+                                or verification.verified_at > last_verified
+                            ):
                                 last_verified = verification.verified_at
 
                     # Verify if not verified recently
-                    if (not last_verified or
-                        (datetime.now(UTC) - last_verified).total_seconds() > BACKUP_VERIFICATION_INTERVAL):
+                    if (
+                        not last_verified
+                        or (datetime.now(UTC) - last_verified).total_seconds()
+                        > BACKUP_VERIFICATION_INTERVAL
+                    ):
 
                         try:
                             await self.verify_backup(backup_id, deep_verify=False)
                             await asyncio.sleep(1)  # Rate limit verifications
                         except Exception as e:
-                            self.logger.error(f"Background verification failed for {backup_id}: {e!s}")
+                            self.logger.error(
+                                f"Background verification failed for {backup_id}: {e!s}"
+                            )
 
                 await asyncio.sleep(3600)  # Check every hour
 
@@ -1771,7 +2101,8 @@ class BackupManager:
                 # Clean up old verification results
                 cutoff_time = datetime.now(UTC) - timedelta(days=30)
                 expired_verifications = [
-                    vid for vid, result in self.verification_results.items()
+                    vid
+                    for vid, result in self.verification_results.items()
                     if result.verified_at < cutoff_time
                 ]
                 for vid in expired_verifications:

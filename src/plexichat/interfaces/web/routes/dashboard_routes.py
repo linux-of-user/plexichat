@@ -27,10 +27,10 @@ router = APIRouter(prefix="/dashboard", tags=["Main Dashboard"])
 templates = Jinja2Templates(directory=str(Path(__file__).parent.parent / "templates"))
 logger = get_logger(__name__)
 
+
 @router.get("/", response_class=HTMLResponse)
 async def main_dashboard(
-    request: Request,
-    current_user: dict = Depends(get_current_user)
+    request: Request, current_user: dict = Depends(get_current_user)
 ):
     """Main system dashboard."""
     try:
@@ -44,25 +44,28 @@ async def main_dashboard(
             ),
             "active_alerts": len(performance_service._get_active_alerts()),
             "current_metrics": performance_service.get_current_metrics(),
-            "quick_stats": _get_quick_stats(performance_service)
+            "quick_stats": _get_quick_stats(performance_service),
         }
 
-        return templates.TemplateResponse("main_dashboard.html", {
-            "request": request,
-            "user": current_user,
-            "overview": overview_data,
-            "page_title": "PlexiChat Dashboard",
-            "current_time": datetime.now(UTC).isoformat()
-        })
+        return templates.TemplateResponse(
+            "main_dashboard.html",
+            {
+                "request": request,
+                "user": current_user,
+                "overview": overview_data,
+                "page_title": "PlexiChat Dashboard",
+                "current_time": datetime.now(UTC).isoformat(),
+            },
+        )
 
     except Exception as e:
         logger.error(f"Main dashboard error: {e}")
         raise HTTPException(status_code=500, detail=f"Dashboard error: {e!s}")
 
+
 @router.get("/admin", response_class=HTMLResponse)
 async def admin_dashboard(
-    request: Request,
-    current_user: dict = Depends(require_admin)
+    request: Request, current_user: dict = Depends(require_admin)
 ):
     """Administrative dashboard."""
     try:
@@ -75,20 +78,24 @@ async def admin_dashboard(
             "system_health": performance_service._calculate_health_score(
                 performance_service.get_current_metrics()
             ),
-            "admin_stats": _get_admin_stats()
+            "admin_stats": _get_admin_stats(),
         }
 
-        return templates.TemplateResponse("admin_dashboard.html", {
-            "request": request,
-            "user": current_user,
-            "admin_data": admin_data,
-            "page_title": "Admin Dashboard",
-            "current_time": datetime.now(UTC).isoformat()
-        })
+        return templates.TemplateResponse(
+            "admin_dashboard.html",
+            {
+                "request": request,
+                "user": current_user,
+                "admin_data": admin_data,
+                "page_title": "Admin Dashboard",
+                "current_time": datetime.now(UTC).isoformat(),
+            },
+        )
 
     except Exception as e:
         logger.error(f"Admin dashboard error: {e}")
         raise HTTPException(status_code=500, detail=f"Admin dashboard error: {e!s}")
+
 
 # Helper functions
 def _get_quick_stats(performance_service):
@@ -99,19 +106,26 @@ def _get_quick_stats(performance_service):
         "uptime": "99.9%",  # Would be calculated from actual uptime
         "total_requests": "1,234,567",  # Would be from actual request counter
         "active_users": "89",  # Would be from user session tracking
-        "data_processed": "2.3 TB"  # Would be from actual data processing metrics
+        "data_processed": "2.3 TB",  # Would be from actual data processing metrics
     }
 
     # Add real metrics if available
     if current_metrics.get("system"):
         stats["cpu_usage"] = f"{current_metrics['system'].get('cpu_usage', 0):.1f}%"
-        stats["memory_usage"] = f"{current_metrics['system'].get('memory_usage', 0):.1f}%"
+        stats["memory_usage"] = (
+            f"{current_metrics['system'].get('memory_usage', 0):.1f}%"
+        )
 
     if current_metrics.get("application"):
-        stats["response_time"] = f"{current_metrics['application'].get('response_time_avg', 0):.0f}ms"
-        stats["error_rate"] = f"{current_metrics['application'].get('error_rate', 0):.1f}%"
+        stats["response_time"] = (
+            f"{current_metrics['application'].get('response_time_avg', 0):.0f}ms"
+        )
+        stats["error_rate"] = (
+            f"{current_metrics['application'].get('error_rate', 0):.1f}%"
+        )
 
     return stats
+
 
 def _get_admin_stats():
     """Get administrative statistics."""
@@ -121,18 +135,29 @@ def _get_admin_stats():
         "storage_used": "1.2 TB",  # Would be from storage monitoring
         "backup_status": "Healthy",  # Would be from backup service
         "security_events": 3,  # Would be from security monitoring
-        "system_updates": 0  # Would be from update service
+        "system_updates": 0,  # Would be from update service
     }
+
 
 def get_performance_service():
     class DummyPerformanceService:
-        def _calculate_health_score(self, *a, **k): return 100
-        def get_current_metrics(self): return {"system": {}, "application": {}}
-        def _get_active_alerts(self): return []
-        def get_performance_summary(self): return {}
+        def _calculate_health_score(self, *a, **k):
+            return 100
+
+        def get_current_metrics(self):
+            return {"system": {}, "application": {}}
+
+        def _get_active_alerts(self):
+            return []
+
+        def get_performance_summary(self):
+            return {}
+
     async def dummy():
         return DummyPerformanceService()
+
     return dummy()
+
 
 # Export router
 __all__ = ["router"]

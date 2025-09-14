@@ -21,14 +21,14 @@ from plexichat.features.ai.features.ai_powered_features_service import (
 )
 
 __all__ = [
-    'AIPoweredFeaturesService',
-    'ContentSuggestion',
-    'ModerationAction',
-    'ModerationResult',
-    'SemanticSearchResult',
-    'Sentiment',
-    'SentimentAnalysisResult',
-    'SummarizationResult'
+    "AIPoweredFeaturesService",
+    "ContentSuggestion",
+    "ModerationAction",
+    "ModerationResult",
+    "SemanticSearchResult",
+    "Sentiment",
+    "SentimentAnalysisResult",
+    "SummarizationResult",
 ]
 
 # Service instance for global access
@@ -43,7 +43,9 @@ def get_ai_features_service() -> AIPoweredFeaturesService:
     return _ai_features_service
 
 
-def initialize_ai_features_service(config: dict | None = None) -> AIPoweredFeaturesService:
+def initialize_ai_features_service(
+    config: dict | None = None,
+) -> AIPoweredFeaturesService:
     """Initialize the AI features service with optional configuration."""
     global _ai_features_service
     _ai_features_service = AIPoweredFeaturesService(config)

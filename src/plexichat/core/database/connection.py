@@ -17,7 +17,9 @@ logger = get_logger(__name__)
 class ConnectionProtocol(Protocol):
     """Protocol for database connections."""
 
-    async def execute(self, query: str, params: dict[str, Any] | tuple | None = None) -> Any:
+    async def execute(
+        self, query: str, params: dict[str, Any] | tuple | None = None
+    ) -> Any:
         """Execute a query."""
         ...
 
@@ -41,14 +43,18 @@ class ConnectionConfig:
 class DatabaseConnection:
     """Database connection wrapper."""
 
-    def __init__(self, connection: ConnectionProtocol, config: ConnectionConfig | None = None):
+    def __init__(
+        self, connection: ConnectionProtocol, config: ConnectionConfig | None = None
+    ):
         self.connection = connection
         self.config = config or ConnectionConfig()
         self.is_active = True
         self.last_used = asyncio.get_event_loop().time()
         self.logger = get_logger(__name__)
 
-    async def execute(self, query: str, params: dict[str, Any] | tuple | None = None) -> Any:
+    async def execute(
+        self, query: str, params: dict[str, Any] | tuple | None = None
+    ) -> Any:
         """Execute a query on this connection."""
         self.last_used = asyncio.get_event_loop().time()
 

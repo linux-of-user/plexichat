@@ -27,13 +27,20 @@ system_cmd = None
 logger = logging.getLogger(__name__)
 console = Console() if Console else None
 
+
 def print_message(message: str, style: str = "info"):
     """Prints a styled message to the console."""
     if console:
-        color_map = {"error": "red", "warning": "yellow", "success": "green", "info": "blue"}
+        color_map = {
+            "error": "red",
+            "warning": "yellow",
+            "success": "green",
+            "info": "blue",
+        }
         console.print(f"[{color_map.get(style, 'white')}]{style.upper()}: {message}[/]")
     else:
         print(f"{style.upper()}: {message}")
+
 
 def print_table(data: list[dict[str, Any]], title: str = "Results"):
     """Prints data in a table format."""
@@ -63,29 +70,39 @@ async def initialize_cli():
     """Initializes CLI components."""
     print_message("Initializing CLI components...", "info")
     # In a real app, you'd initialize db, plugins, etc. here
-    await asyncio.sleep(0.1) # Simulate async work
+    await asyncio.sleep(0.1)  # Simulate async work
     print_message("CLI initialized successfully.", "success")
     return True
+
 
 async def shutdown_cli():
     """Shuts down CLI components."""
     print_message("Shutting down CLI components...", "info")
-    await asyncio.sleep(0.1) # Simulate async work
+    await asyncio.sleep(0.1)  # Simulate async work
     print_message("CLI shutdown complete.", "success")
 
+
 if not click:
+
     def main():
-        print_message("The 'click' library is not installed. Please run 'pip install click'.", "error")
+        print_message(
+            "The 'click' library is not installed. Please run 'pip install click'.",
+            "error",
+        )
         sys.exit(1)
+
 else:
+
     @click.group()
-    @click.option('--verbose', '-v', is_flag=True, help='Enable verbose output.')
+    @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output.")
     @click.pass_context
     def cli(ctx, verbose: bool):
         """PlexiChat CLI - Manage your PlexiChat instance."""
         ctx.ensure_object(dict)
         log_level = logging.DEBUG if verbose else logging.INFO
-        logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
+        logging.basicConfig(
+            level=log_level, format="%(asctime)s - %(levelname)s - %(message)s"
+        )
 
         try:
             asyncio.run(initialize_cli())
@@ -124,6 +141,7 @@ else:
             except Exception as e:
                 print_message(f"Error during shutdown: {e}", "error")
             sys.exit(0)
+
 
 if __name__ == "__main__":
     main()

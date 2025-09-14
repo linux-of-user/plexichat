@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 class ServicePriority(Enum):
     """Service execution priority levels."""
+
     CRITICAL = 1  # Security, authentication, core systems
     HIGH = 2  # Backup, monitoring, essential features
     NORMAL = 3  # Standard application features
@@ -38,6 +39,7 @@ class ServicePriority(Enum):
 
 class ServiceStatus(Enum):
     """Service status states."""
+
     STOPPED = "stopped"
     STARTING = "starting"
     RUNNING = "running"
@@ -48,6 +50,7 @@ class ServiceStatus(Enum):
 
 class ServiceType(Enum):
     """Service types for categorization."""
+
     CORE = "core"  # Core system services
     SECURITY = "security"  # Security-related services
     BACKUP = "backup"  # Backup and recovery services
@@ -61,6 +64,7 @@ class ServiceType(Enum):
 @dataclass
 class ServiceMetadata:
     """Service metadata and configuration."""
+
     service_id: str
     name: str
     description: str
@@ -79,6 +83,7 @@ class ServiceMetadata:
 @dataclass
 class ServiceHealth:
     """Service health and performance metrics."""
+
     service_id: str
     status: ServiceStatus
     uptime: timedelta
@@ -104,6 +109,7 @@ class SecureService:
     - Health monitoring
     - Automatic recovery
     """
+
     def __init__(self, metadata: ServiceMetadata):
         self.metadata = metadata
         self.status = ServiceStatus.STOPPED
@@ -166,16 +172,20 @@ class SecureService:
                 "data_type": "service_communication",
                 "security_tier": "STANDARD",  # self._get_security_tier(),
                 "algorithms": [],
-                "key_ids": [f"service_key_{self.metadata.service_id}"],  # self.service_key.key_id,
+                "key_ids": [
+                    f"service_key_{self.metadata.service_id}"
+                ],  # self.service_key.key_id,
                 "metadata": {
                     "service_id": self.metadata.service_id,
                     "service_type": self.metadata.service_type.value,
                     "security_level": self.metadata.security_level,
-                }
+                },
             }
 
         except Exception as e:
-            logger.warning(f"Failed to setup service encryption for {self.metadata.name}: {e}")
+            logger.warning(
+                f"Failed to setup service encryption for {self.metadata.name}: {e}"
+            )
 
     def _get_security_tier(self):
         """Get quantum security tier based on service security level."""
@@ -227,7 +237,9 @@ class SecureService:
                     await self._check_service_health()
                     await asyncio.sleep(30)  # Check every 30 seconds
                 except Exception as e:
-                    logger.error(f"Health monitoring error for {self.metadata.name}: {e}")
+                    logger.error(
+                        f"Health monitoring error for {self.metadata.name}: {e}"
+                    )
                     await asyncio.sleep(60)
 
         asyncio.create_task(health_monitor())
@@ -249,14 +261,20 @@ class SecureService:
         """Check service health and trigger recovery if needed."""
         # Check for excessive errors
         if self.health.error_count > 10:
-            logger.warning(f"Service {self.metadata.name} has excessive errors, considering restart")
+            logger.warning(
+                f"Service {self.metadata.name} has excessive errors, considering restart"
+            )
             await self._trigger_service_recovery()
 
         # Check response times
         if self.health.response_times:
-            avg_response_time = sum(self.health.response_times) / len(self.health.response_times)
+            avg_response_time = sum(self.health.response_times) / len(
+                self.health.response_times
+            )
             if avg_response_time > 5.0:  # 5 seconds threshold
-                logger.warning(f"Service {self.metadata.name} has slow response times: {avg_response_time:.2f}s")
+                logger.warning(
+                    f"Service {self.metadata.name} has slow response times: {avg_response_time:.2f}s"
+                )
 
     async def _trigger_service_recovery(self):
         """Trigger service recovery procedures."""

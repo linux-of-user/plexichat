@@ -37,8 +37,10 @@ from plexichat.interfaces.web.routers.cli import router as cli_router
 
 logger = logging.getLogger(__name__)
 
+
 class EnhancedWebUIRouter:
     """Enhanced WebUI router with advanced features."""
+
     def __init__(self):
         self.config = get_webui_config()
         self.auth_adapter = get_auth_adapter()
@@ -50,7 +52,7 @@ class EnhancedWebUIRouter:
             description="Enhanced PlexiChat Web User Interface",
             version="2.0.0",
             docs_url="/docs" if self.config.is_feature_enabled("api_docs") else None,
-            redoc_url="/redoc" if self.config.is_feature_enabled("api_docs") else None
+            redoc_url="/redoc" if self.config.is_feature_enabled("api_docs") else None,
         )
 
         # Setup middleware
@@ -86,12 +88,18 @@ class EnhancedWebUIRouter:
             response.headers["X-Content-Type-Options"] = "nosniff"
             response.headers["X-Frame-Options"] = "DENY"
             response.headers["X-XSS-Protection"] = "1; mode=block"
-            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-            response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+            response.headers["Strict-Transport-Security"] = (
+                "max-age=31536000; includeSubDomains"
+            )
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+            )
 
             # Add custom headers
             response.headers["X-WebUI-Version"] = "2.0.0"
-            response.headers["X-Process-Time"] = str((datetime.utcnow() - start_time).total_seconds())
+            response.headers["X-Process-Time"] = str(
+                (datetime.utcnow() - start_time).total_seconds()
+            )
 
             return response
 
@@ -140,7 +148,7 @@ class EnhancedWebUIRouter:
                 if not username or not password:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Username and password required"
+                        detail="Username and password required",
                     )
 
                 # Use unified authentication manager for login
@@ -150,13 +158,12 @@ class EnhancedWebUIRouter:
                 if not login_result.success:
                     raise HTTPException(
                         status_code=status.HTTP_401_UNAUTHORIZED,
-                        detail=login_result.message or "Authentication failed"
+                        detail=login_result.message or "Authentication failed",
                     )
 
                 # Create access token using unified auth system
                 access_token = await self.auth_adapter.create_access_token(
-                    login_result.user_id,
-                    login_result.permissions
+                    login_result.user_id, login_result.permissions
                 )
 
                 response_data = {
@@ -165,7 +172,7 @@ class EnhancedWebUIRouter:
                     "user_id": login_result.user_id,
                     "permissions": list(login_result.permissions),
                     "mfa_required": login_result.mfa_required,
-                    "mfa_completed": login_result.mfa_completed
+                    "mfa_completed": login_result.mfa_completed,
                 }
 
                 return JSONResponse(content=response_data)
@@ -176,7 +183,7 @@ class EnhancedWebUIRouter:
                 logger.error(f"Login error: {e}")
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Login failed"
+                    detail="Login failed",
                 )
 
         @self.app.post("/auth/logout")
@@ -188,74 +195,97 @@ class EnhancedWebUIRouter:
                 if user_id:
                     await self.auth_adapter.invalidate_user_sessions(user_id)
 
-                return JSONResponse(content={"success": True, "message": "Logged out successfully"})
+                return JSONResponse(
+                    content={"success": True, "message": "Logged out successfully"}
+                )
 
             except Exception as e:
                 logger.error(f"Logout error: {e}")
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Logout failed"
+                    detail="Logout failed",
                 )
 
     def _setup_dashboard_routes(self):
         """Setup dashboard routes."""
 
         @self.app.get("/", response_class=HTMLResponse)
-        async def dashboard(request: Request, current_user: dict[str, Any] | None = Depends(get_optional_user)):
+        async def dashboard(
+            request: Request,
+            current_user: dict[str, Any] | None = Depends(get_optional_user),
+        ):
             """Main dashboard."""
             if not self.config.is_feature_enabled("dashboard"):
                 raise HTTPException(status_code=404, detail="Dashboard disabled")
 
-            return self.templates.TemplateResponse("dashboard.html", {
-                "request": request,
-                "features": self._get_enabled_features(),
-                "system_status": await self._get_system_status(),
-                "user": current_user
-            })
+            return self.templates.TemplateResponse(
+                "dashboard.html",
+                {
+                    "request": request,
+                    "features": self._get_enabled_features(),
+                    "system_status": await self._get_system_status(),
+                    "user": current_user,
+                },
+            )
 
         @self.app.get("/api/dashboard/status")
         @rate_limit("dashboard_status", 60, 60)  # 60 requests per minute
-        async def dashboard_status(current_user: dict[str, Any] = Depends(get_current_user)):
+        async def dashboard_status(
+            current_user: dict[str, Any] = Depends(get_current_user),
+        ):
             """Get dashboard status."""
-            return JSONResponse(content={
-                "user": current_user.get("user_id"),
-                "permissions": list(current_user.get("permissions", [])),
-                "features": self._get_enabled_features(),
-                "system_status": await self._get_system_status(),
-                "timestamp": datetime.utcnow().isoformat()
-            })
+            return JSONResponse(
+                content={
+                    "user": current_user.get("user_id"),
+                    "permissions": list(current_user.get("permissions", [])),
+                    "features": self._get_enabled_features(),
+                    "system_status": await self._get_system_status(),
+                    "timestamp": datetime.utcnow().isoformat(),
+                }
+            )
 
     def _setup_admin_routes(self):
         """Setup admin routes."""
 
         @self.app.get("/admin", response_class=HTMLResponse)
-        async def admin_panel(request: Request, admin_user: dict[str, Any] = Depends(require_admin)):
+        async def admin_panel(
+            request: Request, admin_user: dict[str, Any] = Depends(require_admin)
+        ):
             """Admin panel."""
             if not self.config.is_feature_enabled("admin_panel", "admin"):
                 raise HTTPException(status_code=403, detail="Admin panel disabled")
 
-            return self.templates.TemplateResponse("admin.html", {
-                "request": request,
-                "admin_features": self._get_admin_features(),
-                "system_config": self._get_system_config(),
-                "user": admin_user
-            })
+            return self.templates.TemplateResponse(
+                "admin.html",
+                {
+                    "request": request,
+                    "admin_features": self._get_admin_features(),
+                    "system_config": self._get_system_config(),
+                    "user": admin_user,
+                },
+            )
 
         @self.app.get("/api/admin/config")
         @rate_limit("admin_config_get", 30, 60)  # 30 requests per minute
         async def get_admin_config(admin_user: dict[str, Any] = Depends(require_admin)):
             """Get admin configuration."""
             if not self.config.is_feature_enabled("system_configuration", "admin"):
-                raise HTTPException(status_code=403, detail="System configuration disabled")
+                raise HTTPException(
+                    status_code=403, detail="System configuration disabled"
+                )
 
             return JSONResponse(content=self._get_system_config())
 
         @self.app.post("/api/admin/config")
         @rate_limit("admin_config_update", 10, 60)  # 10 requests per minute
-        async def update_admin_config(request: Request, admin_user: dict[str, Any] = Depends(require_admin)):
+        async def update_admin_config(
+            request: Request, admin_user: dict[str, Any] = Depends(require_admin)
+        ):
             """Update admin configuration."""
             if not self.config.is_feature_enabled("system_configuration", "admin"):
-                raise HTTPException(status_code=403, detail="System configuration disabled")
+                raise HTTPException(
+                    status_code=403, detail="System configuration disabled"
+                )
 
             try:
                 data = await request.json()
@@ -271,37 +301,50 @@ class EnhancedWebUIRouter:
                     for feature, enabled in data["features"].items():
                         self.config.toggle_feature(feature, enabled)
 
-                return JSONResponse(content={"success": True, "message": "Configuration updated"})
+                return JSONResponse(
+                    content={"success": True, "message": "Configuration updated"}
+                )
 
             except Exception as e:
                 logger.error(f"Config update error: {e}")
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Configuration update failed"
+                    detail="Configuration update failed",
                 )
 
     def _setup_self_test_routes(self):
         """Setup self-test routes."""
 
         @self.app.get("/admin/tests", response_class=HTMLResponse)
-        async def self_tests_page(request: Request, admin_user: dict[str, Any] = Depends(require_admin)):
+        async def self_tests_page(
+            request: Request, admin_user: dict[str, Any] = Depends(require_admin)
+        ):
             """Self-tests page."""
             if not self.config.is_feature_enabled("system_monitoring", "admin"):
-                raise HTTPException(status_code=403, detail="System monitoring disabled")
+                raise HTTPException(
+                    status_code=403, detail="System monitoring disabled"
+                )
 
-            return self.templates.TemplateResponse("self_tests.html", {
-                "request": request,
-                "test_categories": self.self_test_manager.test_registry.keys(),
-                "latest_results": self.self_test_manager.get_latest_test_results(),
-                "user": admin_user
-            })
+            return self.templates.TemplateResponse(
+                "self_tests.html",
+                {
+                    "request": request,
+                    "test_categories": self.self_test_manager.test_registry.keys(),
+                    "latest_results": self.self_test_manager.get_latest_test_results(),
+                    "user": admin_user,
+                },
+            )
 
         @self.app.post("/api/admin/tests/run")
         @rate_limit("admin_tests_run", 5, 300)  # 5 requests per 5 minutes
-        async def run_self_tests(request: Request, admin_user: dict[str, Any] = Depends(require_admin)):
+        async def run_self_tests(
+            request: Request, admin_user: dict[str, Any] = Depends(require_admin)
+        ):
             """Run self-tests."""
             if not self.config.is_feature_enabled("system_monitoring", "admin"):
-                raise HTTPException(status_code=403, detail="System monitoring disabled")
+                raise HTTPException(
+                    status_code=403, detail="System monitoring disabled"
+                )
 
             try:
                 data = await request.json()
@@ -312,26 +355,30 @@ class EnhancedWebUIRouter:
                 else:
                     results = await self.self_test_manager.run_category_tests(category)
 
-                return JSONResponse(content={
-                    "suite_id": results.suite_id,
-                    "status": "completed",
-                    "summary": {
-                        "total": results.total_tests,
-                        "passed": results.passed_tests,
-                        "failed": results.failed_tests,
-                        "warnings": results.warning_tests
+                return JSONResponse(
+                    content={
+                        "suite_id": results.suite_id,
+                        "status": "completed",
+                        "summary": {
+                            "total": results.total_tests,
+                            "passed": results.passed_tests,
+                            "failed": results.failed_tests,
+                            "warnings": results.warning_tests,
+                        },
                     }
-                })
+                )
 
             except Exception as e:
                 logger.error(f"Self-test error: {e}")
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Self-test execution failed"
+                    detail="Self-test execution failed",
                 )
 
         @self.app.get("/api/admin/tests/results/{suite_id}")
-        async def get_test_results(suite_id: str, admin_user: dict[str, Any] = Depends(require_admin)):
+        async def get_test_results(
+            suite_id: str, admin_user: dict[str, Any] = Depends(require_admin)
+        ):
             """Get test results."""
             results = self.self_test_manager.get_test_results(suite_id)
             if not results:
@@ -345,19 +392,25 @@ class EnhancedWebUIRouter:
         @self.app.get("/api/admin/features")
         async def get_features(admin_user: dict[str, Any] = Depends(require_admin)):
             """Get feature configuration."""
-            return JSONResponse(content={
-                "enabled_features": self.config.feature_toggle_config.enabled_features,
-                "disabled_features": self.config.feature_toggle_config.disabled_features,
-                "beta_features": self.config.feature_toggle_config.beta_features,
-                "admin_only_features": self.config.feature_toggle_config.admin_only_features
-            })
+            return JSONResponse(
+                content={
+                    "enabled_features": self.config.feature_toggle_config.enabled_features,
+                    "disabled_features": self.config.feature_toggle_config.disabled_features,
+                    "beta_features": self.config.feature_toggle_config.beta_features,
+                    "admin_only_features": self.config.feature_toggle_config.admin_only_features,
+                }
+            )
 
         @self.app.post("/api/admin/features/toggle")
         @rate_limit("admin_feature_toggle", 20, 60)  # 20 requests per minute
-        async def toggle_feature(request: Request, admin_user: dict[str, Any] = Depends(require_admin)):
+        async def toggle_feature(
+            request: Request, admin_user: dict[str, Any] = Depends(require_admin)
+        ):
             """Toggle a feature."""
             if not self.config.is_feature_enabled("system_configuration", "admin"):
-                raise HTTPException(status_code=403, detail="System configuration disabled")
+                raise HTTPException(
+                    status_code=403, detail="System configuration disabled"
+                )
 
             try:
                 data = await request.json()
@@ -366,13 +419,15 @@ class EnhancedWebUIRouter:
 
                 self.config.toggle_feature(feature, enabled)
 
-                return JSONResponse(content={"success": True, "feature": feature, "enabled": enabled})
+                return JSONResponse(
+                    content={"success": True, "feature": feature, "enabled": enabled}
+                )
 
             except Exception as e:
                 logger.error(f"Feature toggle error: {e}")
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="Feature toggle failed"
+                    detail="Feature toggle failed",
                 )
 
     def _setup_api_routes(self):
@@ -380,15 +435,21 @@ class EnhancedWebUIRouter:
 
         @self.app.get("/api/proxy/{path:path}")
         @rate_limit("api_proxy", 100, 60)  # 100 requests per minute
-        async def api_proxy(path: str, request: Request, current_user: dict[str, Any] = Depends(get_current_user)):
+        async def api_proxy(
+            path: str,
+            request: Request,
+            current_user: dict[str, Any] = Depends(get_current_user),
+        ):
             """Proxy API requests."""
             # Proxy to internal API
             # This is a simplified implementation
-            return JSONResponse(content={
-                "message": f"API proxy for {path}",
-                "user": current_user.get("user_id"),
-                "permissions": list(current_user.get("permissions", []))
-            })
+            return JSONResponse(
+                content={
+                    "message": f"API proxy for {path}",
+                    "user": current_user.get("user_id"),
+                    "permissions": list(current_user.get("permissions", [])),
+                }
+            )
 
     def _get_enabled_features(self) -> list[str]:
         """Get list of enabled features."""
@@ -404,7 +465,7 @@ class EnhancedWebUIRouter:
             "auth_system": "unified",
             "auth_manager_active": self.auth_adapter.auth_manager is not None,
             "self_tests_enabled": self.config.is_self_test_enabled(),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
     def _get_system_config(self) -> dict[str, Any]:
@@ -413,18 +474,18 @@ class EnhancedWebUIRouter:
             "ports": {
                 "primary_port": self.config.port_config.primary_port,
                 "admin_port": self.config.port_config.admin_port,
-                "ssl_enabled": self.config.port_config.ssl_enabled
+                "ssl_enabled": self.config.port_config.ssl_enabled,
             },
             "mfa": {
                 "enabled": self.config.mfa_config.enabled,
                 "methods": self.config.mfa_config.methods,
-                "require_mfa_for_admin": self.config.mfa_config.require_mfa_for_admin
+                "require_mfa_for_admin": self.config.mfa_config.require_mfa_for_admin,
             },
             "features": {
                 "enabled": self.config.feature_toggle_config.enabled_features,
                 "disabled": self.config.feature_toggle_config.disabled_features,
-                "beta": self.config.feature_toggle_config.beta_features
-            }
+                "beta": self.config.feature_toggle_config.beta_features,
+            },
         }
 
     async def start_server(self):
@@ -433,8 +494,16 @@ class EnhancedWebUIRouter:
             app=self.app,
             host="0.0.0.0",
             port=self.config.port_config.primary_port,
-            ssl_keyfile=self.config.port_config.ssl_key_path if self.config.port_config.ssl_enabled else None,
-            ssl_certfile=self.config.port_config.ssl_cert_path if self.config.port_config.ssl_enabled else None
+            ssl_keyfile=(
+                self.config.port_config.ssl_key_path
+                if self.config.port_config.ssl_enabled
+                else None
+            ),
+            ssl_certfile=(
+                self.config.port_config.ssl_cert_path
+                if self.config.port_config.ssl_enabled
+                else None
+            ),
         )
 
         server = uvicorn.Server(config)
@@ -442,11 +511,15 @@ class EnhancedWebUIRouter:
         # Schedule self-tests
         await self.self_test_manager.schedule_tests()
 
-        logger.info(f"Starting WebUI server on port {self.config.port_config.primary_port}")
+        logger.info(
+            f"Starting WebUI server on port {self.config.port_config.primary_port}"
+        )
         await server.serve()
+
 
 # Global enhanced router instance
 enhanced_webui_router = EnhancedWebUIRouter()
+
 
 def get_enhanced_webui_router() -> EnhancedWebUIRouter:
     """Get the global enhanced WebUI router."""

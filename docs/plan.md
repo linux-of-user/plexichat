@@ -86,136 +86,74 @@ This architecture ensures seamless integration, preserving PlexiChat's async-fir
 The Docker strategy employs multi-stage builds to ensure reproducible environments across development, testing, and production, addressing current gaps in containerization, Windows/PostgreSQL compatibility, and Cython/Numba integration. This approach isolates build-time dependencies (e.g., Cython compilers, MSVC for Windows) from runtime, minimizing image size while supporting cross-platform builds.
 
 - **Multi-Stage Dockerfile Structure** (root `Dockerfile`):
-  - **Base Stage**: Use `python:3.11-slim` (or 3.12 for future-proofing) as the foundation, installing system dependencies like `build-essential` (Linux), `gcc` for Cython compilation, and `libpq-dev` for PostgreSQL connectors. Align with pyproject.toml for Python 3.11+ compatibility.
-  - **Dev Stage**: Extend base with dev dependencies (`pip install -e ".[dev]"` including Cython, Numba, pytest-benchmark). Include Cython build step: `pip install cython && python setup.py build_ext --inplace` to generate `.so`/`.pyd` files from existing `.pyx` targets (e.g., cluster_manager.pyx). Mount volumes for source code (`-v $(pwd):/app`) and databases (SQLite file or PostgreSQL socket).
-  - **Prod Stage**: Minimal runtime image from base, installing only runtime deps (`pip install -r requirements-minimal.txt` with pinned versions, e.g., FastAPI==0.104.1, SQLAlchemy==2.0.23). Copy compiled artifacts (`.so`/`.pyd` from dev stage) via `COPY --from=dev /app/src/plexichat/core/clustering/*.so /app/src/plexichat/core/clustering/`. Exclude dev tools; use `psycopg2-binary` for PostgreSQL without build deps. Support SQLite fallback via env var `DATABASE_URL=sqlite:///./app.db`.
-  - **Windows Support**: Leverage Docker Buildx for multi-platform builds (`docker buildx build --platform linux/amd64,linux/arm64,windows/amd64 .`). On Windows 11 host, use WSL2 backend for Linux images; for native Windows images, optional separate `Dockerfile.windows` with `mcr.microsoft.com/windows/servercore` base, but prioritize Linux containers for consistency. Handle path issues (e.g., `/` vs. `\`) via Python's `pathlib`.
-  - **Database Handling**: In dev, use volumes for SQLite (`-v plexichat.db:/app/app.db`) or docker-compose-linked PostgreSQL. Prod uses env-injected `DATABASE_URL` (e.g., `postgresql://user:pass@host:5432/plexichat`), ensuring SQLAlchemy dialect auto-detection with async support (`create_async_engine`).
+  - **Base Stage**: Use `python:3.11-slim` (or 3.12 for future-proofing) as the foundation, installing system dependencies like `build-essential` (Linux), `gcc` for Cython compilation
 
-Benefits: Ensures zero environment diffs between dev/prod (e.g., no SQLite/PostgreSQL mismatches in query compilation), supports Cython cross-compilation (e.g., ARM .so for edge nodes), and reduces image size by 70% (dev ~1.5GB, prod ~300MB).
+## QEMU Enablement
 
-##### Makefile Integration
-Extend the existing Makefile to chain Docker operations with current targets, enabling seamless workflows like building, compiling Cython, testing, and serving without manual commands. All targets use Docker for isolation, preserving host cleanliness on Windows 11.
+### Overview
+QEMU integration enables cross-architecture emulation for PlexiChat, supporting validation of clustering, P2P messaging, and plugin isolation across x86_64 and ARM64 environments. This addresses gaps in multi-platform testing, ensuring feature parity and performance consistency in emulated setups. The design follows the 5-step outline: Setup, Feature Testing, CI/CD Integration, Security, and Deployment.
 
-- **New Targets**:
-  - `docker-build`: `docker build -t plexichat-dev -f Dockerfile .` (builds dev image); add `--target prod -t plexichat-prod` variant for production.
-  - `docker-cythonize`: `docker run --rm -v $(PWD):/app -w /app plexichat-dev make cythonize` (runs existing/proposed Cython target inside container, mounting sources for artifact persistence).
-  - `docker-test`: `docker run --rm -v $(PWD):/app -w /app plexichat-dev pytest tests/ -v --cov=src/plexichat --cov-report=html` (runs tests with coverage; add `--benchmark-only` for Cython vs. host comparisons).
-  - `docker-serve`: `docker run -p 8000:8000 --env DATABASE_URL=sqlite:///./app.db -v $(PWD)/app.db:/app/app.db plexichat-dev uvicorn plexichat.main:app --host 0.0.0.0 --reload` (dev server with SQLite volume; for PostgreSQL, link via docker-compose).
-  - `docker-dev`: Chain: `make docker-build && docker run --rm -it -v $(PWD):/app -p 8000:8000 plexichat-dev /bin/bash -c "pip install -e '.[dev]' && make cythonize && uvicorn plexichat.main:app --host 0.0.0.0 --reload"` (full dev setup).
-  - `docker-benchmark`: `docker run --rm -v $(PWD):/app plexichat-dev pytest tests/performance/benchmark_compiled.py --benchmark-compare=host` (compares container vs. host metrics, ensuring <5% variance).
-  - `docker-push`: `docker build -t plexichat-prod . --target prod && docker push your-registry/plexichat-prod:latest` (for CI/CD).
+### Overall Architecture
 
-Integration with Existing: Prefix current targets, e.g., `docker-ruff: docker run --rm -v $(PWD):/app plexichat-dev ruff check src/ --fix`. Use `.PHONY` for all; add variables like `DOCKER_TAG ?= plexichat-dev` for flexibility.
+#### Setup Strategy
+The setup focuses on Windows 11 compatibility, leveraging Chocolatey for QEMU installation (`choco install qemu`) and optional WSL2 for Linux guest management if native Windows QEMU limitations arise (e.g., for advanced kernel modules). VM configurations prioritize PlexiChat's Dockerized deployment:
 
-##### CI/CD Alignment
-Align with GitHub Actions for automated, multi-platform pipelines, building on existing `.github/workflows/` (assume ci.yml exists; create `docker.yml`).
+- **QEMU Variants**: Use `qemu-system-x86_64` for Intel/AMD emulation and `qemu-system-aarch64` for ARM64, with machine types like `-M q35` (x86) or `-M virt` (ARM) for modern virtualization features.
+- **Performance Optimizations**: Enable virtio drivers (`-device virtio-net-pci` for networking, `-device virtio-scsi-pci` for storage) to minimize I/O overhead in async FastAPI/SQLAlchemy operations. Configure CPU models (e.g., `-cpu host` for x86 passthrough, `-cpu cortex-a72` for ARM) to match target deployments.
+- **Storage and Networking**: Create disk images with `qemu-img create -f qcow2 plexichat-vm.img 20G` for efficient snapshots. Use bridged networking (`-netdev bridge,id=net0 -device virtio-net,netdev=net0`) to enable P2P discovery across VMs, with shared folders via 9pfs (`-fsdev local,id=fsdev0,path=/host/plexichat -device virtio-9p-pci,fsdev=fsdev0`) for code synchronization without manual mounts.
+- **Docker Integration**: VMs boot minimal Linux distros (e.g., Ubuntu Server ARM/x86 images) pre-configured with Docker. Scripts orchestrate `docker run` inside QEMU for PlexiChat containers, using QEMU's `-drive file=docker.img` to mount persistent volumes for PostgreSQL data.
 
-- **.github/workflows/docker.yml**:
-  - Triggers: `push` to main/feat branches, `pull_request`.
-  - Jobs:
-    - `build`: Matrix over platforms (linux/amd64, linux/arm64); `docker/build-push-action@v5` with Buildx for multi-arch, QEMU for emulation (`docker/setup-qemu-action`). Builds dev/prod images, runs `make docker-cythonize`.
-    - `test`: `docker run plexichat-dev make docker-test`, asserts coverage >80%, includes benchmark assertions (e.g., Cython speedup >15%).
-    - `push`: On main push, tag/push to registry (e.g., GitHub Container Registry); uses secrets for auth.
-  - Integration: Call from ci.yml as sub-workflow; add QEMU setup (`docker/setup-qemu-action`) for ARM testing without native hardware. Future: Self-hosted Windows runners for native Windows builds.
+This setup ensures <5% native overhead for initial VM spins, with automated provisioning via PowerShell scripts on Windows.
 
-This ensures consistent builds across PRs, with artifacts for failed runs.
+#### Feature Testing
+Testing scenarios validate PlexiChat's core features under emulation, focusing on cross-architecture interactions:
 
-##### Security/Optimization
-- **Security**: Run as non-root user (`USER appuser` in Dockerfile, created via `adduser --disabled-password --gecos '' appuser`); scan with `docker scout` or Trivy in CI. Use `.dockerignore` to exclude `.git`, `*.pyd` sources, secrets (`.env`, `vaults/`), large files (benchmarks data).
-- **Optimization**: Multi-platform via Buildx/QEMU (emulate ARM on x86 host); layer caching (`--cache-from` in CI); env vars for DB (`DATABASE_URL`), logging (`LOG_LEVEL=INFO`). Compress images with `docker-squash`; target build time <5min via parallel stages.
-- **Windows Compat**: Buildx handles Windows tags; test PostgreSQL connectivity via linked compose service.
+- **Clustering Scenarios**: Spin up a 3-VM cluster (1 x86_64 controller + 2 ARM64 nodes) to test `core/clustering/node_manager.py` and `cluster_manager.py`. Verify async node discovery, rebalancing, and sharding via P2P handshakes, ensuring SQLAlchemy sessions sync across arches (e.g., PostgreSQL replication).
+- **P2P and Messaging**: In multi-VM setups, simulate edge cases like network partitions using QEMU's `-netdev user` for isolated segments. Test `infrastructure/services/p2p_messaging.py` and `services/typing_service.py` for message propagation, targeting 1000 RPS parity with native via Locust in an ARM VM.
+- **Metrics Collection**: Integrate with `core/performance/scalability_manager.py` extensions for QEMU-specific monitoring (e.g., emulation CPU usage via QEMU's `-monitor` telnet interface). Thresholds: Emulation overhead <20%, Cython/Numba stability under VM stress (no >5% regression in async throughput), full async WebSocket connectivity across arches.
 
-##### Testing Plan
-- **Containerized Pytest**: All tests run in Docker (`make docker-test`), including async fixtures (`pytest-asyncio`) and coverage (`pytest-cov`). Parametrize for DB backends: `@pytest.mark.parametrize("db", ["sqlite", "postgres"])` with env injection.
-- **Benchmarking**: `make docker-benchmark` vs. host (`make benchmark-compile`); measure Cython speedup in container (e.g., cluster_manager loops), SQLAlchemy query times (SQLite dev vs. PostgreSQL prod). Assert <5% env diff, 80% coverage via reports.
-- **Load Testing**: Integrate Locust in Docker: `docker run plexichat-dev locust -f tests/load/test_endpoints.py --users 1000 --spawn-rate 10`, targeting <100ms response for `/messages`.
-- **Cross-Platform**: Use QEMU in CI for ARM tests; manual `docker buildx build --load --platform linux/arm64` on dev machine.
+Tests run via pytest fixtures launching QEMU subprocesses, with assertions on logs/metrics for 95% feature parity.
 
-##### File Structure
-- **Root**: `Dockerfile` (multi-stage), `docker-compose.yml` for dev (services: app with depends_on postgres; postgres: image=postgres:15, env POSTGRES_DB=plexichat, volumes for persistence).
-- **docker/ Dir** (if complex): `entrypoint.sh` (runs `make cythonize && uvicorn ...`), `postgres-init.sql` for schema.
-- **Updates**: Enhance `docs/DEPLOYMENT.md` with Docker instructions (build/serve/prod deploy to Kubernetes/ECS); add section on `docker-compose up` for local dev with PostgreSQL.
-- **gitignore**: Add `*.db`, `plexichat-*.whl` if built locally.
+#### CI/CD Integration
+Extend `.github/workflows/docker.yml` with QEMU-enabled jobs on `ubuntu-latest` runners:
 
-##### Roadmap for Proposal 2
-- **Phase 1: Dockerfile Prototype (1 week)**: Create multi-stage Dockerfile, test basic build (`docker build -t test .`), verify Cython copy. Dependencies: Post-Proposal 1 (Cython files exist). Metrics: Images build <2min, .so files present in prod stage.
-- **Phase 2: Makefile Targets (1 week)**: Add 5+ targets, integrate with existing (e.g., docker-test runs pytest). Dependencies: Phase 1. Metrics: `make docker-dev` launches server accessible at localhost:8000, tests pass in container.
-- **Phase 3: Container Testing/Benchmarks (1-2 weeks)**: Implement docker-compose for DB, run benchmarks/CI prototype. Dependencies: Phase 2. Metrics: 80% coverage in Docker, Cython speedup consistent (<5% diff vs. host), PostgreSQL queries validate.
-- **Phase 4: CI/CD Workflow (1 week)**: Create docker.yml, test on PR. Dependencies: Phase 3 (local success). Metrics: Green Actions runs multi-platform, images pushed on main, build time <5min.
-- **Post-Integration**: Monitor via CI badges; phased git commits (e.g., "Add Dockerfile multi-stage", "Integrate Makefile docker targets"). Dependencies: After Proposal 1 (Cython), before Proposal 3 (static analysis). Overall Metrics: Consistent envs (zero test flakes), reproducible builds across Windows/Linux/ARM.
+- **Matrix Strategy**: Use GitHub Actions' `strategy.matrix` for architectures (x86_64, arm64), installing QEMU via `docker/setup-qemu-action`. Build/test multi-arch images with `docker buildx build --platform linux/amd64,linux/arm64`.
+- **QEMU Jobs**: Add steps like `qemu-arm64 -L /usr/aarch64-linux-gnu ./plexichat` for static binary tests, or full VM spins using `qemu-system-aarch64 -kernel bzImage -initrd initrd.img -append "console=ttyAMA0" -nographic` for integration. Load-test job extensions: Run Locust in emulated ARM, asserting cross-arch consistency (e.g., RPS variance <10%, clustering convergence <30s).
+- **Artifact Handling**: Cache QEMU images as GitHub artifacts for reuse, with failure thresholds triggering notifications via existing alerting.
 
-This architecture delivers a robust, secure pipeline that enhances PlexiChat's deployability while integrating seamlessly with compilation optimizations.
+This ensures CI catches arch-specific regressions early, building on existing multi-platform Docker support.
 
-3. **Static Analysis Extension to Compilation-Time Checks**:
-   - Enhance MyPy with `mypy --strict --disallow-untyped-defs src/` to flag async/SQLAlchemy incompatibilities (e.g., non-awaitable returns in `core/services/typing_service.py`).
-   - Ruff Extension: Add rules for build deps (e.g., `ruff check --select=BUILD src/`) and integrate with pre-commit hooks for compilation simulation.
-   - New Tool: Introduce `pyright` (via pyrightconfig.json) for faster IDE-time checks, and `sqlfluff` for SQLAlchemy query linting during build.
+#### Security Considerations
+Security design emphasizes isolation and threat mitigation in emulated environments:
 
-4. **Testing Compilation Under Load**:
-   - Add pytest fixtures for load simulation: Use `pytest-asyncio` with `locust` integration to test compiled endpoints (e.g., `/ws` in `interfaces/web/websocket.py`) under 1000 concurrent async requests.
-   - Metrics: Track compilation time, error rates in FastAPI dependency injection, and SQLAlchemy session pooling efficiency. Target <5% variance between dev (SQLite) and prod (PostgreSQL) configs.
+- **VM Isolation**: Configure QEMU with sandboxed networking (`-netdev user,id=net0 -device e1000,netdev=net0` for user-mode NAT, avoiding host exposure) and no direct device passthrough. Use WSL2 namespaces for additional Linux guest separation on Windows.
+- **Plugin Execution**: Run untrusted plugins in dedicated QEMU guests, integrating `infrastructure/services/unified_security_service.py` for VM authentication (e.g., token-based access via virtio-serial channels). Scan guest images pre-launch with existing antivirus hooks.
+- **Threat Model**: Address emulation escapes (e.g., QEMU vulnerabilities) via version pinning and regular updates. Model overhead attacks (DoS via CPU-intensive emulation) with resource caps (`-smp 2 -m 2G`). Mitigate arch-specific risks like ARM side-channels through unified_security_module extensions for guest monitoring.
 
-## QEMU Enablement Section
+Audits target zero privilege escalation paths, with 100% coverage for security-critical VM interactions.
 
-### Overview and Rationale
+#### Deployment Scripts
+Automation scripts enable reproducible QEMU-based deployments:
 
-QEMU will enable emulation of diverse architectures for testing PlexiChat's clustering, P2P, and sharding features in isolated environments. This is critical for edge deployments (ARM) and cross-platform validation, especially given Windows 11 dev env and Linux prod targets. QEMU provides lightweight virtualization without full hypervisor overhead, aligning with plugin sandboxing in `core/plugins/sandbox.py`. Place QEMU-related scripts in a new `scripts/` directory (e.g., `scripts/qemu-emulate.ps1` for Windows).
+- **Makefile Targets**: Add `qemu-setup` for installation (Chocolatey/WSL checks), `qemu-test-cluster` invoking `scripts/qemu/spin_cluster.sh 3` for 3-node spins, and `qemu-deploy-staging` for VM provisioning with custom kernels/drives.
+- **Script Structure**: Create `scripts/qemu/` directory with `spin_cluster.sh` (Bash for Linux/WSL: loops QEMU launches with bridged nets) and `arm_deploy.bat` (Windows batch: `qemu-system-aarch64 -M virt -cpu cortex-a72 -drive file=plexichat-arm.img,format=qcow2`). Integrate with `docker-compose.yml` via external volumes (`-v /host/docker:/var/lib/docker` in QEMU).
+- **Edge Deployment**: Scripts for prod validation, e.g., ARM emulation on x86 hosts with load balancers simulating real traffic.
 
-### Integration Plan
+Scripts include error handling for async startup (e.g., wait for FastAPI health checks) and logging to `core/performance` metrics.
 
-1. **QEMU Setup for Architecture Emulation**:
-   - Supported Targets: x86_64 (standard cloud), ARM64 (edge/IoT for P2P nodes), RISC-V (future-proofing sharding).
-   - Installation: Add QEMU to dev requirements (`qemu-system-x86_64`, `qemu-system-aarch64` via system package manager or Docker image `qemu`). On Windows 11, use WSL2 for native support or Chocolatey (`choco install qemu`).
-   - Emulation Scripts: Create `scripts/qemu-emulate.sh` (Bash) and `scripts/qemu-emulate.ps1` (PowerShell for Windows) to launch VMs with PlexiChat Docker image mounted. Example: `qemu-system-aarch64 -M virt -cpu cortex-a57 -m 2G -drive file=plexichat.img,format=raw -netdev user,id=net0 -device virtio-net-pci,netdev=net0`.
+#### File Structure
+- **Core Module**: `infrastructure/utils/qemu_manager.py` with `QemuManager` class: `async def spin_vm(arch: str, image: str) -> str` (subprocess launch with config), `async def monitor_resources(vm_id: str) -> Dict[str, float]` (QEMU monitor queries), typed with Pydantic for configs.
+- **Scripts Directory**: `scripts/qemu/` for deployment automation (e.g., `spin_cluster.sh`, `arm_deploy.bat`), integrated with `Makefile`.
+- **Documentation Updates**: Append QEMU sections to `docs/DEPLOYMENT.md` (setup/deploy flows) and `docs/RUNBOOK_deployment.md` (troubleshooting, metrics). If Python QEMU bindings (e.g., libvirt) needed, add `qemu` to `pyproject.toml [project.optional-dependencies.dev]`.
+- **Extensions**: Hook into `core/performance/scalability_manager.py` for VM resource tracking, avoiding duplication with existing monitoring.
 
-2. **Running PlexiChat in QEMU VMs for Feature Testing**:
-   - Clustering/P2P/Sharding: Spin up multi-VM clusters (e.g., 3x ARM nodes) to test `core/clustering/cluster_manager.py` failover and `infrastructure/p2p_messaging` discovery. Use QEMU's `-serial stdio` for log forwarding to host.
-   - Isolated Testing: For plugins (`plugins/security_toolkit`), run in QEMU with restricted networking to validate sandbox isolation against `core/security/zero_trust.py`.
-   - Async/SQLAlchemy Validation: Boot VMs with PostgreSQL emulation, test query compilation in emulated env to catch arch-specific issues (e.g., ARM floating-point in Numba-optimized crypto).
+#### Roadmap
+Phased implementation post-compilation analysis:
 
-3. **CI/CD Integration**:
-   - GitHub Actions: Extend `.github/workflows/ci.yml` with QEMU jobs using `docker run --platform linux/arm64 qemu`. Matrix strategy for arches (x86_64, arm64).
-   - Workflow Steps: Build wheel → QEMU boot → Run `pytest tests/` → Test P2P connectivity via emulated network. Use artifacts for VM snapshots.
+- **Phase 1: Setup and Installation (1 week)**: Install QEMU, prototype basic VM spins. Dependencies: Existing Docker. Metrics: Successful 1-VM boot with PlexiChat container in <2min.
+- **Phase 2: Feature and VM Testing (2 weeks)**: Implement 3-node clustering tests, P2P validation. Dependencies: Phase 1. Metrics: Cross-arch clustering success in <10min, <20% overhead.
+- **Phase 3: CI Extensions (1 week)**: Add QEMU jobs to workflows. Dependencies: Phase 2. Metrics: CI pass rate 100% for multi-arch builds/tests.
+- **Phase 4: Security Hardening (1 week)**: Integrate isolation/auth, threat modeling. Dependencies: Phase 3. Metrics: Security audit pass, zero escapes in simulated attacks.
+- **Phase 5: Deployment Automation (1-2 weeks)**: Build scripts/Makefile targets. Dependencies: All prior. Metrics: 95% feature parity native vs. emulated, automated staging deploy in <5min.
 
-4. **Security Considerations**:
-   - Isolated Environments: QEMU VMs for plugin testing enforce `core/plugins/security_manager.py` hooks, preventing host escapes. Enable KVM acceleration (`-enable-kvm`) for prod-like perf where available (WSL2 on Windows).
-   - Threat Model Alignment: Integrate with `docs/SEC_threat_model.md` by emulating attack vectors (e.g., ARM-specific buffer overflows in P2P).
-
-5. **Deployment Scripts for QEMU-Based Staging**:
-   - Staging Pipeline: `make qemu-stage`: Builds image, launches QEMU cluster, deploys PlexiChat via `ansible` or `docker-compose` inside VMs.
-   - Rollout: Scripts to snapshot VMs pre/post-update, enabling canary testing per `core/versioning/canary_node_selector.py`. Integrate with existing versioning module.
-
-## Implementation Roadmap
-
-### Phase 1: Preparation (1-2 weeks, Low Effort)
-- [ ] Review and update pyproject.toml/Makefile for Cython/Numba support. Dependencies: Existing build files. Metrics: Successful `pip install -e ".[dev]"` with extensions verified by `mypy --strict src/`.
-- [ ] Install QEMU on dev machine (Windows 11 via WSL or native). Dependencies: None. Metrics: `qemu-system-x86_64 --version` succeeds and basic VM boots.
-
-### Phase 2: Compilation Enhancements (2-3 weeks, Medium Effort)
-- [ ] Integrate Cython/Numba in 3-5 core modules; add Makefile targets. Dependencies: Phase 1 (build tools). Metrics: 20% perf improvement in benchmarks (e.g., via `make benchmark-compile`), 80% test coverage maintained.
-- [ ] Enhance static analysis and load testing. Dependencies: Phase 2 start (compilation targets). Metrics: Zero MyPy errors in compiled code, load tests pass with <5% variance.
-- [ ] Docker multi-stage builds. Dependencies: Phase 1 (QEMU for cross-arch testing). Metrics: Reproducible wheels for all platforms, verified in QEMU.
-
-### Phase 3: QEMU Integration (3-4 weeks, High Effort)
-- [ ] Develop emulation scripts and VM configs in `scripts/`. Dependencies: Phase 1 (QEMU install). Metrics: Single VM boots PlexiChat successfully with `uvicorn` running.
-- [ ] Test clustering/P2P in multi-VM setup. Dependencies: Phase 3 scripts. Metrics: 100% uptime in emulated failover tests for `core/clustering`.
-- [ ] CI/CD workflows and security validations. Dependencies: Phase 3 testing. Metrics: Green GitHub Actions runs across arches, security hooks trigger correctly.
-- [ ] Staging deployment scripts. Dependencies: Phase 3 CI/CD. Metrics: Automated QEMU cluster deployment <10 min, integrated with `core/versioning`.
-
-### Phase 4: Validation and Iteration (1 week, Low Effort)
-- [ ] Full end-to-end testing (compilation + QEMU). Dependencies: All prior phases. Metrics: Integrated tests pass with <5% perf overhead, cross-arch compatibility confirmed.
-- [ ] Documentation updates (e.g., docs/DEPLOYMENT.md, docs/GETTING_STARTED.md). Dependencies: Phase 4 testing. Metrics: Updated guides cover new features, including Windows-specific notes.
-
-Total Estimated Effort: 7-10 weeks. Success Metrics: 30% overall perf gain, cross-arch compatibility, zero compilation errors in CI.
-
-## Risks and Mitigations
-
-- **Performance Overhead in QEMU**: Emulation can slow tests by 20-50%. Mitigation: Use hardware acceleration (KVM/HVF in WSL2) and limit to CI; fallback to native for dev.
-- **Compilation Compatibility (Windows/PostgreSQL)**: Cython may fail on Windows paths; SQLAlchemy dialects mismatch. Mitigation: Cross-compile in Docker/Linux, use SQLAlchemy's `create_engine` with explicit dialects in tests.
-- **Dependency Conflicts**: Numba/Cython with async libs. Mitigation: Pin versions in requirements.txt, isolate in virtualenv.
-- **CI Resource Limits**: QEMU in GitHub Actions may timeout. Mitigation: Optimize VM sizes (e.g., 1G RAM), use self-hosted runners for heavy tests.
-- **Security Exposure**: QEMU networking leaks. Mitigation: Run with `--net none` for isolated tests, audit with `core/security/waf_middleware.py`.
-- **Async Code Overhead in QEMU**: Emulation may amplify event loop contention in FastAPI/SQLAlchemy. Mitigation: Profile with `asyncio-profiler` in VMs, optimize hot async paths pre-emulation; target <10% additional latency.
-
-This plan ensures scalable, secure enhancements while preserving PlexiChat's async-first architecture.
+Total: 6-7 weeks, with git commits per phase and 80% test coverage for new components.

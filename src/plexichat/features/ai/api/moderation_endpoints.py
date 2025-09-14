@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 try:
     from fastapi import APIRouter, BackgroundTasks, HTTPException
     from pydantic import BaseModel, Field
+
     FASTAPI_AVAILABLE = True
 except ImportError:
     FASTAPI_AVAILABLE = False
@@ -35,8 +36,10 @@ ai_coordinator = AICoordinator()
 
 # API Models (only if FastAPI is available)
 if FASTAPI_AVAILABLE:
+
     class ModerationRequest(BaseModel):  # type: ignore
         """API model for moderation requests."""
+
         content: str
         user_id: str | None = None
         context: dict[str, Any] | None = None
@@ -45,6 +48,7 @@ if FASTAPI_AVAILABLE:
 
     class ModerationResponse(BaseModel):  # type: ignore
         """API model for moderation responses."""
+
         request_id: str
         is_appropriate: bool
         confidence: float
@@ -56,6 +60,7 @@ if FASTAPI_AVAILABLE:
 
     class FeedbackRequest(BaseModel):  # type: ignore
         """API model for moderation feedback."""
+
         moderation_id: str
         user_id: str
         feedback_type: str  # "correct", "incorrect", "partial"
@@ -70,8 +75,7 @@ if FASTAPI_AVAILABLE:
         try:
             # Use the AI coordinator for moderation
             result = await ai_coordinator.smart_content_moderation(
-                content=request.content,
-                context=request.context
+                content=request.content, context=request.context
             )
 
             return ModerationResponse(
@@ -82,7 +86,7 @@ if FASTAPI_AVAILABLE:
                 severity=result.get("severity", 0.0),
                 action=result.get("action", "none"),
                 reason=result.get("reason"),
-                timestamp=datetime.now(UTC)
+                timestamp=datetime.now(UTC),
             )
 
         except Exception as e:
@@ -99,10 +103,13 @@ if FASTAPI_AVAILABLE:
                 request.moderation_id,
                 request.user_id,
                 request.feedback_type,
-                request.comments
+                request.comments,
             )
 
-            return {"status": "feedback_received", "message": "Thank you for your feedback"}
+            return {
+                "status": "feedback_received",
+                "message": "Thank you for your feedback",
+            }
 
         except Exception as e:
             logger.error(f"Feedback submission failed: {e}")
@@ -113,25 +120,20 @@ if FASTAPI_AVAILABLE:
         """Check moderation system health."""
         try:
             status = ai_coordinator.get_health_status()
-            return {
-                "status": "healthy",
-                "moderation_enabled": True,
-                "details": status
-            }
+            return {"status": "healthy", "moderation_enabled": True, "details": status}
         except Exception as e:
             logger.error(f"Moderation health check failed: {e}")
             raise HTTPException(status_code=500, detail=str(e))  # type: ignore
 
     async def _process_moderation_feedback(
-        moderation_id: str,
-        user_id: str,
-        feedback_type: str,
-        comments: str | None
+        moderation_id: str, user_id: str, feedback_type: str, comments: str | None
     ):
         """Process moderation feedback in background."""
         try:
             # Log feedback for now
-            logger.info(f"Moderation feedback: {moderation_id} - {feedback_type} from {user_id}")
+            logger.info(
+                f"Moderation feedback: {moderation_id} - {feedback_type} from {user_id}"
+            )
             if comments:
                 logger.info(f"Feedback comments: {comments}")
         except Exception as e:

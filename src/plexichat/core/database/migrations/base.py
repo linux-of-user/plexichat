@@ -25,6 +25,7 @@ except ImportError:
     class SQLAlchemyError(Exception):
         pass
 
+
 logger = get_logger(__name__)
 
 
@@ -61,7 +62,7 @@ class Migration(ABC):
             async with self.db_manager.get_session() as session:
                 result = await session.execute(
                     "SELECT 1 FROM migrations WHERE version = ?",
-                    {"version": migration_name}
+                    {"version": migration_name},
                 )
                 row = await result.fetchone()
                 return row is not None
@@ -79,7 +80,7 @@ class Migration(ABC):
 
     async def _close_connection(self) -> None:
         """Close database connection."""
-        if hasattr(self, 'session') and self.session:
+        if hasattr(self, "session") and self.session:
             await self.session.close()
 
     async def record_migration(self, migration_name: str) -> None:
@@ -91,8 +92,8 @@ class Migration(ABC):
                     {
                         "version": migration_name,
                         "description": self.MIGRATION_DESCRIPTION,
-                        "applied_at": asyncio.get_event_loop().time()
-                    }
+                        "applied_at": asyncio.get_event_loop().time(),
+                    },
                 )
                 await session.commit()
         except Exception as e:
@@ -104,13 +105,13 @@ class Migration(ABC):
         try:
             result = await self.session.execute(
                 text("DELETE FROM migrations WHERE version = :version"),
-                {"version": migration_name}
+                {"version": migration_name},
             )
 
-            if hasattr(result, 'rowcount'):
+            if hasattr(result, "rowcount"):
                 deleted_count = result.rowcount
             else:
-                deleted_count = getattr(result, 'scalar', lambda: 0)()
+                deleted_count = getattr(result, "scalar", lambda: 0)()
 
             return deleted_count > 0
 
@@ -123,17 +124,19 @@ class Migration(ABC):
         # Get existing table structure if it exists
         existing_columns = []
         try:
-            result = self.session.execute(
-                text(f"PRAGMA table_info({table_name})")
-            )
+            result = self.session.execute(text(f"PRAGMA table_info({table_name})"))
 
             row = result.fetchone()
-            if row and hasattr(row, 'sql'):
-                existing_sql = row.sql.split('(', 1)[1].rsplit(')', 1)[0]
-                existing_columns = [col.strip() for col in existing_sql.split(',') if col.strip()]
+            if row and hasattr(row, "sql"):
+                existing_sql = row.sql.split("(", 1)[1].rsplit(")", 1)[0]
+                existing_columns = [
+                    col.strip() for col in existing_sql.split(",") if col.strip()
+                ]
 
             if existing_columns:
-                logger.debug(f"Table {table_name} exists with columns: {existing_columns}")
+                logger.debug(
+                    f"Table {table_name} exists with columns: {existing_columns}"
+                )
                 self.rollback_sql.append(f"DROP TABLE IF EXISTS {table_name}")
 
             elif self.db_type != "sqlite":
@@ -171,8 +174,10 @@ class Migration(ABC):
             # Store table creation SQL for rollback
             if self.db_type == "sqlite":
                 result = await self.session.execute(
-                    text("SELECT sql FROM sqlite_master WHERE name = :name AND type = 'table'"),
-                    {"name": table_name}
+                    text(
+                        "SELECT sql FROM sqlite_master WHERE name = :name AND type = 'table'"
+                    ),
+                    {"name": table_name},
                 )
 
                 row = result.fetchone()
@@ -189,7 +194,13 @@ class Migration(ABC):
             logger.error(f"Failed to drop table {table_name}: {e}")
             raise
 
-    def _get_index_creation_sql(self, table_name: str, index_name: str, columns: list[str], is_unique: bool = False) -> str:
+    def _get_index_creation_sql(
+        self,
+        table_name: str,
+        index_name: str,
+        columns: list[str],
+        is_unique: bool = False,
+    ) -> str:
         """Get SQL for creating an index based on database type."""
         if self.db_type == "sqlite" or self.db_type in ["postgresql", "postgres"]:
             unique_clause = "UNIQUE " if is_unique else ""
@@ -219,9 +230,17 @@ class Migration(ABC):
             # Default fallback
             return f"DROP INDEX {index_name}"
 
-    async def create_index(self, table_name: str, index_name: str, columns: list[str], is_unique: bool = False) -> None:
+    async def create_index(
+        self,
+        table_name: str,
+        index_name: str,
+        columns: list[str],
+        is_unique: bool = False,
+    ) -> None:
         """Create an index on the specified table and columns."""
-        create_sql = self._get_index_creation_sql(table_name, index_name, columns, is_unique)
+        create_sql = self._get_index_creation_sql(
+            table_name, index_name, columns, is_unique
+        )
         drop_sql = self._get_index_drop_sql(table_name, index_name)
 
         try:
@@ -231,7 +250,9 @@ class Migration(ABC):
             logger.info(f"Created index {index_name} on table {table_name}")
 
         except Exception as e:
-            logger.error(f"Failed to create index {index_name} on table {table_name}: {e}")
+            logger.error(
+                f"Failed to create index {index_name} on table {table_name}: {e}"
+            )
             raise
 
     async def drop_index(self, table_name: str, index_name: str) -> None:
@@ -273,7 +294,7 @@ class Migration(ABC):
                 return {
                     "success": True,
                     "message": f"Migration {migration_name} already applied",
-                    "applied": True
+                    "applied": True,
                 }
 
             # Create tables
@@ -293,7 +314,7 @@ class Migration(ABC):
             return {
                 "success": True,
                 "message": f"Migration {migration_name} applied successfully",
-                "applied": True
+                "applied": True,
             }
 
         except Exception as e:
@@ -301,7 +322,7 @@ class Migration(ABC):
             return {
                 "success": False,
                 "message": f"Migration {migration_name} failed: {e}",
-                "applied": False
+                "applied": False,
             }
         finally:
             await self._close_connection()
@@ -316,7 +337,7 @@ class Migration(ABC):
             if not await self.is_applied(migration_name):
                 return {
                     "success": True,
-                    "message": f"Migration {migration_name} not applied, nothing to rollback"
+                    "message": f"Migration {migration_name} not applied, nothing to rollback",
                 }
 
             # Execute rollback SQL in reverse order
@@ -328,20 +349,22 @@ class Migration(ABC):
             # Remove migration record
             removed = await self.remove_migration_record(migration_name)
             if not removed:
-                logger.warning(f"Could not remove migration record for {migration_name}")
+                logger.warning(
+                    f"Could not remove migration record for {migration_name}"
+                )
 
             logger.info(f"Successfully rolled back migration: {migration_name}")
 
             return {
                 "success": True,
-                "message": f"Migration {migration_name} rolled back successfully"
+                "message": f"Migration {migration_name} rolled back successfully",
             }
 
         except Exception as e:
             logger.error(f"Rollback of {migration_name} failed: {e}")
             return {
                 "success": False,
-                "message": f"Rollback of {migration_name} failed: {e}"
+                "message": f"Rollback of {migration_name} failed: {e}",
             }
         finally:
             await self._close_connection()

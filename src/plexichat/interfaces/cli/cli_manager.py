@@ -12,6 +12,7 @@ COMMANDS_PACKAGE = "plexichat.interfaces.cli.commands"
 
 logger = logging.getLogger(__name__)
 
+
 class CLIManager:
     """
     A dynamic CLI builder that discovers and loads command groups from a specified directory.
@@ -35,27 +36,36 @@ class CLIManager:
                 for item_name in dir(module):
                     item = getattr(module, item_name)
                     if isinstance(item, click.Group):
-                        logger.info(f"Found command group '{item.name}' in module '{name}'")
+                        logger.info(
+                            f"Found command group '{item.name}' in module '{name}'"
+                        )
                         yield item
             except Exception as e:
-                logger.error(f"Failed to load command module '{name}': {e}", exc_info=True)
+                logger.error(
+                    f"Failed to load command module '{name}': {e}", exc_info=True
+                )
 
     def build_cli(self):
         """
         Build the main CLI group and attach all discovered command groups.
         This creates the root of the CLI application.
         """
-        @click.group(help="PlexiChat CLI System. Use --help on any command for details.")
-        @click.option('--verbose', '-v', is_flag=True, help='Enable verbose output.')
-        @click.option('--json', '-j', is_flag=True, help='Output in JSON format.')
-        @click.option('--quiet', '-q', is_flag=True, help='Suppress all output except for errors.')
+
+        @click.group(
+            help="PlexiChat CLI System. Use --help on any command for details."
+        )
+        @click.option("--verbose", "-v", is_flag=True, help="Enable verbose output.")
+        @click.option("--json", "-j", is_flag=True, help="Output in JSON format.")
+        @click.option(
+            "--quiet", "-q", is_flag=True, help="Suppress all output except for errors."
+        )
         @click.pass_context
         def cli(ctx, verbose: bool, json: bool, quiet: bool):
             """CLI entrypoint."""
             ctx.ensure_object(dict)
-            ctx.obj['verbose'] = verbose
-            ctx.obj['json'] = json
-            ctx.obj['quiet'] = quiet
+            ctx.obj["verbose"] = verbose
+            ctx.obj["json"] = json
+            ctx.obj["quiet"] = quiet
 
             if quiet:
                 logging.getLogger().setLevel(logging.ERROR)
@@ -67,12 +77,16 @@ class CLIManager:
 
         return cli
 
+
 def main():
     """Main entry point for running the CLI directly."""
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    )
     builder = CLIManager()
     cli = builder.build_cli()
     cli()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

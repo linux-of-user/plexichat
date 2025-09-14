@@ -18,7 +18,10 @@ import psutil
 
 # Placeholder for a real implementation
 class DatabaseManager:
-    async def test_connection(self): return True
+    async def test_connection(self):
+        return True
+
+
 database_manager = DatabaseManager()
 
 logger = logging.getLogger(__name__)
@@ -26,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 class HealthStatus(Enum):
     """Health status enumeration."""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -35,6 +39,7 @@ class HealthStatus(Enum):
 @dataclass
 class HealthCheck:
     """Individual health check configuration."""
+
     name: str
     check_function: Callable
     timeout: float = 5.0
@@ -50,6 +55,7 @@ class HealthCheck:
 @dataclass
 class HealthResult:
     """Result of a health check."""
+
     name: str
     status: HealthStatus
     message: str
@@ -62,6 +68,7 @@ class HealthCheckService:
     """
     Comprehensive health monitoring service.
     """
+
     def __init__(self):
         self.checks: dict[str, HealthCheck] = {}
         self.results: dict[str, HealthResult] = {}
@@ -90,8 +97,7 @@ class HealthCheckService:
         try:
             # Run the check with timeout
             result = await asyncio.wait_for(
-                check.check_function(),
-                timeout=check.timeout
+                check.check_function(), timeout=check.timeout
             )
 
             duration_ms = (time.time() - start_time) * 1000
@@ -143,7 +149,7 @@ class HealthCheckService:
             message=message,
             duration_ms=duration_ms,
             timestamp=check.last_check,
-            details=details
+            details=details,
         )
 
     async def run_all_checks(self) -> dict[str, HealthResult]:
@@ -169,7 +175,7 @@ class HealthCheckService:
                     status=HealthStatus.UNHEALTHY,
                     message=f"Unexpected error: {e}",
                     duration_ms=0,
-                    timestamp = datetime.now()
+                    timestamp=datetime.now(),
                 )
 
         return results
@@ -203,20 +209,29 @@ class HealthCheckService:
             "status": overall_status.value,
             "timestamp": datetime.now(),
             "uptime": (datetime.now() - self.startup_time).total_seconds(),
-            "checks": {name: {
-                "status": result.status.value,
-                "message": result.message,
-                "duration_ms": result.duration_ms,
-                "timestamp": result.timestamp,
-                "details": result.details
-            } for name, result in check_results.items()},
+            "checks": {
+                name: {
+                    "status": result.status.value,
+                    "message": result.message,
+                    "duration_ms": result.duration_ms,
+                    "timestamp": result.timestamp,
+                    "details": result.details,
+                }
+                for name, result in check_results.items()
+            },
             "metrics": system_metrics,
             "summary": {
                 "total_checks": len(check_results),
-                "healthy_checks": len([r for r in check_results.values() if r.status == HealthStatus.HEALTHY]),
+                "healthy_checks": len(
+                    [
+                        r
+                        for r in check_results.values()
+                        if r.status == HealthStatus.HEALTHY
+                    ]
+                ),
                 "unhealthy_checks": total_failures,
-                "critical_failures": critical_failures
-            }
+                "critical_failures": critical_failures,
+            },
         }
 
     async def _get_system_metrics(self) -> dict[str, Any]:
@@ -231,16 +246,16 @@ class HealthCheckService:
                 "total": memory.total,
                 "available": memory.available,
                 "percent": memory.percent,
-                "used": memory.used
+                "used": memory.used,
             }
 
             # Disk usage
-            disk = psutil.disk_usage('/')
+            disk = psutil.disk_usage("/")
             disk_usage = {
                 "total": disk.total,
                 "used": disk.used,
                 "free": disk.free,
-                "percent": (disk.used / disk.total) * 100
+                "percent": (disk.used / disk.total) * 100,
             }
 
             # Network stats
@@ -249,7 +264,7 @@ class HealthCheckService:
                 "bytes_sent": network.bytes_sent,
                 "bytes_recv": network.bytes_recv,
                 "packets_sent": network.packets_sent,
-                "packets_recv": network.packets_recv
+                "packets_recv": network.packets_recv,
             }
 
             # Process info
@@ -259,7 +274,7 @@ class HealthCheckService:
                 "memory_percent": process.memory_percent(),
                 "cpu_percent": process.cpu_percent(),
                 "num_threads": process.num_threads(),
-                "create_time": process.create_time()
+                "create_time": process.create_time(),
             }
 
             return {
@@ -267,7 +282,7 @@ class HealthCheckService:
                 "memory_usage": memory_usage,
                 "disk_usage": disk_usage,
                 "network_stats": network_stats,
-                "process_info": process_info
+                "process_info": process_info,
             }
 
         except Exception as e:
@@ -306,8 +321,11 @@ class HealthCheckService:
                 current_time = datetime.now()
 
                 for check in self.checks.values():
-                    if (check.last_check is None or
-                        (current_time - check.last_check).total_seconds() >= check.interval):
+                    if (
+                        check.last_check is None
+                        or (current_time - check.last_check).total_seconds()
+                        >= check.interval
+                    ):
 
                         # Run check in background
                         asyncio.create_task(self.run_check(check))
@@ -318,9 +336,7 @@ class HealthCheckService:
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(
-                    f"Error in monitoring loop: {e}"
-                )
+                logger.error(f"Error in monitoring loop: {e}")
                 await asyncio.sleep(10)  # Wait longer on error
 
 
@@ -335,19 +351,13 @@ async def database_health_check() -> dict[str, Any]:
             return {
                 "status": "healthy",
                 "message": "Database connection successful",
-                "details": {"connection_pool": "active"}
+                "details": {"connection_pool": "active"},
             }
         else:
-            return {
-                "status": "unhealthy",
-                "message": "Database connection failed"
-            }
+            return {"status": "unhealthy", "message": "Database connection failed"}
 
     except Exception as e:
-        return {
-            "status": "unhealthy",
-            "message": f"Database check failed: {e}"
-        }
+        return {"status": "unhealthy", "message": f"Database check failed: {e}"}
 
 
 async def api_health_check() -> dict[str, Any]:
@@ -355,43 +365,46 @@ async def api_health_check() -> dict[str, Any]:
     try:
         # This would check if the API server is responding
         async with aiohttp.ClientSession() as session:
-            async with session.get("http://localhost:8000/health", timeout=5) as response:
+            async with session.get(
+                "http://localhost:8000/health", timeout=5
+            ) as response:
                 if response.status == 200:
                     return {
                         "status": "healthy",
                         "message": "API server responding",
-                        "details": {"status_code": response.status}
+                        "details": {"status_code": response.status},
                     }
                 else:
                     return {
                         "status": "degraded",
-                        "message": f"API server returned status {response.status}"
+                        "message": f"API server returned status {response.status}",
                     }
 
     except Exception as e:
-        return {
-            "status": "unhealthy",
-            "message": f"API server check failed: {e}"
-        }
+        return {"status": "unhealthy", "message": f"API server check failed: {e}"}
 
 
 # Global health service instance
 health_service = HealthCheckService()
 
 # Register default health checks
-health_service.register_check(HealthCheck(
-    name="database",
-    check_function=database_health_check,
-    critical=True,
-    description="Database connectivity check"
-))
+health_service.register_check(
+    HealthCheck(
+        name="database",
+        check_function=database_health_check,
+        critical=True,
+        description="Database connectivity check",
+    )
+)
 
-health_service.register_check(HealthCheck(
-    name="api",
-    check_function=api_health_check,
-    critical=True,
-    description="API server health check"
-))
+health_service.register_check(
+    HealthCheck(
+        name="api",
+        check_function=api_health_check,
+        critical=True,
+        description="API server health check",
+    )
+)
 
 
 # Convenience functions

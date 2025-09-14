@@ -217,9 +217,7 @@ class AuthenticationCache:
             logger.error(f"Failed to cache token verification: {e}")
             return False
 
-    async def get_cached_token_verification(
-        self, token: str
-    ) -> CachedTokenData | None:
+    async def get_cached_token_verification(self, token: str) -> CachedTokenData | None:
         """Retrieve cached token verification result."""
         try:
             start_time = time.time()

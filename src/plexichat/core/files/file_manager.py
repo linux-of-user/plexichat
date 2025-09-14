@@ -1,10 +1,8 @@
-
 """
 PlexiChat File Manager
 
 File management with threading and performance optimization.
 """
-
 
 from dataclasses import dataclass, field
 from datetime import datetime

@@ -55,7 +55,7 @@ class PerformanceMonitor:
             "avg": sum(values) / len(values),
             "min": min(values),
             "max": max(values),
-            "total": sum(values)
+            "total": sum(values),
         }
 
     def clear_metrics(self, name: str | None = None):
@@ -112,7 +112,7 @@ class SecurityUtils:
             text = str(text)
 
         # Remove control characters except newlines and tabs
-        sanitized = ''.join(char for char in text if ord(char) >= 32 or char in '\n\t')
+        sanitized = "".join(char for char in text if ord(char) >= 32 or char in "\n\t")
 
         # Limit length
         return sanitized[:max_length]
@@ -121,6 +121,7 @@ class SecurityUtils:
     def is_safe_path(path: str, base_path: str = ".") -> bool:
         """Check if a path is safe (no directory traversal)."""
         import os
+
         try:
             # Resolve paths
             abs_base = os.path.abspath(base_path)
@@ -135,6 +136,7 @@ class SecurityUtils:
     def validate_ip(ip_address: str) -> bool:
         """Validate IP address format."""
         import ipaddress
+
         try:
             ipaddress.ip_address(ip_address)
             return True
@@ -142,7 +144,9 @@ class SecurityUtils:
             return False
 
     @staticmethod
-    def validate_file_upload(filename: str, content: bytes, max_size: int = 10*1024*1024) -> dict[str, Any]:
+    def validate_file_upload(
+        filename: str, content: bytes, max_size: int = 10 * 1024 * 1024
+    ) -> dict[str, Any]:
         """Validate file upload for security."""
         result = {"valid": True, "errors": [], "warnings": []}
 
@@ -154,12 +158,13 @@ class SecurityUtils:
 
             # Check filename for dangerous patterns
             dangerous_patterns = [
-                r'\.\./',  # Directory traversal
+                r"\.\./",  # Directory traversal
                 r'[<>:"/\\|?*]',  # Invalid characters
-                r'^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$',  # Windows reserved names
+                r"^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$",  # Windows reserved names
             ]
 
             import re
+
             for pattern in dangerous_patterns:
                 if re.search(pattern, filename, re.IGNORECASE):
                     result["valid"] = False
@@ -167,15 +172,26 @@ class SecurityUtils:
                     break
 
             # Check for executable file extensions
-            dangerous_extensions = ['.exe', '.bat', '.cmd', '.com', '.scr', '.pif', '.vbs', '.js']
+            dangerous_extensions = [
+                ".exe",
+                ".bat",
+                ".cmd",
+                ".com",
+                ".scr",
+                ".pif",
+                ".vbs",
+                ".js",
+            ]
             if any(filename.lower().endswith(ext) for ext in dangerous_extensions):
                 result["valid"] = False
                 result["errors"].append("Executable files not allowed")
 
             # Basic malware signature check (simplified)
-            malware_signatures = [b'MZ', b'PK\x03\x04', b'\x7fELF']
+            malware_signatures = [b"MZ", b"PK\x03\x04", b"\x7fELF"]
             for sig in malware_signatures:
-                if content.startswith(sig) and filename.lower().endswith(('.txt', '.json', '.csv')):
+                if content.startswith(sig) and filename.lower().endswith(
+                    (".txt", ".json", ".csv")
+                ):
                     result["warnings"].append("File content doesn't match extension")
                     break
 
@@ -233,6 +249,7 @@ class AsyncUtils:
     @staticmethod
     def retry(max_attempts: int = 3, delay: float = 1.0, backoff: float = 2.0):
         """Retry decorator for async functions."""
+
         def decorator(func):
             @wraps(func)
             async def wrapper(*args, **kwargs):
@@ -245,7 +262,9 @@ class AsyncUtils:
                     except Exception as e:
                         last_exception = e
                         if attempt < max_attempts - 1:
-                            logger.warning(f"Attempt {attempt + 1} failed: {e}. Retrying in {current_delay}s...")
+                            logger.warning(
+                                f"Attempt {attempt + 1} failed: {e}. Retrying in {current_delay}s..."
+                            )
                             await asyncio.sleep(current_delay)
                             current_delay *= backoff
                         else:
@@ -254,8 +273,12 @@ class AsyncUtils:
                 if last_exception:
                     raise last_exception
                 else:
-                    raise RuntimeError("All attempts failed but no exception was captured")
+                    raise RuntimeError(
+                        "All attempts failed but no exception was captured"
+                    )
+
             return wrapper
+
         return decorator
 
 
@@ -269,10 +292,7 @@ class CacheManager:
     def set(self, key: str, value: Any, ttl: int | None = None) -> None:
         """Set a cache value with TTL."""
         expires_at = time.time() + (ttl or self.default_ttl)
-        self.cache[key] = {
-            "value": value,
-            "expires_at": expires_at
-        }
+        self.cache[key] = {"value": value, "expires_at": expires_at}
 
     def get(self, key: str, default: Any = None) -> Any:
         """Get a cache value."""
@@ -298,8 +318,7 @@ class CacheManager:
         """Remove expired entries and return count removed."""
         now = time.time()
         expired_keys = [
-            key for key, entry in self.cache.items()
-            if now > entry["expires_at"]
+            key for key, entry in self.cache.items() if now > entry["expires_at"]
         ]
 
         for key in expired_keys:
@@ -310,6 +329,7 @@ class CacheManager:
 
 def performance_timer(name: str):
     """Decorator for timing function execution."""
+
     def decorator(func):
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
@@ -332,6 +352,7 @@ def performance_timer(name: str):
                 logger.debug(f"{name} took {duration:.3f}s")
 
         return async_wrapper if asyncio.iscoroutinefunction(func) else sync_wrapper
+
     return decorator
 
 
@@ -351,5 +372,5 @@ __all__ = [
     "cache_manager",
     "performance_monitor",
     "performance_timer",
-    "security_utils"
+    "security_utils",
 ]

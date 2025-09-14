@@ -3,19 +3,37 @@ import logging
 
 # Mock for standalone execution
 class MockLogicEngine:
-    def list_rules(self): return []
-    def get_rule_status(self, rule_id): return {"error": "Not found"}
-    def add_rule(self, rule): return True
-    def enable_rule(self, rule_id): return True
-    def disable_rule(self, rule_id): return True
-    def remove_rule(self, rule_id): return True
-    async def execute_rule(self, rule_id): return type("obj", (), {"status": "completed", "error": None})()
-    def get_execution_logs(self, execution_id): return {"logs": []}
+    def list_rules(self):
+        return []
+
+    def get_rule_status(self, rule_id):
+        return {"error": "Not found"}
+
+    def add_rule(self, rule):
+        return True
+
+    def enable_rule(self, rule_id):
+        return True
+
+    def disable_rule(self, rule_id):
+        return True
+
+    def remove_rule(self, rule_id):
+        return True
+
+    async def execute_rule(self, rule_id):
+        return type("obj", (), {"status": "completed", "error": None})()
+
+    def get_execution_logs(self, execution_id):
+        return {"logs": []}
+
 
 logger = logging.getLogger(__name__)
 
+
 class AutomationCLI:
     """CLI interface for automation and logic engine."""
+
     def __init__(self, logic_engine: MockLogicEngine | None = None):
         self.logic_engine = logic_engine or MockLogicEngine()
 
@@ -27,9 +45,9 @@ class AutomationCLI:
 
         subcommand, *subargs = args
         commands = {
-            'list': self.cmd_automation_list,
-            'show': self.cmd_automation_show,
-            'run': self.cmd_automation_run,
+            "list": self.cmd_automation_list,
+            "show": self.cmd_automation_show,
+            "run": self.cmd_automation_run,
         }
         handler = commands.get(subcommand.lower())
         if handler:
@@ -49,7 +67,9 @@ class AutomationCLI:
             logger.info("No automation rules configured.")
             return
         for rule in rules:
-            logger.info(f"- {rule.get('name')} ({'enabled' if rule.get('enabled') else 'disabled'})")
+            logger.info(
+                f"- {rule.get('name')} ({'enabled' if rule.get('enabled') else 'disabled'})"
+            )
 
     async def cmd_automation_show(self, args: list[str]):
         """Shows detailed information for a rule."""
@@ -75,13 +95,16 @@ class AutomationCLI:
         else:
             logger.error(f"Rule '{rule_id}' failed: {result.error}")
 
+
 async def handle_automation_command(args: list[str]):
     """Handle automation CLI commands."""
     cli = AutomationCLI()
     await cli.cmd_automation(args)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import sys
+
     if len(sys.argv) > 1:
         asyncio.run(handle_automation_command(sys.argv[1:]))
     else:

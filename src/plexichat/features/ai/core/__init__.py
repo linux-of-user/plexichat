@@ -26,5 +26,5 @@ __all__ = [
     "AIRequest",
     "AIResponse",
     "ModelCapability",
-    "ModelStatus"
+    "ModelStatus",
 ]

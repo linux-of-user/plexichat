@@ -13,17 +13,42 @@ from sqlmodel import Session, select
 
 
 # Placeholder imports for dependencies
-class DeviceCapabilityReport: pass
-class DeviceShardAssignment: pass
+class DeviceCapabilityReport:
+    pass
+
+
+class DeviceShardAssignment:
+    pass
+
+
 class DeviceStatus:
     ONLINE = "online"
-class EnhancedBackup: pass
-class EnhancedBackupShard: pass
-class EnhancedUser: pass
-class Message: pass
+
+
+class EnhancedBackup:
+    pass
+
+
+class EnhancedBackupShard:
+    pass
+
+
+class EnhancedUser:
+    pass
+
+
+class Message:
+    pass
+
+
 class ShardDistributionStrategy:
-    def __init__(self, **kwargs): pass
-class StorageDevice: pass
+    def __init__(self, **kwargs):
+        pass
+
+
+class StorageDevice:
+    pass
+
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +56,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DeviceScore:
     """Scoring information for device selection."""
+
     device_id: int
     total_score: float
     reliability_score: float
@@ -45,6 +71,7 @@ class DeviceScore:
 @dataclass
 class ShardPlacementPlan:
     """Plan for placing a shard across multiple devices."""
+
     shard_id: int
     target_devices: list[DeviceScore]
     redundancy_achieved: int
@@ -55,6 +82,7 @@ class ShardPlacementPlan:
 
 class IntelligentShardDistribution:
     """Advanced shard distribution service with intelligent placement algorithms."""
+
     def __init__(self, session: Session):
         self.session = session
         self.default_strategy = self._get_default_strategy()
@@ -66,14 +94,14 @@ class IntelligentShardDistribution:
             "preference": 0.20,
             "geographic": 0.15,
             "load": 0.15,
-            "network": 0.05
+            "network": 0.05,
         }
 
     async def distribute_shard_intelligently(
         self,
         shard: EnhancedBackupShard,
         backup: EnhancedBackup,
-        strategy_name: str | None = None
+        strategy_name: str | None = None,
     ) -> ShardPlacementPlan:
         """Intelligently distribute a shard to optimal devices."""
         try:
@@ -98,45 +126,59 @@ class IntelligentShardDistribution:
                 shard_id=shard.id,
                 target_devices=selected_devices,
                 redundancy_achieved=len(selected_devices),
-                geographic_distribution=await self._check_geographic_distribution(selected_devices),
-                user_preference_satisfied=await self._check_user_preferences(shard, backup, selected_devices),
-                estimated_reliability=await self._calculate_placement_reliability(selected_devices)
+                geographic_distribution=await self._check_geographic_distribution(
+                    selected_devices
+                ),
+                user_preference_satisfied=await self._check_user_preferences(
+                    shard, backup, selected_devices
+                ),
+                estimated_reliability=await self._calculate_placement_reliability(
+                    selected_devices
+                ),
             )
 
             # Execute placement
             await self._execute_placement_plan(shard, placement_plan)
 
-            logger.info(f"Intelligently distributed shard {shard.id} to {len(selected_devices)} devices")
+            logger.info(
+                f"Intelligently distributed shard {shard.id} to {len(selected_devices)} devices"
+            )
             return placement_plan
 
         except Exception as e:
             logger.error(f"Failed to distribute shard {shard.id}: {e}")
             raise
 
-    async def _get_available_devices(self, strategy: ShardDistributionStrategy) -> list[StorageDevice]:
+    async def _get_available_devices(
+        self, strategy: ShardDistributionStrategy
+    ) -> list[StorageDevice]:
         """Get devices available for shard storage based on strategy criteria."""
         statement = select(StorageDevice).where(
-            (StorageDevice.status == DeviceStatus.ONLINE) &
-            (StorageDevice.available_storage_bytes > 0) &
-            (StorageDevice.current_shard_count < StorageDevice.max_shard_count) &
-            (StorageDevice.reliability_score >= strategy.min_reliability_score)
+            (StorageDevice.status == DeviceStatus.ONLINE)
+            & (StorageDevice.available_storage_bytes > 0)
+            & (StorageDevice.current_shard_count < StorageDevice.max_shard_count)
+            & (StorageDevice.reliability_score >= strategy.min_reliability_score)
         )
 
         # Apply storage requirements
         if strategy.min_storage_gb > 0:
             min_storage_bytes = strategy.min_storage_gb * 1024 * 1024 * 1024
-            statement = statement.where(StorageDevice.total_storage_bytes >= min_storage_bytes)
+            statement = statement.where(
+                StorageDevice.total_storage_bytes >= min_storage_bytes
+            )
 
         # Apply latency requirements
         if strategy.max_latency_ms:
             statement = statement.where(
-                (StorageDevice.average_latency_ms.is_(None)) |
-                (StorageDevice.average_latency_ms <= strategy.max_latency_ms)
+                (StorageDevice.average_latency_ms.is_(None))
+                | (StorageDevice.average_latency_ms <= strategy.max_latency_ms)
             )
 
         # Apply device type preferences
         if strategy.preferred_device_types:
-            statement = statement.where(StorageDevice.device_type.in_(strategy.preferred_device_types))
+            statement = statement.where(
+                StorageDevice.device_type.in_(strategy.preferred_device_types)
+            )
 
         devices = self.session.exec(statement).all()
 
@@ -161,19 +203,27 @@ class IntelligentShardDistribution:
                 ).first()
 
                 if recent_report:
-                    if (strategy.max_cpu_usage_percent and
-                        recent_report.cpu_usage_percent and
-                        recent_report.cpu_usage_percent > strategy.max_cpu_usage_percent):
+                    if (
+                        strategy.max_cpu_usage_percent
+                        and recent_report.cpu_usage_percent
+                        and recent_report.cpu_usage_percent
+                        > strategy.max_cpu_usage_percent
+                    ):
                         continue
 
-                    if (strategy.max_memory_usage_percent and
-                        recent_report.memory_usage_percent and
-                        recent_report.memory_usage_percent > strategy.max_memory_usage_percent):
+                    if (
+                        strategy.max_memory_usage_percent
+                        and recent_report.memory_usage_percent
+                        and recent_report.memory_usage_percent
+                        > strategy.max_memory_usage_percent
+                    ):
                         continue
 
             filtered_devices.append(device)
 
-        logger.info(f"Found {len(filtered_devices)} available devices for shard distribution")
+        logger.info(
+            f"Found {len(filtered_devices)} available devices for shard distribution"
+        )
         return filtered_devices
 
     async def _score_devices_for_shard(
@@ -181,13 +231,17 @@ class IntelligentShardDistribution:
         shard: EnhancedBackupShard,
         backup: EnhancedBackup,
         devices: list[StorageDevice],
-        strategy: ShardDistributionStrategy
+        strategy: ShardDistributionStrategy,
     ) -> list[DeviceScore]:
         """Score devices for optimal shard placement."""
         device_scores = []
 
         # Get backup owner information
-        backup_owner = self.session.get(EnhancedUser, backup.created_by) if backup.created_by else None
+        backup_owner = (
+            self.session.get(EnhancedUser, backup.created_by)
+            if backup.created_by
+            else None
+        )
 
         # Get messages in this shard to determine user preferences
         shard_messages = await self._get_shard_messages(shard, backup)
@@ -210,7 +264,7 @@ class IntelligentShardDistribution:
         backup: EnhancedBackup,
         backup_owner: EnhancedUser | None,
         shard_messages: list[Message],
-        strategy: ShardDistributionStrategy
+        strategy: ShardDistributionStrategy,
     ) -> DeviceScore:
         """Calculate comprehensive score for device suitability."""
         reasons = []
@@ -237,12 +291,18 @@ class IntelligentShardDistribution:
         # 3. User Preference Score (0-1)
         preference_score = 0.5  # Base score
 
-        if strategy.prefer_user_devices and backup_owner and device.user_id == backup_owner.id:
+        if (
+            strategy.prefer_user_devices
+            and backup_owner
+            and device.user_id == backup_owner.id
+        ):
             preference_score = 1.0
             reasons.append("Owner's device")
         elif device.prefer_own_messages and shard_messages:
             # Check if any messages in shard belong to device owner
-            device_owner_messages = [msg for msg in shard_messages if msg.sender_id == device.user_id]
+            device_owner_messages = [
+                msg for msg in shard_messages if msg.sender_id == device.user_id
+            ]
             if device_owner_messages:
                 preference_score = 0.8
                 reasons.append("Contains user's own messages")
@@ -274,18 +334,18 @@ class IntelligentShardDistribution:
                 "wifi": 0.8,
                 "cellular": 0.6,
                 "satellite": 0.4,
-                "direct": 1.0
+                "direct": 1.0,
             }
             network_score = connection_scores.get(device.connection_type.value, 0.5)
 
         # Calculate weighted total score
         total_score = (
-            reliability_score * self.scoring_weights["reliability"] +
-            performance_score * self.scoring_weights["performance"] +
-            preference_score * self.scoring_weights["preference"] +
-            geographic_score * self.scoring_weights["geographic"] +
-            load_score * self.scoring_weights["load"] +
-            network_score * self.scoring_weights["network"]
+            reliability_score * self.scoring_weights["reliability"]
+            + performance_score * self.scoring_weights["performance"]
+            + preference_score * self.scoring_weights["preference"]
+            + geographic_score * self.scoring_weights["geographic"]
+            + load_score * self.scoring_weights["load"]
+            + network_score * self.scoring_weights["network"]
         )
 
         # Add device priority bonus
@@ -304,14 +364,14 @@ class IntelligentShardDistribution:
             geographic_score=geographic_score,
             load_score=load_score,
             network_score=network_score,
-            reasons=reasons
+            reasons=reasons,
         )
 
     async def _select_optimal_devices(
         self,
         device_scores: list[DeviceScore],
         target_redundancy: int,
-        strategy: ShardDistributionStrategy
+        strategy: ShardDistributionStrategy,
     ) -> list[DeviceScore]:
         """Select optimal devices ensuring diversity and redundancy."""
         selected_devices = []
@@ -327,7 +387,10 @@ class IntelligentShardDistribution:
                 used_device_ids.add(score.device_id)
 
         # Second pass: Ensure geographic diversity if enabled
-        if strategy.geographic_distribution and len(selected_devices) < target_redundancy:
+        if (
+            strategy.geographic_distribution
+            and len(selected_devices) < target_redundancy
+        ):
             # This would implement geographic diversity logic
             pass
 
@@ -347,9 +410,7 @@ class IntelligentShardDistribution:
         return selected_devices
 
     async def _execute_placement_plan(
-        self,
-        shard: EnhancedBackupShard,
-        plan: ShardPlacementPlan
+        self, shard: EnhancedBackupShard, plan: ShardPlacementPlan
     ):
         """Execute the shard placement plan by creating assignments."""
         for device_score in plan.target_devices:
@@ -360,7 +421,7 @@ class IntelligentShardDistribution:
                 assignment_reason="intelligent_placement",
                 priority_level=min(10, int(device_score.total_score * 10)),
                 local_path=f"/backup_storage/shard_{shard.uuid}.data",
-                storage_size_bytes=shard.size_bytes
+                storage_size_bytes=shard.size_bytes,
             )
 
             self.session.add(assignment)
@@ -370,14 +431,14 @@ class IntelligentShardDistribution:
             if device:
                 device.current_shard_count += 1
                 device.used_storage_bytes += shard.size_bytes
-                device.available_storage_bytes = max(0, device.available_storage_bytes - shard.size_bytes)
+                device.available_storage_bytes = max(
+                    0, device.available_storage_bytes - shard.size_bytes
+                )
 
         self.session.commit()
 
     async def _get_shard_messages(
-        self,
-        shard: EnhancedBackupShard,
-        backup: EnhancedBackup
+        self, shard: EnhancedBackupShard, backup: EnhancedBackup
     ) -> list[Message]:
         """Get messages that are contained in this shard (simplified)."""
         # This is a simplified implementation
@@ -393,13 +454,15 @@ class IntelligentShardDistribution:
         self,
         shard: EnhancedBackupShard,
         backup: EnhancedBackup,
-        devices: list[DeviceScore]
+        devices: list[DeviceScore],
     ) -> bool:
         """Check if user preferences are satisfied."""
         # Simplified implementation
         return True
 
-    async def _calculate_placement_reliability(self, devices: list[DeviceScore]) -> float:
+    async def _calculate_placement_reliability(
+        self, devices: list[DeviceScore]
+    ) -> float:
         """Calculate overall reliability of the placement."""
         if not devices:
             return 0.0
@@ -407,7 +470,7 @@ class IntelligentShardDistribution:
         # Calculate combined reliability (probability that at least one device is available)
         failure_probability = 1.0
         for device_score in devices:
-            failure_probability *= (1 - device_score.reliability_score)
+            failure_probability *= 1 - device_score.reliability_score
 
         return 1 - failure_probability
 
@@ -427,16 +490,18 @@ class IntelligentShardDistribution:
             enable_smart_placement=True,
             enable_predictive_scaling=True,
             enable_automatic_rebalancing=True,
-            created_by=1  # System user
+            created_by=1,  # System user
         )
 
-    async def _get_strategy(self, strategy_name: str | None) -> ShardDistributionStrategy:
+    async def _get_strategy(
+        self, strategy_name: str | None
+    ) -> ShardDistributionStrategy:
         """Get distribution strategy by name or return default."""
         if strategy_name:
             strategy = self.session.exec(
                 select(ShardDistributionStrategy).where(
-                    (ShardDistributionStrategy.strategy_name == strategy_name) &
-                    (ShardDistributionStrategy.is_active)
+                    (ShardDistributionStrategy.strategy_name == strategy_name)
+                    & (ShardDistributionStrategy.is_active)
                 )
             ).first()
 

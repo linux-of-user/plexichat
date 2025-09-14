@@ -18,11 +18,13 @@ import time
 from typing import Any, Generic, TypeVar
 import warnings
 
-T = TypeVar('T')
+T = TypeVar("T")
+
 
 @dataclass
 class Result(Generic[T]):
     """Generic result wrapper for operations."""
+
     success: bool
     data: T | None = None
     error: str | None = None
@@ -30,17 +32,26 @@ class Result(Generic[T]):
     metadata: dict[str, Any] | None = None
 
     @classmethod
-    def success_result(cls, data: T, metadata: dict[str, Any] | None = None) -> 'Result[T]':
+    def success_result(
+        cls, data: T, metadata: dict[str, Any] | None = None
+    ) -> "Result[T]":
         """Create a successful result."""
         return cls(success=True, data=data, metadata=metadata)
 
     @classmethod
-    def error_result(cls, error: str, error_code: str | None = None, metadata: dict[str, Any] | None = None) -> 'Result[T]':
+    def error_result(
+        cls,
+        error: str,
+        error_code: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> "Result[T]":
         """Create an error result."""
         return cls(success=False, error=error, error_code=error_code, metadata=metadata)
 
+
 class ConfigManager:
     """Centralized configuration management."""
+
     def __init__(self, config_file: str = "config/plexichat.json"):
         # Ensure config file path is relative to project root
         project_root = Path(__file__).parent.parent.parent.parent.parent
@@ -72,14 +83,14 @@ class ConfigManager:
                 "debug": False,
                 "workers": 4,
                 "secret_key": secrets.token_hex(32),
-                "webhook_secret": secrets.token_hex(32)
+                "webhook_secret": secrets.token_hex(32),
             },
             "database": {
                 "url": "sqlite:///./plexichat.db",
                 "pool_size": 10,
                 "timeout": 30,
                 "backup_enabled": True,
-                "backup_interval_hours": 6
+                "backup_interval_hours": 6,
             },
             "logging": {
                 "level": "INFO",
@@ -89,7 +100,7 @@ class ConfigManager:
                 "console_level": "INFO",
                 "file_level": "DEBUG",
                 "compress_backups": True,
-                "capture_warnings": True
+                "capture_warnings": True,
             },
             "security": {
                 "session_timeout": 1800,
@@ -98,14 +109,14 @@ class ConfigManager:
                 "rate_limit_requests": 100,
                 "rate_limit_window": 60,
                 "force_https": False,
-                "csrf_protection": True
+                "csrf_protection": True,
             },
             "performance": {
                 "cache_size": 1000,
                 "cache_ttl": 3600,
                 "enable_compression": True,
                 "enable_monitoring": True,
-                "monitoring_interval": 60
+                "monitoring_interval": 60,
             },
             "testing": {
                 "enabled": True,
@@ -113,7 +124,7 @@ class ConfigManager:
                 "timeout_seconds": 30,
                 "retry_count": 3,
                 "save_results": True,
-                "alert_on_failure": True
+                "alert_on_failure": True,
             },
             "backup": {
                 "enabled": True,
@@ -121,24 +132,33 @@ class ConfigManager:
                 "shard_size_mb": 50,
                 "encryption_enabled": True,
                 "auto_cleanup_days": 30,
-                "distribution_enabled": True
+                "distribution_enabled": True,
             },
             "communication": {
                 "max_message_length": 2000,
                 "max_file_size_mb": 25,
-                "allowed_file_types": ["jpg", "jpeg", "png", "gif", "pdf", "txt", "doc", "docx"],
+                "allowed_file_types": [
+                    "jpg",
+                    "jpeg",
+                    "png",
+                    "gif",
+                    "pdf",
+                    "txt",
+                    "doc",
+                    "docx",
+                ],
                 "enable_voice": True,
                 "enable_video": True,
                 "max_channels_per_server": 500,
-                "max_users_per_server": 10000
-            }
+                "max_users_per_server": 10000,
+            },
         }
         self.save_config()
 
     def get(self, key: str, default: Any | None = None) -> Any:
         """Get configuration value using dot notation."""
         with self.lock:
-            keys = key.split('.')
+            keys = key.split(".")
             value = self.config
 
             for k in keys:
@@ -152,7 +172,7 @@ class ConfigManager:
     def set(self, key: str, value: Any) -> bool:
         """Set configuration value using dot notation."""
         with self.lock:
-            keys = key.split('.')
+            keys = key.split(".")
             config = self.config
 
             # Navigate to parent
@@ -169,7 +189,7 @@ class ConfigManager:
         """Save configuration to file."""
         try:
             self.config_file.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.config_file, 'w') as f:
+            with open(self.config_file, "w") as f:
                 json.dump(self.config, f, indent=2)
             return True
         except Exception as e:
@@ -181,8 +201,10 @@ class ConfigManager:
         with self.lock:
             return self.config.copy()
 
+
 class FileManager:
     """Common file operations."""
+
     @staticmethod
     def ensure_directory(path: str | Path) -> bool:
         """Ensure directory exists."""
@@ -193,7 +215,9 @@ class FileManager:
             return False
 
     @staticmethod
-    def safe_write_file(filepath: str | Path, content: str | bytes, backup: bool = True) -> Result[str]:
+    def safe_write_file(
+        filepath: str | Path, content: str | bytes, backup: bool = True
+    ) -> Result[str]:
         """Safely write file with optional backup."""
         try:
             filepath = Path(filepath)
@@ -207,7 +231,7 @@ class FileManager:
             filepath.parent.mkdir(parents=True, exist_ok=True)
 
             # Write file
-            mode = 'w' if isinstance(content, str) else 'wb'
+            mode = "w" if isinstance(content, str) else "wb"
             with open(filepath, mode) as f:
                 f.write(content)
 
@@ -217,7 +241,9 @@ class FileManager:
             return Result.error_result(f"Failed to write file: {e}")
 
     @staticmethod
-    def safe_read_file(filepath: str | Path, binary: bool = False) -> Result[str | bytes]:
+    def safe_read_file(
+        filepath: str | Path, binary: bool = False
+    ) -> Result[str | bytes]:
         """Safely read file."""
         try:
             filepath = Path(filepath)
@@ -225,7 +251,7 @@ class FileManager:
             if not filepath.exists():
                 return Result.error_result("File not found", "FILE_NOT_FOUND")
 
-            mode = 'rb' if binary else 'r'
+            mode = "rb" if binary else "r"
             with open(filepath, mode) as f:
                 content = f.read()
 
@@ -249,13 +275,15 @@ class FileManager:
                 "modified": datetime.fromtimestamp(stat_result.st_mtime),
                 "created": datetime.fromtimestamp(stat_result.st_ctime),
                 "is_file": filepath.is_file(),
-                "is_directory": filepath.is_dir()
+                "is_directory": filepath.is_dir(),
             }
         except Exception:
             return None
 
+
 class DateTimeUtils:
     """Common date/time utilities."""
+
     @staticmethod
     def now() -> datetime:
         """Get current datetime."""
@@ -272,7 +300,9 @@ class DateTimeUtils:
         return dt.strftime(format_str)
 
     @staticmethod
-    def parse_datetime(dt_str: str, format_str: str = "%Y-%m-%d %H:%M:%S") -> datetime | None:
+    def parse_datetime(
+        dt_str: str, format_str: str = "%Y-%m-%d %H:%M:%S"
+    ) -> datetime | None:
         """Parse datetime from string."""
         try:
             return datetime.strptime(dt_str, format_str)
@@ -308,8 +338,10 @@ class DateTimeUtils:
             hours = seconds / 3600
             return f"{hours:.1f}h"
 
+
 class StringUtils:
     """Common string utilities."""
+
     @staticmethod
     def generate_id(length: int = 8) -> str:
         """Generate random ID."""
@@ -319,7 +351,7 @@ class StringUtils:
     def hash_string(text: str, algorithm: str = "sha256") -> str:
         """Hash string using specified algorithm."""
         hasher = hashlib.new(algorithm)
-        hasher.update(text.encode('utf-8'))
+        hasher.update(text.encode("utf-8"))
         return hasher.hexdigest()
 
     @staticmethod
@@ -327,39 +359,41 @@ class StringUtils:
         """Truncate string to max length."""
         if len(text) <= max_length:
             return text
-        return text[:max_length - len(suffix)] + suffix
+        return text[: max_length - len(suffix)] + suffix
 
     @staticmethod
     def sanitize_filename(filename: str) -> str:
         """Sanitize filename for safe filesystem use."""
         # Remove or replace invalid characters
-        sanitized = re.sub(r'[<>:"/\\|?*]', '_', filename)
+        sanitized = re.sub(r'[<>:"/\\|?*]', "_", filename)
         # Remove leading/trailing spaces and dots
-        sanitized = sanitized.strip(' .')
+        sanitized = sanitized.strip(" .")
         # Limit length
         return sanitized[:255]
 
     @staticmethod
     def format_bytes(bytes_count: int) -> str:
         """Format bytes to human-readable string."""
-        for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+        for unit in ["B", "KB", "MB", "GB", "TB"]:
             if bytes_count < 1024.0:
                 return f"{bytes_count:.1f} {unit}"
             bytes_count /= 1024.0
         return f"{bytes_count:.1f} PB"
 
+
 class ValidationUtils:
     """Common validation utilities."""
+
     @staticmethod
     def is_valid_email(email: str) -> bool:
         """Validate email format."""
-        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         return re.match(pattern, email) is not None
 
     @staticmethod
     def is_valid_url(url: str) -> bool:
         """Validate URL format."""
-        pattern = r'^https?://(?:[-\w.])+(?:\:[0-9]+)?(?:/(?:[\w/_.])*(?:\?(?:[\w&=%.])*)?(?:\#(?:[\w.])*)?)?$'
+        pattern = r"^https?://(?:[-\w.])+(?:\:[0-9]+)?(?:/(?:[\w/_.])*(?:\?(?:[\w&=%.])*)?(?:\#(?:[\w.])*)?)?$"
         return re.match(pattern, url) is not None
 
     @staticmethod
@@ -372,21 +406,29 @@ class ValidationUtils:
             return False
 
     @staticmethod
-    def validate_required_fields(data: dict[str, Any], required_fields: list[str]) -> Result[dict[str, Any]]:
+    def validate_required_fields(
+        data: dict[str, Any], required_fields: list[str]
+    ) -> Result[dict[str, Any]]:
         """Validate required fields in data."""
-        missing_fields = [field for field in required_fields if field not in data or data[field] is None]
+        missing_fields = [
+            field
+            for field in required_fields
+            if field not in data or data[field] is None
+        ]
 
         if missing_fields:
             return Result.error_result(
                 f"Missing required fields: {', '.join(missing_fields)}",
                 "MISSING_FIELDS",
-                {"missing_fields": missing_fields}
+                {"missing_fields": missing_fields},
             )
 
         return Result.success_result(data)
 
+
 class RetryUtils:
     """Retry utilities for resilient operations."""
+
     @staticmethod
     def retry_with_backoff(
         func: Callable,
@@ -394,7 +436,7 @@ class RetryUtils:
         base_delay: float = 1.0,
         max_delay: float = 60.0,
         backoff_factor: float = 2.0,
-        exceptions: tuple = (Exception,)
+        exceptions: tuple = (Exception,),
     ) -> Any:
         """Retry function with exponential backoff."""
         for attempt in range(max_attempts):
@@ -404,10 +446,11 @@ class RetryUtils:
                 if attempt == max_attempts - 1:
                     raise
 
-                delay = min(base_delay * (backoff_factor ** attempt), max_delay)
+                delay = min(base_delay * (backoff_factor**attempt), max_delay)
                 time.sleep(delay)
 
         raise RuntimeError("Max retry attempts exceeded")
+
 
 # Decorators
 def singleton(cls):
@@ -424,8 +467,10 @@ def singleton(cls):
 
     return get_instance
 
+
 def log_execution(logger: logging.Logger | None = None):
     """Decorator to log function execution."""
+
     def decorator(func):
         nonlocal logger
         if logger is None:
@@ -447,28 +492,34 @@ def log_execution(logger: logging.Logger | None = None):
                 raise
 
         return wrapper
+
     return decorator
+
 
 def deprecated(reason: str = ""):
     """Mark function as deprecated."""
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             warnings.warn(
                 f"{func.__name__} is deprecated. {reason}",
                 DeprecationWarning,
-                stacklevel=2
+                stacklevel=2,
             )
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorator
+
 
 # Global instances
 config_manager = ConfigManager()
 file_manager = FileManager()
 
 # Common constants
-DEFAULT_ENCODING = 'utf-8'
+DEFAULT_ENCODING = "utf-8"
 MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB
 DEFAULT_TIMEOUT = 30
 DEFAULT_RETRY_ATTEMPTS = 3

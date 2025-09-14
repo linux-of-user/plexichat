@@ -515,9 +515,7 @@ class AdvancedSearchService:
             results = await self.fts.search(filters.query, filters)
 
             # Record search in history
-            duration = int(
-                (datetime.now(UTC) - start_time).total_seconds() * 1000
-            )
+            duration = int((datetime.now(UTC) - start_time).total_seconds() * 1000)
             history_entry = SearchHistory(
                 id=str(uuid4()),
                 user_id=user_id,

@@ -27,23 +27,29 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
 class FeedbackType(str, Enum):
     """Type of feedback."""
+
     CORRECTION = "correction"
     CONFIRMATION = "confirmation"
     REPORT = "report"
     APPEAL = "appeal"
 
+
 class FeedbackSource(str, Enum):
     """Source of feedback."""
+
     USER_INTERFACE = "user_interface"
     API_ENDPOINT = "api_endpoint"
     AUTOMATED_REVIEW = "automated_review"
     HUMAN_MODERATOR = "human_moderator"
 
+
 @dataclass
 class ModerationFeedback:
     """Moderation feedback data."""
+
     content_id: str
     user_id: str
     feedback_type: FeedbackType
@@ -73,8 +79,9 @@ class ModerationFeedback:
             "severity": self.severity,
             "metadata": self.metadata,
             "created_at": self.created_at.isoformat(),
-            "processed": self.processed
+            "processed": self.processed,
         }
+
 
 class FeedbackCollector:
     """Collects and processes moderation feedback."""
@@ -97,12 +104,14 @@ class FeedbackCollector:
             from plexichat.features.ai.moderation.feedback_data_service import (
                 FeedbackDataService,
             )
+
             self.feedback_service = FeedbackDataService()
         except ImportError:
             logger.warning("FeedbackDataService not available, using fallback")
             self.feedback_service = None
 
-    async def submit_feedback(self,
+    async def submit_feedback(
+        self,
         content_id: str,
         user_id: str,
         feedback_type: FeedbackType,
@@ -113,7 +122,7 @@ class FeedbackCollector:
         reasoning: str,
         categories: list[str],  # List[ModerationCategory]
         severity: str,  # ModerationSeverity
-        metadata: dict[str, Any] | None = None
+        metadata: dict[str, Any] | None = None,
     ) -> bool:
         """Submit moderation feedback."""
         try:
@@ -129,7 +138,7 @@ class FeedbackCollector:
                 categories=categories,
                 severity=severity,
                 metadata=metadata or {},
-                created_at=datetime.now(UTC)
+                created_at=datetime.now(UTC),
             )
 
             if self.feedback_service:
@@ -172,8 +181,8 @@ class FeedbackCollector:
                         "original_action": feedback.original_action,
                         "user_id": feedback.user_id,
                         "reasoning": feedback.reasoning,
-                        "feedback_source": feedback.source.value
-                    }
+                        "feedback_source": feedback.source.value,
+                    },
                 )
             else:
                 success = True  # Fallback
@@ -223,7 +232,9 @@ class FeedbackCollector:
             logger.error(f"Failed to get feedback stats: {e}")
             return {"error": str(e)}
 
-    async def get_user_feedback_history(self, user_id: str, limit: int = 50) -> list[dict[str, Any]]:
+    async def get_user_feedback_history(
+        self, user_id: str, limit: int = 50
+    ) -> list[dict[str, Any]]:
         """Get feedback history for a user."""
         try:
             if self.feedback_service:
@@ -238,8 +249,11 @@ class FeedbackCollector:
     async def _save_feedback_to_file(self, feedback: ModerationFeedback):
         """Fallback method to save feedback to file."""
         try:
-            feedback_file = self.data_path / f"feedback_{feedback.content_id}_{feedback.user_id}.json"
-            with open(feedback_file, 'w') as f:
+            feedback_file = (
+                self.data_path
+                / f"feedback_{feedback.content_id}_{feedback.user_id}.json"
+            )
+            with open(feedback_file, "w") as f:
                 json.dump(feedback.to_dict(), f, indent=2)
             logger.debug(f"Feedback saved to file: {feedback_file}")
         except Exception as e:

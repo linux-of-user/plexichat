@@ -18,16 +18,31 @@ class ServiceType:
     FILE_STORAGE = "file_storage"
     AI_SERVICES = "ai_services"
 
+
 class ServiceEndpoint:
-    def __init__(self, **kwargs): pass
+    def __init__(self, **kwargs):
+        pass
+
 
 class ServiceRegistry:
-    def __init__(self): pass
-    async def start(self): pass
-    async def stop(self): pass
-    async def register_service(self, endpoint): pass
-    async def deregister_service(self, service_id): pass
-    def get_registry_status(self): return {}
+    def __init__(self):
+        pass
+
+    async def start(self):
+        pass
+
+    async def stop(self):
+        pass
+
+    async def register_service(self, endpoint):
+        pass
+
+    async def deregister_service(self, service_id):
+        pass
+
+    def get_registry_status(self):
+        return {}
+
 
 auth_manager = None
 messaging_manager = None
@@ -51,6 +66,7 @@ logger = logging.getLogger(__name__)
 
 class DeploymentMode(Enum):
     """Microservice deployment modes."""
+
     STANDALONE = "standalone"
     CONTAINERIZED = "containerized"
     SERVERLESS = "serverless"
@@ -60,6 +76,7 @@ class DeploymentMode(Enum):
 @dataclass
 class MicroserviceConfig:
     """Microservice configuration."""
+
     service_name: str
     service_type: ServiceType
     port: int
@@ -75,6 +92,7 @@ class MicroserviceConfig:
 
 class BaseMicroservice(ABC):
     """Base class for all microservices."""
+
     def __init__(self, config: MicroserviceConfig, registry: ServiceRegistry):
         self.config = config
         self.registry = registry
@@ -138,6 +156,7 @@ class BaseMicroservice(ABC):
 
 class AuthenticationMicroservice(BaseMicroservice):
     """Authentication microservice."""
+
     async def initialize(self):
         """Initialize authentication service."""
         logger.info("Initializing Authentication microservice")
@@ -199,6 +218,7 @@ class AuthenticationMicroservice(BaseMicroservice):
 
 class MessagingMicroservice(BaseMicroservice):
     """Messaging microservice."""
+
     async def initialize(self):
         """Initialize messaging service."""
         logger.info("Initializing Messaging microservice")
@@ -252,6 +272,7 @@ class MessagingMicroservice(BaseMicroservice):
 
 class FileStorageMicroservice(BaseMicroservice):
     """File storage microservice."""
+
     async def initialize(self):
         """Initialize file storage service."""
         logger.info("Initializing File Storage microservice")
@@ -305,6 +326,7 @@ class FileStorageMicroservice(BaseMicroservice):
 
 class AIServicesMicroservice(BaseMicroservice):
     """AI services microservice."""
+
     async def initialize(self):
         """Initialize AI services."""
         logger.info("Initializing AI Services microservice")
@@ -362,6 +384,7 @@ class MicroservicesOrchestrator:
 
     Manages the decomposition and orchestration of microservices.
     """
+
     def __init__(self, registry: ServiceRegistry):
         self.registry = registry
         self.services: dict[str, BaseMicroservice] = {}

@@ -17,9 +17,11 @@ RATE_LIMIT: dict[str, list] = {}
 RATE_LIMIT_MAX = 5
 RATE_LIMIT_WINDOW = 60  # seconds
 
+
 # Pydantic models
 class CLIExecuteRequest(BaseModel):
     command: str
+
 
 class CLIExecuteResponse(BaseModel):
     success: bool
@@ -27,19 +29,25 @@ class CLIExecuteResponse(BaseModel):
     error: str = ""
     output_type: str = "info"
 
+
 # Dummy admin check (replace with real auth system)
 def is_admin(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
     token = credentials.credentials
     # TODO: Integrate with real session/auth system
     if not token or token != "admin-token":
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Admin authentication required")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Admin authentication required",
+        )
     return "admin"
+
 
 def sanitize_command(cmd: str) -> str:
     # Only allow safe characters (letters, numbers, space, dash, underscore, dot, colon)
-    if not re.match(r'^[\w\s\-\_\.:]+$', cmd):
+    if not re.match(r"^[\w\s\-\_\.:]+$", cmd):
         raise HTTPException(status_code=400, detail="Invalid command syntax")
     return cmd.strip()
+
 
 def check_rate_limit(user: str, ip: str):
     key = f"{user}:{ip}"
@@ -48,15 +56,16 @@ def check_rate_limit(user: str, ip: str):
     # Remove old timestamps
     timestamps = [t for t in timestamps if now - t < RATE_LIMIT_WINDOW]
     if len(timestamps) >= RATE_LIMIT_MAX:
-        raise HTTPException(status_code=429, detail="Rate limit exceeded. Try again later.")
+        raise HTTPException(
+            status_code=429, detail="Rate limit exceeded. Try again later."
+        )
     timestamps.append(now)
     RATE_LIMIT[key] = timestamps
 
+
 @router.post("/execute", response_model=CLIExecuteResponse)
 async def execute_cli_command(
-    req: CLIExecuteRequest,
-    request: Request,
-    user: str = Depends(is_admin)
+    req: CLIExecuteRequest, request: Request, user: str = Depends(is_admin)
 ) -> CLIExecuteResponse:
     """
     Execute a CLI command securely using the UnifiedCLI system.

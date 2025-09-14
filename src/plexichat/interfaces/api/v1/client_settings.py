@@ -25,20 +25,42 @@ try:
 except Exception:
     # Mock repository for standalone execution or tests where the full app isn't available.
     class MockRepository:
-        async def initialize(self): return False
-        async def get_user_settings(self, user_id): return []
-        async def get_setting(self, user_id, key): return None
-        async def set_setting(self, user_id, key, data): return {
-            "setting_key": key,
-            "setting_value": data,
-            "setting_type": "text" if not isinstance(data, dict) or "path" not in data else "image",
-            "updated_at": datetime.utcnow()
-        }
-        async def delete_setting(self, user_id, key): return True
-        async def bulk_update_settings(self, user_id, settings): return {"updated_count": len(settings)}
-        async def get_user_images(self, user_id): return []
-        async def get_user_stats(self, user_id): return {"total_settings": 0, "total_storage_bytes": 0}
-        async def initialize_tables(self): return False
+        async def initialize(self):
+            return False
+
+        async def get_user_settings(self, user_id):
+            return []
+
+        async def get_setting(self, user_id, key):
+            return None
+
+        async def set_setting(self, user_id, key, data):
+            return {
+                "setting_key": key,
+                "setting_value": data,
+                "setting_type": (
+                    "text"
+                    if not isinstance(data, dict) or "path" not in data
+                    else "image"
+                ),
+                "updated_at": datetime.utcnow(),
+            }
+
+        async def delete_setting(self, user_id, key):
+            return True
+
+        async def bulk_update_settings(self, user_id, settings):
+            return {"updated_count": len(settings)}
+
+        async def get_user_images(self, user_id):
+            return []
+
+        async def get_user_stats(self, user_id):
+            return {"total_settings": 0, "total_storage_bytes": 0}
+
+        async def initialize_tables(self):
+            return False
+
         async def log_audit(self, entry: dict[str, Any]):
             # simple file-based audit fallback
             try:
@@ -61,12 +83,19 @@ except Exception:
             return {
                 "storage_path": "data/client_settings/images",
                 "max_image_size": 5 * 1024 * 1024,
-                "allowed_image_types": ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"],
+                "allowed_image_types": [
+                    "image/jpeg",
+                    "image/png",
+                    "image/gif",
+                    "image/webp",
+                    "image/svg+xml",
+                ],
                 "max_settings_per_user": 1000,
                 "max_total_storage_per_user": 50 * 1024 * 1024,
-                "max_bulk_update": 100
+                "max_bulk_update": 100,
             }
         return {}
+
 
 # Try to import the global security system for validation
 _get_security_system = None
@@ -74,14 +103,17 @@ try:
     from plexichat.core.security.security_manager import (
         get_security_system,  # type: ignore
     )
+
     _get_security_system = get_security_system
 except Exception:
     _get_security_system = None
+
 
 # Pydantic Models
 class ClientSettingCreate(BaseModel):
     setting_key: str
     setting_value: Any
+
 
 class ClientSettingResponse(BaseModel):
     setting_key: str
@@ -90,12 +122,15 @@ class ClientSettingResponse(BaseModel):
     updated_at: datetime
     size_bytes: int | None = 0
 
+
 class ClientSettingsBulkUpdate(BaseModel):
     settings: dict[str, Any]
+
 
 class ClientSettingsBulkResponse(BaseModel):
     updated_count: int
     errors: list[dict[str, Any]] | None = None
+
 
 # Known schema for validation of well-known keys.
 KNOWN_KEY_SCHEMAS = {
@@ -107,13 +142,20 @@ KNOWN_KEY_SCHEMAS = {
 
 # Load configuration (fall back to defaults if not present)
 _client_settings_config = get_config("client_settings") or {}
-STORAGE_PATH = _client_settings_config.get("storage_path", "data/client_settings/images")
+STORAGE_PATH = _client_settings_config.get(
+    "storage_path", "data/client_settings/images"
+)
 MAX_IMAGE_SIZE = int(_client_settings_config.get("max_image_size", 5 * 1024 * 1024))
-ALLOWED_IMAGE_TYPES = set(_client_settings_config.get("allowed_image_types", [
-    "image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"
-]))
+ALLOWED_IMAGE_TYPES = set(
+    _client_settings_config.get(
+        "allowed_image_types",
+        ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"],
+    )
+)
 MAX_SETTINGS_PER_USER = int(_client_settings_config.get("max_settings_per_user", 1000))
-MAX_TOTAL_STORAGE_PER_USER = int(_client_settings_config.get("max_total_storage_per_user", 50 * 1024 * 1024))
+MAX_TOTAL_STORAGE_PER_USER = int(
+    _client_settings_config.get("max_total_storage_per_user", 50 * 1024 * 1024)
+)
 MAX_BULK_UPDATE = int(_client_settings_config.get("max_bulk_update", 100))
 
 # Ensure storage directory exists
@@ -121,6 +163,7 @@ try:
     os.makedirs(STORAGE_PATH, exist_ok=True)
 except Exception as e:
     logger.warning(f"Unable to create storage path {STORAGE_PATH}: {e}")
+
 
 # Virus scanning integration (optional). Attempt to use pyclamd if available.
 def _scan_for_viruses(data: bytes) -> bool:
@@ -130,6 +173,7 @@ def _scan_for_viruses(data: bytes) -> bool:
     """
     try:
         import pyclamd  # type: ignore
+
         try:
             cd = pyclamd.ClamdAgnostic()
             if not cd.ping():
@@ -145,17 +189,24 @@ def _scan_for_viruses(data: bytes) -> bool:
             return True
     except Exception:
         # No clamd available; optionally implement other scanners later.
-        logger.debug("No virus scanning library available (pyclamd). Skipping deep scan.")
+        logger.debug(
+            "No virus scanning library available (pyclamd). Skipping deep scan."
+        )
         return True
+
 
 def _hash_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
+
 
 def _validate_setting_key(key: str) -> None:
     if not key or len(key) > 255:
         raise HTTPException(status_code=400, detail="Invalid setting key")
     if not all(c.isalnum() or c in "._-" for c in key):
-        raise HTTPException(status_code=400, detail="Setting key contains invalid characters")
+        raise HTTPException(
+            status_code=400, detail="Setting key contains invalid characters"
+        )
+
 
 def _validate_known_key_value(key: str, value: Any) -> None:
     schema = KNOWN_KEY_SCHEMAS.get(key)
@@ -167,13 +218,16 @@ def _validate_known_key_value(key: str, value: Any) -> None:
         if not isinstance(value, str):
             raise HTTPException(status_code=400, detail=f"{key} must be a string")
         if allowed and value not in allowed:
-            raise HTTPException(status_code=400, detail=f"{key} must be one of {allowed}")
+            raise HTTPException(
+                status_code=400, detail=f"{key} must be one of {allowed}"
+            )
     elif t == "boolean":
         if not isinstance(value, bool):
             # allow truthy/falsy string conversion
             if isinstance(value, str) and value.lower() in ("true", "false", "1", "0"):
                 return
             raise HTTPException(status_code=400, detail=f"{key} must be a boolean")
+
 
 async def _ensure_tables():
     """
@@ -196,7 +250,10 @@ async def _ensure_tables():
         # Best-effort; not fatal here.
         pass
 
-async def _log_audit(user_id: str, action: str, setting_key: str, details: dict[str, Any] | None = None):
+
+async def _log_audit(
+    user_id: str, action: str, setting_key: str, details: dict[str, Any] | None = None
+):
     """
     Record audit trail for client settings changes.
     Try to use repository.log_audit if available; otherwise append to a local logfile.
@@ -206,7 +263,7 @@ async def _log_audit(user_id: str, action: str, setting_key: str, details: dict[
         "user_id": user_id,
         "action": action,
         "setting_key": setting_key,
-        "details": details or {}
+        "details": details or {},
     }
     try:
         if hasattr(repository, "log_audit"):
@@ -222,9 +279,11 @@ async def _log_audit(user_id: str, action: str, setting_key: str, details: dict[
     except Exception as e:
         logger.warning(f"Failed to write audit log: {e}")
 
+
 @router.on_event("startup")
 async def _startup_init():
     await _ensure_tables()
+
 
 @router.get("/", response_model=list[ClientSettingResponse])
 async def get_all_settings(current_user: dict = Depends(get_current_user)):
@@ -244,26 +303,31 @@ async def get_all_settings(current_user: dict = Depends(get_current_user)):
                         updated_at = datetime.fromisoformat(updated_at)
                     except Exception:
                         updated_at = datetime.utcnow()
-                normalized.append(ClientSettingResponse(
-                    setting_key=s.get("setting_key"),
-                    setting_value=s.get("setting_value"),
-                    setting_type=s.get("setting_type", "text"),
-                    updated_at=updated_at,
-                    size_bytes=s.get("size_bytes", 0)
-                ))
+                normalized.append(
+                    ClientSettingResponse(
+                        setting_key=s.get("setting_key"),
+                        setting_value=s.get("setting_value"),
+                        setting_type=s.get("setting_type", "text"),
+                        updated_at=updated_at,
+                        size_bytes=s.get("size_bytes", 0),
+                    )
+                )
             else:
                 # best-effort
-                normalized.append(ClientSettingResponse(
-                    setting_key=getattr(s, "setting_key", ""),
-                    setting_value=getattr(s, "setting_value", None),
-                    setting_type=getattr(s, "setting_type", "text"),
-                    updated_at=getattr(s, "updated_at", datetime.utcnow()),
-                    size_bytes=getattr(s, "size_bytes", 0)
-                ))
+                normalized.append(
+                    ClientSettingResponse(
+                        setting_key=getattr(s, "setting_key", ""),
+                        setting_value=getattr(s, "setting_value", None),
+                        setting_type=getattr(s, "setting_type", "text"),
+                        updated_at=getattr(s, "updated_at", datetime.utcnow()),
+                        size_bytes=getattr(s, "size_bytes", 0),
+                    )
+                )
         return normalized
     except Exception as e:
         logger.error(f"Failed to fetch settings for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve settings")
+
 
 @router.get("/{setting_key}", response_model=ClientSettingResponse)
 async def get_setting(setting_key: str, current_user: dict = Depends(get_current_user)):
@@ -275,18 +339,38 @@ async def get_setting(setting_key: str, current_user: dict = Depends(get_current
         setting = await repository.get_setting(user_id, setting_key)
         if not setting:
             raise HTTPException(status_code=404, detail="Setting not found")
-        updated_at = setting.get("updated_at") if isinstance(setting, dict) else getattr(setting, "updated_at", None)
+        updated_at = (
+            setting.get("updated_at")
+            if isinstance(setting, dict)
+            else getattr(setting, "updated_at", None)
+        )
         if isinstance(updated_at, str):
             try:
                 updated_at = datetime.fromisoformat(updated_at)
             except Exception:
                 updated_at = datetime.utcnow()
         response = ClientSettingResponse(
-            setting_key=setting.get("setting_key", setting_key) if isinstance(setting, dict) else getattr(setting, "setting_key", setting_key),
-            setting_value=setting.get("setting_value") if isinstance(setting, dict) else getattr(setting, "setting_value", None),
-            setting_type=setting.get("setting_type", "text") if isinstance(setting, dict) else getattr(setting, "setting_type", "text"),
+            setting_key=(
+                setting.get("setting_key", setting_key)
+                if isinstance(setting, dict)
+                else getattr(setting, "setting_key", setting_key)
+            ),
+            setting_value=(
+                setting.get("setting_value")
+                if isinstance(setting, dict)
+                else getattr(setting, "setting_value", None)
+            ),
+            setting_type=(
+                setting.get("setting_type", "text")
+                if isinstance(setting, dict)
+                else getattr(setting, "setting_type", "text")
+            ),
             updated_at=updated_at or datetime.utcnow(),
-            size_bytes=setting.get("size_bytes", 0) if isinstance(setting, dict) else getattr(setting, "size_bytes", 0)
+            size_bytes=(
+                setting.get("size_bytes", 0)
+                if isinstance(setting, dict)
+                else getattr(setting, "size_bytes", 0)
+            ),
         )
         return response
     except HTTPException:
@@ -295,8 +379,13 @@ async def get_setting(setting_key: str, current_user: dict = Depends(get_current
         logger.error(f"Failed to get setting {setting_key} for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to get setting")
 
+
 @router.put("/{setting_key}", response_model=ClientSettingResponse)
-async def set_setting(setting_key: str, data: ClientSettingCreate, current_user: dict = Depends(get_current_user)):
+async def set_setting(
+    setting_key: str,
+    data: ClientSettingCreate,
+    current_user: dict = Depends(get_current_user),
+):
     """Set or update a client setting. For images, use the /images endpoint."""
     user_id = current_user["user_id"]
     _validate_setting_key(setting_key)
@@ -325,7 +414,9 @@ async def set_setting(setting_key: str, data: ClientSettingCreate, current_user:
         is_new = False
 
     if is_new and total_settings >= MAX_SETTINGS_PER_USER:
-        raise HTTPException(status_code=400, detail="Maximum number of settings exceeded for this user")
+        raise HTTPException(
+            status_code=400, detail="Maximum number of settings exceeded for this user"
+        )
 
     # If the value is image-like dict with 'size' or 'path', ensure not exceeding storage quota
     size_candidate = 0
@@ -336,13 +427,25 @@ async def set_setting(setting_key: str, data: ClientSettingCreate, current_user:
             size_candidate = 0
 
     if total_storage + size_candidate > MAX_TOTAL_STORAGE_PER_USER:
-        raise HTTPException(status_code=400, detail="Storing this setting would exceed your total storage quota")
+        raise HTTPException(
+            status_code=400,
+            detail="Storing this setting would exceed your total storage quota",
+        )
 
     try:
         result = await repository.set_setting(user_id, setting_key, data.setting_value)
-        await _log_audit(user_id, "set", setting_key, {"value_preview": str(data.setting_value)[:200]})
+        await _log_audit(
+            user_id,
+            "set",
+            setting_key,
+            {"value_preview": str(data.setting_value)[:200]},
+        )
         # Normalize result to ClientSettingResponse
-        updated_at = result.get("updated_at") if isinstance(result, dict) else getattr(result, "updated_at", datetime.utcnow())
+        updated_at = (
+            result.get("updated_at")
+            if isinstance(result, dict)
+            else getattr(result, "updated_at", datetime.utcnow())
+        )
         if isinstance(updated_at, str):
             try:
                 updated_at = datetime.fromisoformat(updated_at)
@@ -350,10 +453,22 @@ async def set_setting(setting_key: str, data: ClientSettingCreate, current_user:
                 updated_at = datetime.utcnow()
         return ClientSettingResponse(
             setting_key=setting_key,
-            setting_value=result.get("setting_value") if isinstance(result, dict) else getattr(result, "setting_value", None),
-            setting_type=result.get("setting_type", "text") if isinstance(result, dict) else getattr(result, "setting_type", "text"),
+            setting_value=(
+                result.get("setting_value")
+                if isinstance(result, dict)
+                else getattr(result, "setting_value", None)
+            ),
+            setting_type=(
+                result.get("setting_type", "text")
+                if isinstance(result, dict)
+                else getattr(result, "setting_type", "text")
+            ),
             updated_at=updated_at,
-            size_bytes=result.get("size_bytes", 0) if isinstance(result, dict) else getattr(result, "size_bytes", 0)
+            size_bytes=(
+                result.get("size_bytes", 0)
+                if isinstance(result, dict)
+                else getattr(result, "size_bytes", 0)
+            ),
         )
     except HTTPException:
         raise
@@ -361,8 +476,11 @@ async def set_setting(setting_key: str, data: ClientSettingCreate, current_user:
         logger.error(f"Failed to set setting {setting_key} for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to set setting")
 
+
 @router.delete("/{setting_key}")
-async def delete_setting(setting_key: str, current_user: dict = Depends(get_current_user)):
+async def delete_setting(
+    setting_key: str, current_user: dict = Depends(get_current_user)
+):
     """Delete a client setting."""
     user_id = current_user["user_id"]
     _validate_setting_key(setting_key)
@@ -379,8 +497,11 @@ async def delete_setting(setting_key: str, current_user: dict = Depends(get_curr
         logger.error(f"Failed to delete setting {setting_key} for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete setting")
 
+
 @router.post("/bulk-update", response_model=ClientSettingsBulkResponse)
-async def bulk_update_settings(data: ClientSettingsBulkUpdate, current_user: dict = Depends(get_current_user)):
+async def bulk_update_settings(
+    data: ClientSettingsBulkUpdate, current_user: dict = Depends(get_current_user)
+):
     """Bulk update multiple client settings."""
     user_id = current_user["user_id"]
     await _ensure_tables()
@@ -389,7 +510,10 @@ async def bulk_update_settings(data: ClientSettingsBulkUpdate, current_user: dic
         raise HTTPException(status_code=400, detail="Invalid bulk payload")
 
     if len(data.settings) > MAX_BULK_UPDATE:
-        raise HTTPException(status_code=400, detail=f"Too many settings in bulk update (max {MAX_BULK_UPDATE})")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Too many settings in bulk update (max {MAX_BULK_UPDATE})",
+        )
 
     # Validate keys and known schemas first
     errors = []
@@ -408,7 +532,12 @@ async def bulk_update_settings(data: ClientSettingsBulkUpdate, current_user: dic
 
     try:
         result = await repository.bulk_update_settings(user_id, validated_updates)
-        await _log_audit(user_id, "bulk_update", "bulk", {"updated_count": result.get("updated_count"), "errors": errors})
+        await _log_audit(
+            user_id,
+            "bulk_update",
+            "bulk",
+            {"updated_count": result.get("updated_count"), "errors": errors},
+        )
         response = {"updated_count": result.get("updated_count", 0)}
         if errors:
             response["errors"] = errors
@@ -417,8 +546,13 @@ async def bulk_update_settings(data: ClientSettingsBulkUpdate, current_user: dic
         logger.error(f"Bulk update failed for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Bulk update failed")
 
+
 @router.post("/images/{setting_key}", response_model=ClientSettingResponse)
-async def upload_image_setting(setting_key: str, file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+async def upload_image_setting(
+    setting_key: str,
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user),
+):
     """
     Upload an image and store it as a client setting. The stored setting will contain
     metadata including storage path, content type, size and hash.
@@ -440,7 +574,9 @@ async def upload_image_setting(setting_key: str, file: UploadFile = File(...), c
     if size == 0:
         raise HTTPException(status_code=400, detail="Empty file uploaded")
     if size > MAX_IMAGE_SIZE:
-        raise HTTPException(status_code=400, detail=f"Image too large (max {MAX_IMAGE_SIZE} bytes)")
+        raise HTTPException(
+            status_code=400, detail=f"Image too large (max {MAX_IMAGE_SIZE} bytes)"
+        )
 
     # Determine content type
     content_type = (file.content_type or "").lower()
@@ -452,12 +588,21 @@ async def upload_image_setting(setting_key: str, file: UploadFile = File(...), c
             security = _get_security_system()
             # Use the original uploaded filename for security validation to catch traversal attempts in user-supplied names.
             original_name = getattr(file, "filename", "") or ""
-            allowed, message = security.validate_file_upload(original_name, content_type, size, policy_name="default")
+            allowed, message = security.validate_file_upload(
+                original_name, content_type, size, policy_name="default"
+            )
             if not allowed:
-                logger.warning(f"Security validation failed for upload by user {user_id}: {message}")
+                logger.warning(
+                    f"Security validation failed for upload by user {user_id}: {message}"
+                )
                 # Log audit for security rejection
                 try:
-                    await _log_audit(user_id, "upload_image_rejected", setting_key, {"reason": message, "original_filename": original_name})
+                    await _log_audit(
+                        user_id,
+                        "upload_image_rejected",
+                        setting_key,
+                        {"reason": message, "original_filename": original_name},
+                    )
                 except Exception:
                     pass
                 raise HTTPException(status_code=400, detail=message)
@@ -466,7 +611,9 @@ async def upload_image_setting(setting_key: str, file: UploadFile = File(...), c
                 # message format: "File is valid. Sanitized filename: {sanitized}"
                 marker = "Sanitized filename:"
                 if marker in message:
-                    sanitized_filename_from_security = message.split(marker, 1)[1].strip()
+                    sanitized_filename_from_security = message.split(marker, 1)[
+                        1
+                    ].strip()
                 else:
                     sanitized_filename_from_security = Path(original_name).name
             except Exception:
@@ -482,14 +629,21 @@ async def upload_image_setting(setting_key: str, file: UploadFile = File(...), c
     if content_type not in ALLOWED_IMAGE_TYPES:
         # If security system is present, it would have validated content type. If not, reject here.
         if not _get_security_system:
-            raise HTTPException(status_code=400, detail=f"Unsupported image type: {content_type}")
+            raise HTTPException(
+                status_code=400, detail=f"Unsupported image type: {content_type}"
+            )
         # If security system is present and allowed, continue regardless of ALLOWED_IMAGE_TYPES list.
 
     # Virus scan
     is_clean = _scan_for_viruses(data)
     if not is_clean:
         try:
-            await _log_audit(user_id, "upload_image_rejected", setting_key, {"reason": "virus_scan_failed"})
+            await _log_audit(
+                user_id,
+                "upload_image_rejected",
+                setting_key,
+                {"reason": "virus_scan_failed"},
+            )
         except Exception:
             pass
         raise HTTPException(status_code=400, detail="Uploaded file failed virus scan")
@@ -502,7 +656,10 @@ async def upload_image_setting(setting_key: str, file: UploadFile = File(...), c
         total_storage = 0
 
     if total_storage + size > MAX_TOTAL_STORAGE_PER_USER:
-        raise HTTPException(status_code=400, detail="Storing this image would exceed your total storage quota")
+        raise HTTPException(
+            status_code=400,
+            detail="Storing this image would exceed your total storage quota",
+        )
 
     # Compute a content-hash and create safe filename.
     hash_hex = _hash_bytes(data)
@@ -547,12 +704,17 @@ async def upload_image_setting(setting_key: str, file: UploadFile = File(...), c
         abspath_file = os.path.abspath(file_path)
         if not abspath_file.startswith(abspath_storage):
             logger.error(f"Resolved file path is outside storage root: {abspath_file}")
-            raise HTTPException(status_code=400, detail="Invalid storage path resolved for uploaded file")
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid storage path resolved for uploaded file",
+            )
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Failed to validate storage path for user {user_id}: {e}")
-        raise HTTPException(status_code=500, detail="Server file storage configuration error")
+        raise HTTPException(
+            status_code=500, detail="Server file storage configuration error"
+        )
 
     # Avoid overwrite if exact file exists; still update DB to point to it
     try:
@@ -570,14 +732,18 @@ async def upload_image_setting(setting_key: str, file: UploadFile = File(...), c
                         os.remove(file_path)
                     os.replace(tmp_path, file_path)
                 except Exception as e:
-                    logger.error(f"Atomic rename failed storing uploaded image for user {user_id} at {file_path}: {e}")
+                    logger.error(
+                        f"Atomic rename failed storing uploaded image for user {user_id} at {file_path}: {e}"
+                    )
                     # attempt direct write as last resort
                     with open(file_path, "wb") as f:
                         f.write(data)
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to store uploaded image for user {user_id} at {file_path}: {e}")
+        logger.error(
+            f"Failed to store uploaded image for user {user_id} at {file_path}: {e}"
+        )
         raise HTTPException(status_code=500, detail="Failed to store uploaded image")
 
     # Build metadata to store in settings
@@ -588,13 +754,20 @@ async def upload_image_setting(setting_key: str, file: UploadFile = File(...), c
         "hash": hash_hex,
         "stored_at": datetime.utcnow().isoformat(),
         "original_filename": getattr(file, "filename", None),
-        "sanitized_filename": sanitized_filename_from_security or Path(getattr(file, "filename", "") or "").name
+        "sanitized_filename": sanitized_filename_from_security
+        or Path(getattr(file, "filename", "") or "").name,
     }
 
     try:
         result = await repository.set_setting(user_id, setting_key, metadata)
-        await _log_audit(user_id, "upload_image", setting_key, {"path": file_path, "size": size})
-        updated_at = result.get("updated_at") if isinstance(result, dict) else getattr(result, "updated_at", datetime.utcnow())
+        await _log_audit(
+            user_id, "upload_image", setting_key, {"path": file_path, "size": size}
+        )
+        updated_at = (
+            result.get("updated_at")
+            if isinstance(result, dict)
+            else getattr(result, "updated_at", datetime.utcnow())
+        )
         if isinstance(updated_at, str):
             try:
                 updated_at = datetime.fromisoformat(updated_at)
@@ -605,7 +778,7 @@ async def upload_image_setting(setting_key: str, file: UploadFile = File(...), c
             setting_value=metadata,
             setting_type="image",
             updated_at=updated_at,
-            size_bytes=size
+            size_bytes=size,
         )
     except Exception as e:
         logger.error(f"Failed to save image setting record for user {user_id}: {e}")
@@ -616,6 +789,7 @@ async def upload_image_setting(setting_key: str, file: UploadFile = File(...), c
         except Exception:
             pass
         raise HTTPException(status_code=500, detail="Failed to save image setting")
+
 
 @router.get("/images/{setting_key}")
 async def serve_image(setting_key: str, current_user: dict = Depends(get_current_user)):
@@ -630,9 +804,15 @@ async def serve_image(setting_key: str, current_user: dict = Depends(get_current
         if not setting:
             raise HTTPException(status_code=404, detail="Image setting not found")
         # Expect stored metadata
-        metadata = setting.get("setting_value") if isinstance(setting, dict) else getattr(setting, "setting_value", None)
+        metadata = (
+            setting.get("setting_value")
+            if isinstance(setting, dict)
+            else getattr(setting, "setting_value", None)
+        )
         if not metadata or not isinstance(metadata, dict):
-            raise HTTPException(status_code=404, detail="Image not found or invalid metadata")
+            raise HTTPException(
+                status_code=404, detail="Image not found or invalid metadata"
+            )
         path = metadata.get("path")
         content_type = metadata.get("content_type", "application/octet-stream")
         if not path or not os.path.exists(path):
@@ -642,14 +822,19 @@ async def serve_image(setting_key: str, current_user: dict = Depends(get_current
             await _log_audit(user_id, "serve_image", setting_key, {"path": path})
         except Exception:
             pass
-        return FileResponse(path, media_type=content_type, filename=os.path.basename(path))
+        return FileResponse(
+            path, media_type=content_type, filename=os.path.basename(path)
+        )
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to serve image for user {user_id} and key {setting_key}: {e}")
+        logger.error(
+            f"Failed to serve image for user {user_id} and key {setting_key}: {e}"
+        )
         raise HTTPException(status_code=500, detail="Failed to serve image")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # Example of how to run this API with uvicorn
     from fastapi import FastAPI
 

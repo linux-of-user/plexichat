@@ -219,7 +219,9 @@ class ResourceTracker(MonitorBase):
         x_mean = statistics.mean(x_values)
         y_mean = statistics.mean(values)
 
-        numerator = sum((x - x_mean) * (y - y_mean) for x, y in zip(x_values, values, strict=False))
+        numerator = sum(
+            (x - x_mean) * (y - y_mean) for x, y in zip(x_values, values, strict=False)
+        )
         denominator = sum((x - x_mean) ** 2 for x in x_values)
 
         trend_slope = numerator / denominator if denominator != 0 else 0
@@ -312,7 +314,9 @@ class ResourceTracker(MonitorBase):
             peaks = []
             threshold = statistics.mean(values) + statistics.stdev(values)
 
-            for i, (timestamp, value) in enumerate(zip(timestamps, values, strict=False)):
+            for i, (timestamp, value) in enumerate(
+                zip(timestamps, values, strict=False)
+            ):
                 if value > threshold:
                     peaks.append(timestamp.strftime("%H:%M"))
 

@@ -23,14 +23,22 @@ class BaseService:
     def __init__(self, name):
         self.name = name
         self.logger = logging.getLogger(name)
+
+
 class ServiceHealth:
     DEGRADED = "degraded"
     HEALTHY = "healthy"
     UNHEALTHY = "unhealthy"
-def get_config(): return {}
+
+
+def get_config():
+    return {}
+
+
 class CacheKeyBuilder:
     @staticmethod
-    def user_key(user_id): return f"user:{user_id}"
+    def user_key(user_id):
+        return f"user:{user_id}"
 
 
 logger = logging.getLogger(__name__)
@@ -38,14 +46,17 @@ logger = logging.getLogger(__name__)
 
 class CollaborationType(Enum):
     """Types of collaboration sessions."""
+
     DOCUMENT = "document"
     CODE = "code"
     WHITEBOARD = "whiteboard"
     SCREEN_SHARE = "screen_share"
     PRESENTATION = "presentation"
 
+
 class OperationType(Enum):
     """Types of collaborative operations."""
+
     INSERT = "insert"
     DELETE = "delete"
     RETAIN = "retain"
@@ -53,16 +64,20 @@ class OperationType(Enum):
     CURSOR = "cursor"
     SELECTION = "selection"
 
+
 class UserRole(Enum):
     """User roles in collaboration sessions."""
+
     OWNER = "owner"
     EDITOR = "editor"
     VIEWER = "viewer"
     COMMENTER = "commenter"
 
+
 @dataclass
 class CollaborationUser:
     """User participating in collaboration."""
+
     user_id: str
     username: str
     role: UserRole
@@ -73,9 +88,11 @@ class CollaborationUser:
     last_seen: datetime = field(default_factory=lambda: datetime.now(UTC))
     is_active: bool = True
 
+
 @dataclass
 class Operation:
     """Collaborative operation for operational transform."""
+
     op_id: str
     user_id: str
     operation_type: OperationType
@@ -86,9 +103,11 @@ class Operation:
     timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     parent_version: int = 0
 
+
 @dataclass
 class CollaborationSession:
     """Collaboration session data."""
+
     session_id: str
     title: str
     collaboration_type: CollaborationType
@@ -103,26 +122,46 @@ class CollaborationSession:
     is_active: bool = True
     max_users: int = 50
 
+
 class OperationalTransform:
     """Operational Transform algorithm for conflict resolution."""
+
     @staticmethod
-    def transform_operation(op1: Operation, op2: Operation) -> tuple[Operation, Operation]:
+    def transform_operation(
+        op1: Operation, op2: Operation
+    ) -> tuple[Operation, Operation]:
         """Transform two concurrent operations."""
-        if op1.operation_type == OperationType.INSERT and op2.operation_type == OperationType.INSERT:
+        if (
+            op1.operation_type == OperationType.INSERT
+            and op2.operation_type == OperationType.INSERT
+        ):
             return OperationalTransform._transform_insert_insert(op1, op2)
-        elif op1.operation_type == OperationType.INSERT and op2.operation_type == OperationType.DELETE:
+        elif (
+            op1.operation_type == OperationType.INSERT
+            and op2.operation_type == OperationType.DELETE
+        ):
             return OperationalTransform._transform_insert_delete(op1, op2)
-        elif op1.operation_type == OperationType.DELETE and op2.operation_type == OperationType.INSERT:
-            op2_prime, op1_prime = OperationalTransform._transform_insert_delete(op2, op1)
+        elif (
+            op1.operation_type == OperationType.DELETE
+            and op2.operation_type == OperationType.INSERT
+        ):
+            op2_prime, op1_prime = OperationalTransform._transform_insert_delete(
+                op2, op1
+            )
             return op1_prime, op2_prime
-        elif op1.operation_type == OperationType.DELETE and op2.operation_type == OperationType.DELETE:
+        elif (
+            op1.operation_type == OperationType.DELETE
+            and op2.operation_type == OperationType.DELETE
+        ):
             return OperationalTransform._transform_delete_delete(op1, op2)
         else:
             # For other operations, return as-is for now
             return op1, op2
 
     @staticmethod
-    def _transform_insert_insert(op1: Operation, op2: Operation) -> tuple[Operation, Operation]:
+    def _transform_insert_insert(
+        op1: Operation, op2: Operation
+    ) -> tuple[Operation, Operation]:
         """Transform two concurrent insert operations."""
         if op1.position <= op2.position:
             # op1 comes before op2, adjust op2's position
@@ -134,7 +173,7 @@ class OperationalTransform:
                 content=op2.content,
                 attributes=op2.attributes,
                 timestamp=op2.timestamp,
-                parent_version=op2.parent_version
+                parent_version=op2.parent_version,
             )
             return op1, op2_prime
         else:
@@ -147,12 +186,14 @@ class OperationalTransform:
                 content=op1.content,
                 attributes=op1.attributes,
                 timestamp=op1.timestamp,
-                parent_version=op1.parent_version
+                parent_version=op1.parent_version,
             )
             return op1_prime, op2
 
     @staticmethod
-    def _transform_insert_delete(insert_op: Operation, delete_op: Operation) -> tuple[Operation, Operation]:
+    def _transform_insert_delete(
+        insert_op: Operation, delete_op: Operation
+    ) -> tuple[Operation, Operation]:
         """Transform insert and delete operations."""
         if insert_op.position <= delete_op.position:
             # Insert comes before delete, adjust delete position
@@ -164,7 +205,7 @@ class OperationalTransform:
                 length=delete_op.length,
                 attributes=delete_op.attributes,
                 timestamp=delete_op.timestamp,
-                parent_version=delete_op.parent_version
+                parent_version=delete_op.parent_version,
             )
             return insert_op, delete_prime
         elif insert_op.position >= delete_op.position + delete_op.length:
@@ -177,7 +218,7 @@ class OperationalTransform:
                 content=insert_op.content,
                 attributes=insert_op.attributes,
                 timestamp=insert_op.timestamp,
-                parent_version=insert_op.parent_version
+                parent_version=insert_op.parent_version,
             )
             return insert_prime, delete_op
         else:
@@ -190,12 +231,14 @@ class OperationalTransform:
                 content=insert_op.content,
                 attributes=insert_op.attributes,
                 timestamp=insert_op.timestamp,
-                parent_version=insert_op.parent_version
+                parent_version=insert_op.parent_version,
             )
             return insert_prime, delete_op
 
     @staticmethod
-    def _transform_delete_delete(op1: Operation, op2: Operation) -> tuple[Operation, Operation]:
+    def _transform_delete_delete(
+        op1: Operation, op2: Operation
+    ) -> tuple[Operation, Operation]:
         """Transform two concurrent delete operations."""
         # Handle overlapping deletes
         if op1.position + op1.length <= op2.position:
@@ -208,7 +251,7 @@ class OperationalTransform:
                 length=op2.length,
                 attributes=op2.attributes,
                 timestamp=op2.timestamp,
-                parent_version=op2.parent_version
+                parent_version=op2.parent_version,
             )
             return op1, op2_prime
         elif op2.position + op2.length <= op1.position:
@@ -221,7 +264,7 @@ class OperationalTransform:
                 length=op1.length,
                 attributes=op1.attributes,
                 timestamp=op1.timestamp,
-                parent_version=op1.parent_version
+                parent_version=op1.parent_version,
             )
             return op1_prime, op2
         # Overlapping deletes - complex case
@@ -229,7 +272,9 @@ class OperationalTransform:
         elif op1.timestamp <= op2.timestamp:
             # Adjust op2 to account for op1
             new_position = max(op1.position, op2.position - op1.length)
-            new_length = max(0, op2.length - max(0, op1.position + op1.length - op2.position))
+            new_length = max(
+                0, op2.length - max(0, op1.position + op1.length - op2.position)
+            )
             op2_prime = Operation(
                 op_id=op2.op_id,
                 user_id=op2.user_id,
@@ -238,13 +283,15 @@ class OperationalTransform:
                 length=new_length,
                 attributes=op2.attributes,
                 timestamp=op2.timestamp,
-                parent_version=op2.parent_version
+                parent_version=op2.parent_version,
             )
             return op1, op2_prime
         else:
             # Adjust op1 to account for op2
             new_position = max(op2.position, op1.position - op2.length)
-            new_length = max(0, op1.length - max(0, op2.position + op2.length - op1.position))
+            new_length = max(
+                0, op1.length - max(0, op2.position + op2.length - op1.position)
+            )
             op1_prime = Operation(
                 op_id=op1.op_id,
                 user_id=op1.user_id,
@@ -253,34 +300,50 @@ class OperationalTransform:
                 length=new_length,
                 attributes=op1.attributes,
                 timestamp=op1.timestamp,
-                parent_version=op1.parent_version
+                parent_version=op1.parent_version,
             )
             return op1_prime, op2
 
+
 class CollaborationService(BaseService):
     """Real-time collaboration service."""
+
     def __init__(self):
         super().__init__("collaboration")
         self.config = get_config()
 
         # Session management
         self.sessions: dict[str, CollaborationSession] = {}
-        self.user_sessions: dict[str, set[str]] = defaultdict(set)  # user_id -> session_ids
+        self.user_sessions: dict[str, set[str]] = defaultdict(
+            set
+        )  # user_id -> session_ids
 
         # WebSocket connections
-        self.session_connections: dict[str, set[Any]] = defaultdict(set)  # session_id -> websockets
-        self.user_connections: dict[str, set[Any]] = defaultdict(set)  # user_id -> websockets
+        self.session_connections: dict[str, set[Any]] = defaultdict(
+            set
+        )  # session_id -> websockets
+        self.user_connections: dict[str, set[Any]] = defaultdict(
+            set
+        )  # user_id -> websockets
 
         # Operation queues for processing
-        self.operation_queues: dict[str, deque] = defaultdict(deque)  # session_id -> operations
+        self.operation_queues: dict[str, deque] = defaultdict(
+            deque
+        )  # session_id -> operations
 
         # Operational transform engine
         self.ot_engine = OperationalTransform()
 
         # Configuration
-        self.max_sessions_per_user = self.config.get("collaboration.max_sessions_per_user", 10)
-        self.session_timeout_hours = self.config.get("collaboration.session_timeout_hours", 24)
-        self.operation_history_limit = self.config.get("collaboration.operation_history_limit", 1000)
+        self.max_sessions_per_user = self.config.get(
+            "collaboration.max_sessions_per_user", 10
+        )
+        self.session_timeout_hours = self.config.get(
+            "collaboration.session_timeout_hours", 24
+        )
+        self.operation_history_limit = self.config.get(
+            "collaboration.operation_history_limit", 1000
+        )
 
         # Background tasks
         self.cleanup_task: asyncio.Task | None = None
@@ -321,35 +384,42 @@ class CollaborationService(BaseService):
         try:
             checks = {
                 "sessions": len(self.sessions),
-                "active_sessions": len([s for s in self.sessions.values() if s.is_active]),
-                "total_connections": sum(len(conns) for conns in self.session_connections.values()),
-                "operation_queues": len(self.operation_queues)
+                "active_sessions": len(
+                    [s for s in self.sessions.values() if s.is_active]
+                ),
+                "total_connections": sum(
+                    len(conns) for conns in self.session_connections.values()
+                ),
+                "operation_queues": len(self.operation_queues),
             }
 
             # Determine health status
             status = ServiceHealth.HEALTHY
-            if checks["total_connections"] > 1000 or any(len(queue) > 100 for queue in self.operation_queues.values()):
+            if checks["total_connections"] > 1000 or any(
+                len(queue) > 100 for queue in self.operation_queues.values()
+            ):
                 status = ServiceHealth.DEGRADED
 
-            return {
-                "status": status,
-                "checks": checks
-            }
+            return {"status": status, "checks": checks}
 
         except Exception as e:
-            return {
-                "status": ServiceHealth.UNHEALTHY,
-                "error": str(e)
-            }
+            return {"status": ServiceHealth.UNHEALTHY, "error": str(e)}
 
-    async def create_session(self, title: str, collaboration_type: CollaborationType,
-                        owner_id: str, initial_content: str = "") -> str:
+    async def create_session(
+        self,
+        title: str,
+        collaboration_type: CollaborationType,
+        owner_id: str,
+        initial_content: str = "",
+    ) -> str:
         """Create a new collaboration session."""
         session_id = str(uuid.uuid4())
 
         # Check user session limit
         if len(self.user_sessions[owner_id]) >= self.max_sessions_per_user:
-            raise ValueError(f"User has reached maximum session limit ({self.max_sessions_per_user})")
+            raise ValueError(
+                f"User has reached maximum session limit ({self.max_sessions_per_user})"
+            )
 
         # Create session
         session = CollaborationSession(
@@ -359,15 +429,17 @@ class CollaborationService(BaseService):
             owner_id=owner_id,
             created_at=datetime.now(UTC),
             last_modified=datetime.now(UTC),
-            content=initial_content
+            content=initial_content,
         )
 
         # Add owner as user
         owner_user = CollaborationUser(
             user_id=owner_id,
-            username=CacheKeyBuilder.user_key(owner_id),  # Would be fetched from user service
+            username=CacheKeyBuilder.user_key(
+                owner_id
+            ),  # Would be fetched from user service
             role=UserRole.OWNER,
-            color=self._generate_user_color(owner_id)
+            color=self._generate_user_color(owner_id),
         )
         session.users[owner_id] = owner_user
 
@@ -375,10 +447,14 @@ class CollaborationService(BaseService):
         self.sessions[session_id] = session
         self.user_sessions[owner_id].add(session_id)
 
-        self.logger.info(f"Created collaboration session {session_id} ({collaboration_type.value}) for user {owner_id}")
+        self.logger.info(
+            f"Created collaboration session {session_id} ({collaboration_type.value}) for user {owner_id}"
+        )
         return session_id
 
-    async def join_session(self, session_id: str, user_id: str, role: UserRole = UserRole.EDITOR) -> bool:
+    async def join_session(
+        self, session_id: str, user_id: str, role: UserRole = UserRole.EDITOR
+    ) -> bool:
         """Join a collaboration session."""
         if session_id not in self.sessions:
             return False
@@ -396,9 +472,11 @@ class CollaborationService(BaseService):
         # Add user to session
         user = CollaborationUser(
             user_id=user_id,
-            username=CacheKeyBuilder.user_key(user_id),  # Would be fetched from user service
+            username=CacheKeyBuilder.user_key(
+                user_id
+            ),  # Would be fetched from user service
             role=role,
-            color=self._generate_user_color(user_id)
+            color=self._generate_user_color(user_id),
         )
         session.users[user_id] = user
         self.user_sessions[user_id].add(session_id)
@@ -463,7 +541,10 @@ class CollaborationService(BaseService):
 
         # Check permissions
         user = session.users[operation.user_id]
-        if user.role == UserRole.VIEWER and operation.operation_type in [OperationType.INSERT, OperationType.DELETE]:
+        if user.role == UserRole.VIEWER and operation.operation_type in [
+            OperationType.INSERT,
+            OperationType.DELETE,
+        ]:
             return False
 
         # Add to operation queue for processing
@@ -489,7 +570,9 @@ class CollaborationService(BaseService):
             transformed_op = await self._transform_operation(session, operation)
 
             # Apply operation to content
-            session.content = self._apply_operation_to_content(session.content, transformed_op)
+            session.content = self._apply_operation_to_content(
+                session.content, transformed_op
+            )
             session.version += 1
             session.last_modified = datetime.now(UTC)
 
@@ -498,12 +581,14 @@ class CollaborationService(BaseService):
 
             # Limit operation history
             if len(session.operations) > self.operation_history_limit:
-                session.operations = session.operations[-self.operation_history_limit:]
+                session.operations = session.operations[-self.operation_history_limit :]
 
             # Broadcast operation to other users
             await self._broadcast_operation(session_id, transformed_op)
 
-    async def _transform_operation(self, session: CollaborationSession, operation: Operation) -> Operation:
+    async def _transform_operation(
+        self, session: CollaborationSession, operation: Operation
+    ) -> Operation:
         """Transform operation against concurrent operations."""
         # For now, return operation as-is
         # In a full implementation, this would transform against all concurrent operations
@@ -512,17 +597,32 @@ class CollaborationService(BaseService):
     def _apply_operation_to_content(self, content: str, operation: Operation) -> str:
         """Apply an operation to content string."""
         if operation.operation_type == OperationType.INSERT:
-            return content[:operation.position] + operation.content + content[operation.position:]
+            return (
+                content[: operation.position]
+                + operation.content
+                + content[operation.position :]
+            )
         elif operation.operation_type == OperationType.DELETE:
-            return content[:operation.position] + content[operation.position + operation.length:]
+            return (
+                content[: operation.position]
+                + content[operation.position + operation.length :]
+            )
         else:
             return content
 
     def _generate_user_color(self, user_id: str) -> str:
         """Generate a consistent color for a user."""
         colors = [
-            "#007bff", "#28a745", "#dc3545", "#ffc107", "#17a2b8",
-            "#6f42c1", "#e83e8c", "#fd7e14", "#20c997", "#6c757d"
+            "#007bff",
+            "#28a745",
+            "#dc3545",
+            "#ffc107",
+            "#17a2b8",
+            "#6f42c1",
+            "#e83e8c",
+            "#fd7e14",
+            "#20c997",
+            "#6c757d",
         ]
         hash_value = int(hashlib.md5(user_id.encode()).hexdigest(), 16)
         return colors[hash_value % len(colors)]
@@ -533,7 +633,7 @@ class CollaborationService(BaseService):
             "type": "user_joined",
             "session_id": session_id,
             "user": asdict(user),
-            "timestamp": datetime.now(UTC).isoformat()
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         await self._broadcast_to_session(session_id, message)
 
@@ -543,17 +643,19 @@ class CollaborationService(BaseService):
             "type": "user_left",
             "session_id": session_id,
             "user": asdict(user),
-            "timestamp": datetime.now(UTC).isoformat()
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         await self._broadcast_to_session(session_id, message)
 
-    async def _broadcast_ownership_transferred(self, session_id: str, new_owner_id: str):
+    async def _broadcast_ownership_transferred(
+        self, session_id: str, new_owner_id: str
+    ):
         """Broadcast ownership transfer event."""
         message = {
             "type": "ownership_transferred",
             "session_id": session_id,
             "new_owner_id": new_owner_id,
-            "timestamp": datetime.now(UTC).isoformat()
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         await self._broadcast_to_session(session_id, message)
 
@@ -563,11 +665,15 @@ class CollaborationService(BaseService):
             "type": "operation",
             "session_id": session_id,
             "operation": asdict(operation),
-            "timestamp": datetime.now(UTC).isoformat()
+            "timestamp": datetime.now(UTC).isoformat(),
         }
-        await self._broadcast_to_session(session_id, message, exclude_user=operation.user_id)
+        await self._broadcast_to_session(
+            session_id, message, exclude_user=operation.user_id
+        )
 
-    async def _broadcast_to_session(self, session_id: str, message: dict[str, Any], exclude_user: str | None = None):
+    async def _broadcast_to_session(
+        self, session_id: str, message: dict[str, Any], exclude_user: str | None = None
+    ):
         """Broadcast message to all users in a session."""
         if session_id not in self.session_connections:
             return
@@ -578,7 +684,11 @@ class CollaborationService(BaseService):
         for websocket in connections:
             try:
                 # Check if we should exclude this user
-                if exclude_user and hasattr(websocket, 'user_id') and websocket.user_id == exclude_user:
+                if (
+                    exclude_user
+                    and hasattr(websocket, "user_id")
+                    and websocket.user_id == exclude_user
+                ):
                     continue
 
                 await websocket.send_text(json.dumps(message))
@@ -654,15 +764,21 @@ class CollaborationService(BaseService):
             "total_sessions": len(self.sessions),
             "active_sessions": len([s for s in self.sessions.values() if s.is_active]),
             "total_users": len(self.user_sessions),
-            "total_connections": sum(len(conns) for conns in self.session_connections.values()),
+            "total_connections": sum(
+                len(conns) for conns in self.session_connections.values()
+            ),
             "sessions_by_type": {
-                ctype.value: len([s for s in self.sessions.values() if s.collaboration_type == ctype])
+                ctype.value: len(
+                    [s for s in self.sessions.values() if s.collaboration_type == ctype]
+                )
                 for ctype in CollaborationType
-            }
+            },
         }
+
 
 # Global collaboration service instance
 _collaboration_service = None
+
 
 async def get_collaboration_service() -> CollaborationService:
     """Get the global collaboration service instance."""
@@ -672,6 +788,7 @@ async def get_collaboration_service() -> CollaborationService:
         if _collaboration_service and hasattr(_collaboration_service, "start"):
             await _collaboration_service.start()
     return _collaboration_service
+
 
 # Export main components
 __all__ = [
@@ -683,5 +800,5 @@ __all__ = [
     "OperationType",
     "OperationalTransform",
     "UserRole",
-    "get_collaboration_service"
+    "get_collaboration_service",
 ]

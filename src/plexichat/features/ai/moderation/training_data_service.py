@@ -5,6 +5,7 @@ class TrainingDataService:
     def __init__(self):
         try:
             from plexichat.core.database.manager import database_manager  # type: ignore
+
             self.db_manager = database_manager
         except ImportError:
             self.db_manager = None
@@ -13,7 +14,9 @@ class TrainingDataService:
         if self.db_manager:
             await self.db_manager.add_training_data(training_data)
 
-    async def get_training_data(self, filters: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    async def get_training_data(
+        self, filters: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]]:
         if self.db_manager:
             return await self.db_manager.get_training_data(filters)
         return []

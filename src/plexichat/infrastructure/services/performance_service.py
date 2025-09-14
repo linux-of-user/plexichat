@@ -45,6 +45,7 @@ Features:
 @dataclass
 class SystemMetrics:
     """System-level performance metrics."""
+
     timestamp: datetime
     cpu_usage: float
     memory_usage: float
@@ -58,6 +59,7 @@ class SystemMetrics:
 @dataclass
 class ApplicationMetrics:
     """Application-level performance metrics."""
+
     timestamp: datetime
     active_connections: int
     request_rate: float
@@ -72,6 +74,7 @@ class ApplicationMetrics:
 @dataclass
 class DatabaseMetrics:
     """Database performance metrics."""
+
     timestamp: datetime
     connection_pool_size: int
     active_connections: int
@@ -85,6 +88,7 @@ class DatabaseMetrics:
 @dataclass
 class ClusterMetrics:
     """Cluster performance metrics."""
+
     timestamp: datetime
     total_nodes: int
     active_nodes: int
@@ -98,6 +102,7 @@ class ClusterMetrics:
 @dataclass
 class AIMetrics:
     """AI service performance metrics."""
+
     timestamp: datetime
     requests_per_minute: float
     avg_response_time: float
@@ -110,6 +115,7 @@ class AIMetrics:
 
 class PerformanceAggregator:
     """Aggregates performance data from multiple sources."""
+
     def __init__(self):
         self.system_metrics: deque = deque(maxlen=1000)
         self.app_metrics: deque = deque(maxlen=1000)
@@ -158,15 +164,21 @@ class PerformanceAggregator:
         """Get latest metrics from all sources."""
         with self.lock:
             return {
-                "system": self.system_metrics[-1].__dict__ if self.system_metrics else None,
-                "application": self.app_metrics[-1].__dict__ if self.app_metrics else None,
+                "system": (
+                    self.system_metrics[-1].__dict__ if self.system_metrics else None
+                ),
+                "application": (
+                    self.app_metrics[-1].__dict__ if self.app_metrics else None
+                ),
                 "database": self.db_metrics[-1].__dict__ if self.db_metrics else None,
-                "cluster": self.cluster_metrics[-1].__dict__ if self.cluster_metrics else None,
+                "cluster": (
+                    self.cluster_metrics[-1].__dict__ if self.cluster_metrics else None
+                ),
                 "ai": self.ai_metrics[-1].__dict__ if self.ai_metrics else None,
                 "custom": {
                     name: list(metrics)[-1] if metrics else None
                     for name, metrics in self.custom_metrics.items()
-                }
+                },
             }
 
     def get_historical_data(self, hours: int = 1) -> dict[str, list[dict[str, Any]]]:
@@ -197,12 +209,13 @@ class PerformanceAggregator:
                 "custom": {
                     name: [m for m in metrics if m["timestamp"] >= cutoff_time]
                     for name, metrics in self.custom_metrics.items()
-                }
+                },
             }
 
 
 class PerformanceService(BaseService):
     """Unified performance monitoring service."""
+
     def __init__(self):
         super().__init__("performance")
         self.config = get_config()
@@ -210,7 +223,9 @@ class PerformanceService(BaseService):
         self.aggregator = PerformanceAggregator()
 
         # Monitoring configuration
-        self.monitoring_interval = self.config.get("performance.monitoring_interval", 30)
+        self.monitoring_interval = self.config.get(
+            "performance.monitoring_interval", 30
+        )
         self.alert_thresholds = self.config.get("performance.alert_thresholds", {})
         self.dashboard_enabled = self.config.get("performance.dashboard_enabled", True)
 
@@ -266,15 +281,18 @@ class PerformanceService(BaseService):
         # Import collectors based on availability
         try:
             self.perf_optimizer = PerformanceOptimizer()
-        except ImportError: Optional[self.perf_optimizer] = None
+        except ImportError:
+            Optional[self.perf_optimizer] = None
 
         try:
             self.cluster_monitor = PerformanceMonitor()
-        except ImportError: Optional[self.cluster_monitor] = None
+        except ImportError:
+            Optional[self.cluster_monitor] = None
 
         try:
             self.ai_analytics = analytics_engine
-        except ImportError: Optional[self.ai_analytics] = None
+        except ImportError:
+            Optional[self.ai_analytics] = None
 
     async def _system_monitoring_loop(self):
         """System metrics monitoring loop."""
@@ -284,7 +302,9 @@ class PerformanceService(BaseService):
                 system_metrics = SystemMetrics(
                     timestamp=datetime.now(UTC),
                     cpu_usage=self.performance_logger.system_monitor.get_cpu_usage(),
-                    memory_usage=self.performance_logger.system_monitor.get_memory_usage()["percent"],
+                    memory_usage=self.performance_logger.system_monitor.get_memory_usage()[
+                        "percent"
+                    ],
                     disk_usage=0.0,  # Will be calculated from disk I/O
                     network_io=self.performance_logger.system_monitor.get_network_usage(),
                     thread_count=self.performance_logger.system_monitor.get_thread_count(),
@@ -381,7 +401,9 @@ class PerformanceService(BaseService):
                     "db_cache_hit_rate", db_metrics.cache_hit_rate, "%"
                 )
 
-                await asyncio.sleep(self.monitoring_interval * 2)  # Less frequent DB monitoring
+                await asyncio.sleep(
+                    self.monitoring_interval * 2
+                )  # Less frequent DB monitoring
 
             except Exception as e:
                 self.logger.error(f"Database monitoring error: {e}")
@@ -428,7 +450,9 @@ class PerformanceService(BaseService):
                     "cluster_memory_avg", cluster_metrics.cluster_memory_avg, "%"
                 )
 
-                await asyncio.sleep(self.monitoring_interval * 3)  # Less frequent cluster monitoring
+                await asyncio.sleep(
+                    self.monitoring_interval * 3
+                )  # Less frequent cluster monitoring
 
             except Exception as e:
                 self.logger.error(f"Cluster monitoring error: {e}")
@@ -491,7 +515,9 @@ class PerformanceService(BaseService):
                         "ai_token_usage", ai_metrics.token_usage, "tokens"
                     )
 
-                await asyncio.sleep(self.monitoring_interval * 2)  # Less frequent AI monitoring
+                await asyncio.sleep(
+                    self.monitoring_interval * 2
+                )  # Less frequent AI monitoring
 
             except Exception as e:
                 self.logger.error(f"AI monitoring error: {e}")
@@ -509,16 +535,24 @@ class PerformanceService(BaseService):
                     system = latest_metrics["system"]
                     if system["cpu_usage"] > self.alert_thresholds.get("cpu_usage", 90):
                         await self._trigger_alert("high_cpu_usage", system["cpu_usage"])
-                    if system["memory_usage"] > self.alert_thresholds.get("memory_usage", 85):
-                        await self._trigger_alert("high_memory_usage", system["memory_usage"])
+                    if system["memory_usage"] > self.alert_thresholds.get(
+                        "memory_usage", 85
+                    ):
+                        await self._trigger_alert(
+                            "high_memory_usage", system["memory_usage"]
+                        )
 
                 # Check application alerts
                 if latest_metrics["application"]:
                     app = latest_metrics["application"]
                     if app["error_rate"] > self.alert_thresholds.get("error_rate", 5):
                         await self._trigger_alert("high_error_rate", app["error_rate"])
-                    if app["response_time_avg"] > self.alert_thresholds.get("response_time", 1000):
-                        await self._trigger_alert("slow_response_time", app["response_time_avg"])
+                    if app["response_time_avg"] > self.alert_thresholds.get(
+                        "response_time", 1000
+                    ):
+                        await self._trigger_alert(
+                            "slow_response_time", app["response_time_avg"]
+                        )
 
                 await asyncio.sleep(60)  # Check alerts every minute
 

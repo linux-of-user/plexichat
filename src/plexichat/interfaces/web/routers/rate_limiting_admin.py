@@ -26,15 +26,24 @@ try:
     )
 except Exception as e:
     print(f"Import error in rate limiting admin: {e}")
+
     # Fallback decorators
     def require_admin(*args, **kwargs):
-        def decorator(func): return func
+        def decorator(func):
+            return func
+
         return decorator
+
     def rate_limit(*args, **kwargs):
-        def decorator(func): return func
+        def decorator(func):
+            return func
+
         return decorator
+
     def audit_access(*args, **kwargs):
-        def decorator(func): return func
+        def decorator(func):
+            return func
+
         return decorator
 
     # Fallback classes
@@ -60,6 +69,7 @@ except Exception as e:
     def update_rate_limit_config(config):
         return False
 
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/admin/rate-limiting", tags=["rate-limiting-admin"])
@@ -67,11 +77,13 @@ router = APIRouter(prefix="/admin/rate-limiting", tags=["rate-limiting-admin"])
 # Try to setup templates
 try:
     from pathlib import Path
+
     template_dir = Path(__file__).parent.parent / "templates"
     templates = Jinja2Templates(directory=str(template_dir))
 except Exception as e:
     logger.warning(f"Templates not available: {e}")
     templates = None
+
 
 @router.get("/", response_class=HTMLResponse)
 @require_admin()
@@ -84,12 +96,15 @@ async def rate_limiting_dashboard(request: Request):
         config_summary = config.get_config_summary()
 
         if templates:
-            return templates.TemplateResponse("rate_limiting_admin.html", {
-                "request": request,
-                "config": config_summary,
-                "account_types": [t.value for t in AccountType],
-                "title": "Rate Limiting Administration"
-            })
+            return templates.TemplateResponse(
+                "rate_limiting_admin.html",
+                {
+                    "request": request,
+                    "config": config_summary,
+                    "account_types": [t.value for t in AccountType],
+                    "title": "Rate Limiting Administration",
+                },
+            )
         else:
             # Fallback HTML
             html_content = f"""
@@ -162,9 +177,9 @@ async def rate_limiting_dashboard(request: Request):
                             <tbody>
             """
 
-            for account_type, limits in config_summary['account_types'].items():
-                status_class = "enabled" if limits['enabled'] else "disabled"
-                status_text = "Enabled" if limits['enabled'] else "Disabled"
+            for account_type, limits in config_summary["account_types"].items():
+                status_class = "enabled" if limits["enabled"] else "disabled"
+                status_text = "Enabled" if limits["enabled"] else "Disabled"
                 html_content += f"""
                                 <tr>
                                     <td><strong>{account_type.upper()}</strong></td>
@@ -267,6 +282,7 @@ async def rate_limiting_dashboard(request: Request):
         logger.error(f"Error in rate limiting dashboard: {e}")
         raise HTTPException(status_code=500, detail=f"Dashboard error: {e!s}")
 
+
 @router.get("/config", response_class=JSONResponse)
 @require_admin()
 @rate_limit(requests_per_minute=60)
@@ -280,6 +296,7 @@ async def get_rate_limiting_config_api():
         logger.error(f"Error getting rate limiting config: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.post("/config/update")
 @require_admin()
 @rate_limit(requests_per_minute=30)
@@ -287,13 +304,12 @@ async def get_rate_limiting_config_api():
 async def update_rate_limiting_config_api(
     global_enabled: bool = Form(True),
     strict_mode: bool = Form(False),
-    dynamic_enabled: bool = Form(True)
+    dynamic_enabled: bool = Form(True),
 ):
     """Update global rate limiting configuration."""
     try:
         success = update_rate_limit_config(
-            global_enabled=global_enabled,
-            strict_mode=strict_mode
+            global_enabled=global_enabled, strict_mode=strict_mode
         )
 
         if success:
@@ -302,12 +318,20 @@ async def update_rate_limiting_config_api(
             config.dynamic_config.enabled = dynamic_enabled
             config.save_config()
 
-            return JSONResponse(content={"success": True, "message": "Configuration updated successfully"})
+            return JSONResponse(
+                content={
+                    "success": True,
+                    "message": "Configuration updated successfully",
+                }
+            )
         else:
-            raise HTTPException(status_code=500, detail="Failed to update configuration")
+            raise HTTPException(
+                status_code=500, detail="Failed to update configuration"
+            )
     except Exception as e:
         logger.error(f"Error updating rate limiting config: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/account-type/{account_type}/update")
 @require_admin()
@@ -318,7 +342,7 @@ async def update_account_type_limits(
     requests_per_minute: int = Form(...),
     requests_per_hour: int = Form(...),
     concurrent_requests: int = Form(...),
-    enabled: bool = Form(True)
+    enabled: bool = Form(True),
 ):
     """Update rate limits for a specific account type."""
     try:
@@ -330,15 +354,20 @@ async def update_account_type_limits(
             global_requests_per_minute=requests_per_minute,
             global_requests_per_hour=requests_per_hour,
             concurrent_requests=concurrent_requests,
-            enabled=enabled
+            enabled=enabled,
         )
 
-        return JSONResponse(content={"success": True, "message": f"Updated limits for {account_type}"})
+        return JSONResponse(
+            content={"success": True, "message": f"Updated limits for {account_type}"}
+        )
     except ValueError:
-        raise HTTPException(status_code=400, detail=f"Invalid account type: {account_type}")
+        raise HTTPException(
+            status_code=400, detail=f"Invalid account type: {account_type}"
+        )
     except Exception as e:
         logger.error(f"Error updating account type limits: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/blacklist/add")
 @require_admin()
@@ -347,17 +376,20 @@ async def update_account_type_limits(
 async def add_to_blacklist(
     ip_address: str = Form(...),
     permanent: bool = Form(False),
-    duration: int = Form(3600)
+    duration: int = Form(3600),
 ):
     """Add IP address to blacklist."""
     try:
         config = get_rate_limiting_config()
         config.add_to_blacklist(ip_address, permanent, duration)
 
-        return JSONResponse(content={"success": True, "message": f"Added {ip_address} to blacklist"})
+        return JSONResponse(
+            content={"success": True, "message": f"Added {ip_address} to blacklist"}
+        )
     except Exception as e:
         logger.error(f"Error adding to blacklist: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/blacklist/remove")
 @require_admin()
@@ -369,10 +401,13 @@ async def remove_from_blacklist(ip_address: str = Form(...)):
         config = get_rate_limiting_config()
         config.remove_from_blacklist(ip_address)
 
-        return JSONResponse(content={"success": True, "message": f"Removed {ip_address} from blacklist"})
+        return JSONResponse(
+            content={"success": True, "message": f"Removed {ip_address} from blacklist"}
+        )
     except Exception as e:
         logger.error(f"Error removing from blacklist: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/export")
 @require_admin()
@@ -384,11 +419,14 @@ async def export_configuration():
         config = get_rate_limiting_config()
         return JSONResponse(
             content=config.get_config_summary(),
-            headers={"Content-Disposition": "attachment; filename=rate_limiting_config.json"}
+            headers={
+                "Content-Disposition": "attachment; filename=rate_limiting_config.json"
+            },
         )
     except Exception as e:
         logger.error(f"Error exporting configuration: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/reset")
 @require_admin()
@@ -403,7 +441,9 @@ async def reset_to_defaults():
         config.ip_blacklist_config = IPBlacklistConfig()
         config.save_config()
 
-        return JSONResponse(content={"success": True, "message": "Configuration reset to defaults"})
+        return JSONResponse(
+            content={"success": True, "message": "Configuration reset to defaults"}
+        )
     except Exception as e:
         logger.error(f"Error resetting configuration: {e}")
         raise HTTPException(status_code=500, detail=str(e))

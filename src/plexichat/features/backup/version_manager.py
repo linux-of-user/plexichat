@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 class VersionType(str, Enum):
     """Types of backup versions."""
+
     FULL = "full"
     INCREMENTAL = "incremental"
     DIFFERENTIAL = "differential"
@@ -25,6 +26,7 @@ class VersionType(str, Enum):
 
 class VersionStatus(str, Enum):
     """Version status."""
+
     ACTIVE = "active"
     ARCHIVED = "archived"
     DEPRECATED = "deprecated"
@@ -35,6 +37,7 @@ class VersionStatus(str, Enum):
 @dataclass
 class VersionInfo:
     """Enhanced version information structure."""
+
     version_id: str
     backup_id: str
     version_type: VersionType
@@ -54,6 +57,7 @@ class VersionInfo:
 @dataclass
 class DifferentialData:
     """Differential backup data structure."""
+
     added_files: dict[str, Any] = field(default_factory=dict)
     modified_files: dict[str, Any] = field(default_factory=dict)
     deleted_files: set[str] = field(default_factory=set)
@@ -82,11 +86,14 @@ class VersionManager:
         # Use centralized directory manager
         try:
             from plexichat.core.logging import get_directory_manager
+
             self.directory_manager = get_directory_manager()
 
             # Use centralized directories
             self.storage_root = self.directory_manager.get_backup_directory()
-            self.versions_storage = self.directory_manager.get_directory("backups_versions")
+            self.versions_storage = self.directory_manager.get_directory(
+                "backups_versions"
+            )
             # Create subdirectories for deltas and indexes within versions
             self.deltas_storage = self.versions_storage / "deltas"
             self.index_storage = self.versions_storage / "indexes"
@@ -104,7 +111,11 @@ class VersionManager:
             self.deltas_storage = self.storage_root / "deltas"
             self.index_storage = self.storage_root / "indexes"
 
-            for directory in [self.versions_storage, self.deltas_storage, self.index_storage]:
+            for directory in [
+                self.versions_storage,
+                self.deltas_storage,
+                self.index_storage,
+            ]:
                 directory.mkdir(exist_ok=True)
 
         # Version tracking
@@ -114,7 +125,9 @@ class VersionManager:
 
         # Configuration
         self.max_versions_per_backup = self.config.get("max_versions_per_backup", 50)
-        self.differential_threshold = self.config.get("differential_threshold", 0.3)  # 30% change threshold
+        self.differential_threshold = self.config.get(
+            "differential_threshold", 0.3
+        )  # 30% change threshold
         self.auto_consolidation = self.config.get("auto_consolidation", True)
         self.enable_compression = self.config.get("enable_compression", True)
 
@@ -128,7 +141,7 @@ class VersionManager:
             "compressed_size_bytes": 0,
             "space_saved_bytes": 0,
             "consolidations_performed": 0,
-            "average_differential_ratio": 0.0
+            "average_differential_ratio": 0.0,
         }
 
         # Load existing versions
@@ -146,24 +159,30 @@ class VersionManager:
                     version_info = VersionInfo(
                         version_id=version_data["version_id"],
                         backup_id=version_data["backup_id"],
-                        version_type=VersionType(version_data.get("version_type", "full")),
+                        version_type=VersionType(
+                            version_data.get("version_type", "full")
+                        ),
                         status=VersionStatus(version_data.get("status", "active")),
                         parent_version_id=version_data.get("parent_version_id"),
                         created_at=datetime.fromisoformat(version_data["created_at"]),
                         size_bytes=version_data.get("size_bytes", 0),
-                        compressed_size_bytes=version_data.get("compressed_size_bytes", 0),
+                        compressed_size_bytes=version_data.get(
+                            "compressed_size_bytes", 0
+                        ),
                         change_count=version_data.get("change_count", 0),
                         checksum=version_data.get("checksum", ""),
                         metadata=version_data.get("metadata", {}),
                         dependencies=version_data.get("dependencies", []),
-                        tags=version_data.get("tags", [])
+                        tags=version_data.get("tags", []),
                     )
 
                     self.versions[version_info.version_id] = version_info
                     self._update_version_tree(version_info)
 
                 except Exception as e:
-                    self.logger.warning(f"Failed to load version from {version_file}: {e!s}")
+                    self.logger.warning(
+                        f"Failed to load version from {version_file}: {e!s}"
+                    )
 
             self.logger.info(f"Loaded {len(self.versions)} existing versions")
 
@@ -175,9 +194,13 @@ class VersionManager:
         if version_info.parent_version_id:
             if version_info.parent_version_id not in self.version_tree:
                 self.version_tree[version_info.parent_version_id] = []
-            self.version_tree[version_info.parent_version_id].append(version_info.version_id)
+            self.version_tree[version_info.parent_version_id].append(
+                version_info.version_id
+            )
 
-    async def create_version_async(self, backup_id: str, version_data: dict[str, Any]) -> VersionInfo:
+    async def create_version_async(
+        self, backup_id: str, version_data: dict[str, Any]
+    ) -> VersionInfo:
         """Create a new backup version with intelligent type selection."""
         try:
             # Determine version type
@@ -200,13 +223,19 @@ class VersionManager:
                 compressed_size_bytes=version_data.get("compressed_size", 0),
                 checksum=version_data.get("checksum", ""),
                 metadata=version_data,
-                tags=version_data.get("tags", [])
+                tags=version_data.get("tags", []),
             )
 
             # Calculate differential data if applicable
             if version_type in [VersionType.INCREMENTAL, VersionType.DIFFERENTIAL]:
-                differential_data = await self._calculate_differential_data(version_info, parent_version_id)
-                version_info.change_count = len(differential_data.added_files) + len(differential_data.modified_files) + len(differential_data.deleted_files)
+                differential_data = await self._calculate_differential_data(
+                    version_info, parent_version_id
+                )
+                version_info.change_count = (
+                    len(differential_data.added_files)
+                    + len(differential_data.modified_files)
+                    + len(differential_data.deleted_files)
+                )
 
             # Store version
             await self._store_version(version_info)
@@ -222,14 +251,18 @@ class VersionManager:
             if self.auto_consolidation:
                 await self._check_consolidation_needed(backup_id)
 
-            self.logger.info(f"Created version: {version_id} (type: {version_type.value})")
+            self.logger.info(
+                f"Created version: {version_id} (type: {version_type.value})"
+            )
             return version_info
 
         except Exception as e:
             self.logger.error(f"Failed to create version for backup {backup_id}: {e!s}")
             raise
 
-    def _determine_version_type(self, backup_id: str, version_data: dict[str, Any]) -> VersionType:
+    def _determine_version_type(
+        self, backup_id: str, version_data: dict[str, Any]
+    ) -> VersionType:
         """Intelligently determine the best version type."""
         # Check if this is the first version
         existing_versions = self._get_backup_versions(backup_id)
@@ -274,10 +307,13 @@ class VersionManager:
 
     def _get_backup_versions(self, backup_id: str) -> list[str]:
         """Get all versions for a specific backup."""
-        return [vid for vid, vinfo in self.versions.items() if vinfo.backup_id == backup_id]
+        return [
+            vid for vid, vinfo in self.versions.items() if vinfo.backup_id == backup_id
+        ]
 
-    async def _calculate_differential_data(self, version_info: VersionInfo,
-                                         parent_version_id: str | None) -> DifferentialData:
+    async def _calculate_differential_data(
+        self, version_info: VersionInfo, parent_version_id: str | None
+    ) -> DifferentialData:
         """Calculate differential data between versions."""
         # For demo purposes, return empty differential data
         # In production, this would analyze the actual data differences
@@ -301,20 +337,24 @@ class VersionManager:
                 "checksum": version_info.checksum,
                 "metadata": version_info.metadata,
                 "dependencies": version_info.dependencies,
-                "tags": version_info.tags
+                "tags": version_info.tags,
             }
 
-            with open(version_file, 'w') as f:
+            with open(version_file, "w") as f:
                 json.dump(version_data, f, indent=2)
 
         except Exception as e:
-            raise RuntimeError(f"Failed to store version {version_info.version_id}: {e!s}")
+            raise RuntimeError(
+                f"Failed to store version {version_info.version_id}: {e!s}"
+            )
 
     def _update_version_statistics(self, version_info: VersionInfo):
         """Update version statistics."""
         self.version_stats["total_versions"] += 1
         self.version_stats["total_size_bytes"] += version_info.size_bytes
-        self.version_stats["compressed_size_bytes"] += version_info.compressed_size_bytes
+        self.version_stats[
+            "compressed_size_bytes"
+        ] += version_info.compressed_size_bytes
 
         if version_info.version_type == VersionType.FULL:
             self.version_stats["full_versions"] += 1
@@ -337,7 +377,9 @@ class VersionManager:
                 await self._consolidate_versions(backup_id)
 
         except Exception as e:
-            self.logger.error(f"Failed to check consolidation for backup {backup_id}: {e!s}")
+            self.logger.error(
+                f"Failed to check consolidation for backup {backup_id}: {e!s}"
+            )
 
     async def _consolidate_versions(self, backup_id: str):
         """Consolidate old versions to save space."""
@@ -346,8 +388,8 @@ class VersionManager:
             backup_versions.sort(key=lambda v: self.versions[v].created_at)
 
             # Keep the latest versions and consolidate older ones
-            versions_to_keep = backup_versions[-self.max_versions_per_backup:]
-            versions_to_consolidate = backup_versions[:-self.max_versions_per_backup]
+            versions_to_keep = backup_versions[-self.max_versions_per_backup :]
+            versions_to_consolidate = backup_versions[: -self.max_versions_per_backup]
 
             if versions_to_consolidate:
                 # Mark old versions as archived
@@ -357,18 +399,25 @@ class VersionManager:
                         await self._store_version(self.versions[version_id])
 
                 self.version_stats["consolidations_performed"] += 1
-                self.logger.info(f"Consolidated {len(versions_to_consolidate)} versions for backup {backup_id}")
+                self.logger.info(
+                    f"Consolidated {len(versions_to_consolidate)} versions for backup {backup_id}"
+                )
 
         except Exception as e:
-            self.logger.error(f"Failed to consolidate versions for backup {backup_id}: {e!s}")
+            self.logger.error(
+                f"Failed to consolidate versions for backup {backup_id}: {e!s}"
+            )
 
     async def get_version_info_async(self, version_id: str) -> VersionInfo | None:
         """Get version information."""
         return self.versions.get(version_id)
 
-    async def list_versions_async(self, backup_id: str | None = None,
-                                status: VersionStatus | None = None,
-                                limit: int = 100) -> list[VersionInfo]:
+    async def list_versions_async(
+        self,
+        backup_id: str | None = None,
+        status: VersionStatus | None = None,
+        limit: int = 100,
+    ) -> list[VersionInfo]:
         """List versions with filtering."""
         try:
             versions = list(self.versions.values())
@@ -394,10 +443,19 @@ class VersionManager:
         return {
             "statistics": self.version_stats.copy(),
             "total_backups": len(set(v.backup_id for v in self.versions.values())),
-            "active_versions": len([v for v in self.versions.values() if v.status == VersionStatus.ACTIVE]),
-            "archived_versions": len([v for v in self.versions.values() if v.status == VersionStatus.ARCHIVED]),
+            "active_versions": len(
+                [v for v in self.versions.values() if v.status == VersionStatus.ACTIVE]
+            ),
+            "archived_versions": len(
+                [
+                    v
+                    for v in self.versions.values()
+                    if v.status == VersionStatus.ARCHIVED
+                ]
+            ),
             "version_tree_depth": self._calculate_max_tree_depth(),
-            "average_versions_per_backup": len(self.versions) / max(1, len(set(v.backup_id for v in self.versions.values())))
+            "average_versions_per_backup": len(self.versions)
+            / max(1, len(set(v.backup_id for v in self.versions.values()))),
         }
 
     def _calculate_max_tree_depth(self) -> int:
@@ -418,7 +476,9 @@ class VersionManager:
 
         return 1 + self._calculate_version_depth(version_info.parent_version_id)
 
-    def create_version(self, backup_id: str, version_data: dict[str, Any]) -> dict[str, Any]:
+    def create_version(
+        self, backup_id: str, version_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Create a new backup version.
 
@@ -436,11 +496,11 @@ class VersionManager:
                 "version_id": version_id,
                 "backup_id": backup_id,
                 "created_at": datetime.now(UTC).isoformat(),
-                "metadata": version_data
+                "metadata": version_data,
             }
 
             version_path = self.versions_storage / f"{version_id}.json"
-            with open(version_path, 'w') as f:
+            with open(version_path, "w") as f:
                 json.dump(version_info, f, indent=2)
 
             self.logger.info(f"Created version: {version_id}")
@@ -469,7 +529,7 @@ class VersionManager:
                 versions.append(version_info)
 
             # Sort by creation time
-            versions.sort(key=lambda x: x['created_at'])
+            versions.sort(key=lambda x: x["created_at"])
 
             return versions
 

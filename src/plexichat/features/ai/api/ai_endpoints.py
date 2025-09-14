@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 try:
     from fastapi import APIRouter, HTTPException
     from pydantic import BaseModel, Field
+
     FASTAPI_AVAILABLE = True
 except ImportError:
     FASTAPI_AVAILABLE = False
@@ -36,8 +37,10 @@ ai_coordinator = AICoordinator()
 
 # API Models (only if FastAPI is available)
 if FASTAPI_AVAILABLE:
+
     class AIRequestModel(BaseModel):  # type: ignore
         """API model for AI requests."""
+
         user_id: str
         model_id: str
         prompt: str
@@ -52,6 +55,7 @@ if FASTAPI_AVAILABLE:
 
     class AIResponseModel(BaseModel):  # type: ignore
         """API model for AI responses."""
+
         request_id: str
         model_id: str
         content: str
@@ -68,6 +72,7 @@ if FASTAPI_AVAILABLE:
 
     class ModelInfoModel(BaseModel):  # type: ignore
         """API model for model information."""
+
         id: str
         name: str
         provider: str
@@ -91,10 +96,10 @@ if FASTAPI_AVAILABLE:
                 user_id=request.user_id,
                 parameters={
                     "max_tokens": request.max_tokens,
-                    "temperature": request.temperature
+                    "temperature": request.temperature,
                 },
                 context=request.system_prompt,
-                metadata=request.metadata
+                metadata=request.metadata,
             )
 
             # Process the request
@@ -111,7 +116,7 @@ if FASTAPI_AVAILABLE:
                 provider=response.provider,
                 timestamp=datetime.now(),
                 success=response.status == "success",
-                error=response.error
+                error=response.error,
             )
 
         except Exception as e:
@@ -132,7 +137,7 @@ if FASTAPI_AVAILABLE:
                     max_tokens=model.max_tokens,
                     cost_per_token=model.cost_per_token,
                     status=model.status.value,
-                    description=model.description
+                    description=model.description,
                 )
                 for model in models
             ]
@@ -156,7 +161,7 @@ if FASTAPI_AVAILABLE:
                 max_tokens=model.max_tokens,
                 cost_per_token=model.cost_per_token,
                 status=model.status.value,
-                description=model.description
+                description=model.description,
             )
         except HTTPException:  # type: ignore
             raise

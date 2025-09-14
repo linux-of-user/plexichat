@@ -20,7 +20,7 @@ else:
 
 logger = get_logger(__name__)
 
-T = TypeVar('T', bound='BaseModel')
+T = TypeVar("T", bound="BaseModel")
 
 
 @dataclass
@@ -53,7 +53,9 @@ class BaseModel:
         for key, value in data.items():
             if key.endswith("_at") and isinstance(value, str):
                 try:
-                    processed_data[key] = datetime.fromisoformat(value.replace("Z", "+00:00"))
+                    processed_data[key] = datetime.fromisoformat(
+                        value.replace("Z", "+00:00")
+                    )
                 except ValueError:
                     pass
 

@@ -17,12 +17,14 @@ def test_redact_pii():
     assert "[REDACTED]" in redacted
     print("PASS: redact_pii works")
 
+
 def test_sanitize_for_logging():
     message = "Test email@example.com ☃"
     sanitized = sanitize_for_logging(message)
     assert "[REDACTED]" in sanitized
     assert "☃" in sanitized
     print("PASS: sanitize_for_logging works")
+
 
 def test_colored_formatter():
     formatter = ColoredFormatter()
@@ -31,6 +33,7 @@ def test_colored_formatter():
     assert "\033[32m" in output
     print("PASS: ColoredFormatter colors")
 
+
 def test_structured_formatter():
     formatter = StructuredFormatter()
     record = logging.LogRecord("test", logging.INFO, "test.py", 1, "Test", (), None)
@@ -38,6 +41,7 @@ def test_structured_formatter():
     log_dict = json.loads(output)
     assert log_dict["level"] == "INFO"
     print("PASS: StructuredFormatter JSON")
+
 
 print("Running isolated logging tests...")
 test_redact_pii()

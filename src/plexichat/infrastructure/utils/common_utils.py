@@ -21,16 +21,20 @@ import bcrypt
 
 logger = logging.getLogger(__name__)
 
+
 class ValidationUtils:
     """Common validation utilities."""
+
     @staticmethod
     def validate_email(email: str) -> bool:
         """Validate email format."""
-        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         return bool(re.match(pattern, email))
 
     @staticmethod
-    def validate_username(username: str, min_length: int = 3, max_length: int = 20) -> dict[str, Any]:
+    def validate_username(
+        username: str, min_length: int = 3, max_length: int = 20
+    ) -> dict[str, Any]:
         """Validate username format."""
         errors = []
 
@@ -39,16 +43,15 @@ class ValidationUtils:
         elif len(username) > max_length:
             errors.append(f"Username must be no more than {max_length} characters")
 
-        if not username.replace('_', '').replace('-', '').isalnum():
-            errors.append("Username can only contain letters, numbers, underscores, and hyphens")
+        if not username.replace("_", "").replace("-", "").isalnum():
+            errors.append(
+                "Username can only contain letters, numbers, underscores, and hyphens"
+            )
 
-        if username.startswith('-') or username.endswith('-'):
+        if username.startswith("-") or username.endswith("-"):
             errors.append("Username cannot start or end with a hyphen")
 
-        return {
-            "valid": len(errors) == 0,
-            "errors": errors
-        }
+        return {"valid": len(errors) == 0, "errors": errors}
 
     @staticmethod
     def validate_password(password: str, min_length: int = 8) -> dict[str, Any]:
@@ -73,11 +76,13 @@ class ValidationUtils:
         return {
             "valid": len(errors) == 0,
             "errors": errors,
-            "strength": "strong" if len(errors) == 0 else "weak"
+            "strength": "strong" if len(errors) == 0 else "weak",
         }
+
 
 class SecurityUtils:
     """Common security utilities."""
+
     @staticmethod
     def generate_secure_token(length: int = 32) -> str:
         """Generate secure random token."""
@@ -99,23 +104,18 @@ class SecurityUtils:
                 # For backward compatibility, convert hex salt to bcrypt format
                 bcrypt_salt = bcrypt.gensalt(rounds=12)
 
-            hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt_salt)
-            return {
-                "hash": hashed.decode('utf-8'),
-                "salt": bcrypt_salt.decode('utf-8')
-            }
+            hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt_salt)
+            return {"hash": hashed.decode("utf-8"), "salt": bcrypt_salt.decode("utf-8")}
         except ImportError:
             # Fallback to PBKDF2 if bcrypt not available
             if salt is None:
                 salt = secrets.token_hex(32)
 
             # Use PBKDF2 with 100,000 iterations (secure)
-            hashed = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'),
-                                    salt.encode('utf-8'), 100000)
-            return {
-                "hash": f"pbkdf2_sha256$100000${salt}${hashed.hex()}",
-                "salt": salt
-            }
+            hashed = hashlib.pbkdf2_hmac(
+                "sha256", password.encode("utf-8"), salt.encode("utf-8"), 100000
+            )
+            return {"hash": f"pbkdf2_sha256$100000${salt}${hashed.hex()}", "salt": salt}
 
     @staticmethod
     def verify_password(password: str, hashed: str, salt: str | None = None) -> bool:
@@ -125,9 +125,9 @@ class SecurityUtils:
         Supports bcrypt, PBKDF2, and legacy SHA256 formats for backward compatibility.
         """
         try:
-            if hashed.startswith('pbkdf2_sha256$'):
+            if hashed.startswith("pbkdf2_sha256$"):
                 # PBKDF2 format: pbkdf2_sha256$iterations$salt$hash
-                parts = hashed.split('$')
+                parts = hashed.split("$")
                 if len(parts) != 4:
                     return False
 
@@ -135,12 +135,20 @@ class SecurityUtils:
                 stored_salt = parts[2]
                 stored_hash = parts[3]
 
-                computed_hash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'),
-                                                stored_salt.encode('utf-8'), iterations)
+                computed_hash = hashlib.pbkdf2_hmac(
+                    "sha256",
+                    password.encode("utf-8"),
+                    stored_salt.encode("utf-8"),
+                    iterations,
+                )
                 return computed_hash.hex() == stored_hash
-            elif hashed.startswith('$2b$') or hashed.startswith('$2a$') or hashed.startswith('$2y$'):
+            elif (
+                hashed.startswith("$2b$")
+                or hashed.startswith("$2a$")
+                or hashed.startswith("$2y$")
+            ):
                 # bcrypt format
-                return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+                return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
             # Legacy format - check if salt is provided
             elif salt:
                 # Old salted SHA256 format
@@ -149,7 +157,9 @@ class SecurityUtils:
                 return computed_hash == hashed
             else:
                 # Very old unsalted SHA256 format (VERY INSECURE)
-                logger.warning("Using insecure unsalted SHA256 password verification - MIGRATE IMMEDIATELY")
+                logger.warning(
+                    "Using insecure unsalted SHA256 password verification - MIGRATE IMMEDIATELY"
+                )
                 return hashlib.sha256(password.encode()).hexdigest() == hashed
 
         except (ImportError, ValueError, Exception) as e:
@@ -163,7 +173,7 @@ class SecurityUtils:
             return ""
 
         # Remove null bytes and control characters
-        sanitized = ''.join(char for char in input_str if ord(char) >= 32)
+        sanitized = "".join(char for char in input_str if ord(char) >= 32)
 
         # Limit length
         if len(sanitized) > max_length:
@@ -176,8 +186,10 @@ class SecurityUtils:
         """Generate CSRF token."""
         return secrets.token_hex(32)
 
+
 class DateTimeUtils:
     """Common datetime utilities."""
+
     @staticmethod
     def now_iso() -> str:
         """Get current datetime in ISO format."""
@@ -187,7 +199,7 @@ class DateTimeUtils:
     def parse_iso(iso_string: str) -> datetime | None:
         """Parse ISO datetime string."""
         try:
-            return datetime.fromisoformat(iso_string.replace('Z', '+00:00'))
+            return datetime.fromisoformat(iso_string.replace("Z", "+00:00"))
         except (ValueError, AttributeError):
             return None
 
@@ -214,8 +226,10 @@ class DateTimeUtils:
         now = datetime.now(dt.tzinfo)
         return (now - dt).total_seconds() > ttl_seconds
 
+
 class FileUtils:
     """Common file utilities."""
+
     @staticmethod
     def ensure_directory(path: str | Path) -> Path:
         """Ensure directory exists."""
@@ -227,24 +241,26 @@ class FileUtils:
     def safe_filename(filename: str) -> str:
         """Create safe filename by removing/replacing invalid characters."""
         # Remove invalid characters
-        safe_name = re.sub(r'[<>:"/\\|?*]', '_', filename)
+        safe_name = re.sub(r'[<>:"/\\|?*]', "_", filename)
 
         # Remove leading/trailing dots and spaces
-        safe_name = safe_name.strip('. ')
+        safe_name = safe_name.strip(". ")
 
         # Limit length
         if len(safe_name) > 255:
-            name, ext = safe_name.rsplit('.', 1) if '.' in safe_name else (safe_name, '')
-            safe_name = name[:255-len(ext)-1] + ('.' + ext if ext else '')
+            name, ext = (
+                safe_name.rsplit(".", 1) if "." in safe_name else (safe_name, "")
+            )
+            safe_name = name[: 255 - len(ext) - 1] + ("." + ext if ext else "")
 
-        return safe_name or 'unnamed'
+        return safe_name or "unnamed"
 
     @staticmethod
-    def get_file_hash(file_path: str | Path, algorithm: str = 'md5') -> str:
+    def get_file_hash(file_path: str | Path, algorithm: str = "md5") -> str:
         """Get file hash."""
         hash_func = getattr(hashlib, algorithm)()
 
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
                 hash_func.update(chunk)
 
@@ -264,15 +280,19 @@ class FileUtils:
 
         return f"{size_bytes:.1f} {size_names[i]}"
 
+
 class ResponseUtils:
     """Common API response utilities."""
+
     @staticmethod
-    def success_response(data: Any | None = None, message: str = "Success") -> dict[str, Any]:
+    def success_response(
+        data: Any | None = None, message: str = "Success"
+    ) -> dict[str, Any]:
         """Create success response."""
         response = {
             "success": True,
             "message": message,
-            "timestamp": DateTimeUtils.now_iso()
+            "timestamp": DateTimeUtils.now_iso(),
         }
 
         if data is not None:
@@ -281,12 +301,14 @@ class ResponseUtils:
         return response
 
     @staticmethod
-    def error_response(message: str, error_code: str | None = None, details: Any | None = None) -> dict[str, Any]:
+    def error_response(
+        message: str, error_code: str | None = None, details: Any | None = None
+    ) -> dict[str, Any]:
         """Create error response."""
         response = {
             "success": False,
             "message": message,
-            "timestamp": DateTimeUtils.now_iso()
+            "timestamp": DateTimeUtils.now_iso(),
         }
 
         if error_code:
@@ -298,7 +320,9 @@ class ResponseUtils:
         return response
 
     @staticmethod
-    def paginated_response(data: list[Any], page: int, per_page: int, total: int, message: str = "Success") -> dict[str, Any]:
+    def paginated_response(
+        data: list[Any], page: int, per_page: int, total: int, message: str = "Success"
+    ) -> dict[str, Any]:
         """Create paginated response."""
         total_pages = (total + per_page - 1) // per_page
 
@@ -312,15 +336,19 @@ class ResponseUtils:
                 "total": total,
                 "total_pages": total_pages,
                 "has_next": page < total_pages,
-                "has_prev": page > 1
+                "has_prev": page > 1,
             },
-            "timestamp": DateTimeUtils.now_iso()
+            "timestamp": DateTimeUtils.now_iso(),
         }
+
 
 class LoggingUtils:
     """Common logging utilities."""
+
     @staticmethod
-    def setup_logger(name: str, level: str = "INFO", format_string: str | None = None) -> logging.Logger:
+    def setup_logger(
+        name: str, level: str = "INFO", format_string: str | None = None
+    ) -> logging.Logger:
         """Setup logger with common configuration."""
         logger = logging.getLogger(name)
         logger.setLevel(getattr(logging, level.upper()))
@@ -329,7 +357,7 @@ class LoggingUtils:
             handler = logging.StreamHandler()
 
             if format_string is None:
-                format_string = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+                format_string = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
             formatter = logging.Formatter(format_string)
             handler.setFormatter(formatter)
@@ -338,7 +366,9 @@ class LoggingUtils:
         return logger
 
     @staticmethod
-    def log_performance(func_name: str, duration: float, logger: logging.Logger | None = None):
+    def log_performance(
+        func_name: str, duration: float, logger: logging.Logger | None = None
+    ):
         """Log performance metrics."""
         if logger is None:
             logger = logging.getLogger(__name__)
@@ -348,8 +378,10 @@ class LoggingUtils:
         else:
             logger.debug(f"Performance: {func_name} took {duration:.3f}s")
 
+
 class AsyncUtils:
     """Common async utilities."""
+
     @staticmethod
     async def run_with_timeout(coro, timeout: float):
         """Run coroutine with timeout."""
@@ -360,7 +392,12 @@ class AsyncUtils:
             raise
 
     @staticmethod
-    async def retry_async(coro_func: Callable, max_retries: int = 3, delay: float = 1.0, backoff: float = 2.0):
+    async def retry_async(
+        coro_func: Callable,
+        max_retries: int = 3,
+        delay: float = 1.0,
+        backoff: float = 2.0,
+    ):
         """Retry async function with exponential backoff."""
         last_exception = None
 
@@ -370,7 +407,7 @@ class AsyncUtils:
             except Exception as e:
                 last_exception = e
                 if attempt < max_retries - 1:
-                    await asyncio.sleep(delay * (backoff ** attempt))
+                    await asyncio.sleep(delay * (backoff**attempt))
 
         if last_exception:
             raise last_exception
@@ -386,8 +423,10 @@ class AsyncUtils:
 
         return await asyncio.gather(*[controlled_task(task) for task in tasks])
 
+
 def monitor_performance(logger: logging.Logger | None = None):
     """Decorator to monitor function performance."""
+
     def decorator(func):
         def wrapper(*args, **kwargs):
             start_time = datetime.now(UTC)
@@ -398,7 +437,9 @@ def monitor_performance(logger: logging.Logger | None = None):
                 return result
             except Exception:
                 duration = (datetime.now(UTC) - start_time).total_seconds()
-                LoggingUtils.log_performance(f"{func.__name__} (error)", duration, logger)
+                LoggingUtils.log_performance(
+                    f"{func.__name__} (error)", duration, logger
+                )
                 raise
 
         async def async_wrapper(*args, **kwargs):
@@ -410,11 +451,14 @@ def monitor_performance(logger: logging.Logger | None = None):
                 return result
             except Exception:
                 duration = (datetime.now(UTC) - start_time).total_seconds()
-                LoggingUtils.log_performance(f"{func.__name__} (error)", duration, logger)
+                LoggingUtils.log_performance(
+                    f"{func.__name__} (error)", duration, logger
+                )
                 raise
 
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
         else:
             return wrapper
+
     return decorator

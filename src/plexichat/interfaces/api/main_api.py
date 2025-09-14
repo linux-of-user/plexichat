@@ -73,16 +73,19 @@ try:
 except ImportError:
     get_performance_logger = None
 
+
 # Utility function to ensure unicode-free logging
 def sanitize_for_logging(text):
     """Sanitize text for logging to ensure it's unicode-free and safe."""
     if not isinstance(text, str):
         text = str(text)
     # Replace any problematic unicode characters with safe alternatives
-    return text.encode('ascii', 'replace').decode('ascii')
+    return text.encode("ascii", "replace").decode("ascii")
+
 
 logger = logging.getLogger(__name__)
 performance_logger = get_performance_logger() if get_performance_logger else None
+
 
 # Lifespan manager
 @asynccontextmanager
@@ -147,13 +150,14 @@ async def lifespan(_app: FastAPI):
         logger.error(f"Error in lifespan manager: {e}")
         raise
 
+
 # Create FastAPI app
 if FastAPI:
     app = FastAPI(
         title="PlexiChat API",
         description="PlexiChat messaging platform API with threading and performance optimization",
         version="1.0.0",
-        lifespan=lifespan
+        lifespan=lifespan,
     )
 
     # Add middleware
@@ -169,8 +173,11 @@ if FastAPI:
 else:
     app = None
 
+
 # Middleware for performance tracking
-async def performance_middleware(request: Request, call_next: Callable[[Request], Awaitable[JSONResponse]]) -> JSONResponse:
+async def performance_middleware(
+    request: Request, call_next: Callable[[Request], Awaitable[JSONResponse]]
+) -> JSONResponse:
     """Performance tracking middleware."""
     start_time = time.time()
 
@@ -181,11 +188,11 @@ async def performance_middleware(request: Request, call_next: Callable[[Request]
             properties={
                 "method": request.method,
                 "path": str(request.url.path),
-                "user_agent": request.headers.get("user-agent", "")
+                "user_agent": request.headers.get("user-agent", ""),
             },
             context={
                 "ip_address": request.client.host if request.client else "unknown"
-            }
+            },
         )
 
     response = await call_next(request)
@@ -195,13 +202,18 @@ async def performance_middleware(request: Request, call_next: Callable[[Request]
     response.headers["X-Process-Time"] = str(process_time)
 
     if performance_logger:
-        performance_logger.record_metric("api_request_duration", process_time, "seconds")
+        performance_logger.record_metric(
+            "api_request_duration", process_time, "seconds"
+        )
         performance_logger.increment_counter("api_requests", 1)
 
     return response
 
+
 # Comprehensive logging middleware
-async def logging_middleware(request: Request, call_next: Callable[[Request], Awaitable[JSONResponse]]) -> JSONResponse:
+async def logging_middleware(
+    request: Request, call_next: Callable[[Request], Awaitable[JSONResponse]]
+) -> JSONResponse:
     """Comprehensive request/response logging middleware with correlation ID tracking."""
     # Generate correlation ID
     correlation_id = str(uuid.uuid4())
@@ -233,7 +245,9 @@ async def logging_middleware(request: Request, call_next: Callable[[Request], Aw
 
     # Track specific endpoints
     if path.startswith("/api/v1/threads"):
-        logger.info(f"THREADS_ENDPOINT | correlation_id={correlation_id} | path={sanitize_for_logging(path)}")
+        logger.info(
+            f"THREADS_ENDPOINT | correlation_id={correlation_id} | path={sanitize_for_logging(path)}"
+        )
 
     start_time = time.time()
 
@@ -246,7 +260,9 @@ async def logging_middleware(request: Request, call_next: Callable[[Request], Aw
 
         # Extract response information
         status_code = response.status_code
-        response_content_length = getattr(response, 'content_length', 0) or response.headers.get("content-length", "0")
+        response_content_length = getattr(
+            response, "content_length", 0
+        ) or response.headers.get("content-length", "0")
         response_content_type = response.headers.get("content-type", "")
 
         # Log response (unicode-free)
@@ -275,14 +291,16 @@ async def logging_middleware(request: Request, call_next: Callable[[Request], Aw
         # Re-raise the exception
         raise
 
+
 if app:
     app.middleware("http")(performance_middleware)
     app.middleware("http")(logging_middleware)
 
+
 # Enhanced exception handlers with full context logging
 async def validation_exception_handler(request: Request, exc: Exception):
     """Handle validation exceptions with full context logging."""
-    correlation_id = getattr(request.state, 'correlation_id', 'unknown')
+    correlation_id = getattr(request.state, "correlation_id", "unknown")
 
     # Log validation error with full context (unicode-free)
     logger.warning(
@@ -303,13 +321,14 @@ async def validation_exception_handler(request: Request, exc: Exception):
             "message": str(exc),
             "correlation_id": correlation_id,
             "timestamp": time.time(),
-            "path": request.url.path
-        }
+            "path": request.url.path,
+        },
     )
+
 
 async def general_exception_handler(request: Request, exc: Exception):
     """Handle general exceptions with full context logging."""
-    correlation_id = getattr(request.state, 'correlation_id', 'unknown')
+    correlation_id = getattr(request.state, "correlation_id", "unknown")
 
     # Log general error with full context (unicode-free)
     logger.error(
@@ -324,7 +343,10 @@ async def general_exception_handler(request: Request, exc: Exception):
 
     # Log stack trace for debugging (unicode-free)
     import traceback
-    logger.error(f"EXCEPTION_TRACE | correlation_id={correlation_id} | traceback={sanitize_for_logging(traceback.format_exc())}")
+
+    logger.error(
+        f"EXCEPTION_TRACE | correlation_id={correlation_id} | traceback={sanitize_for_logging(traceback.format_exc())}"
+    )
 
     if performance_logger:
         performance_logger.increment_counter("api_errors", 1)
@@ -336,9 +358,10 @@ async def general_exception_handler(request: Request, exc: Exception):
             "message": "An unexpected error occurred",
             "correlation_id": correlation_id,
             "timestamp": time.time(),
-            "path": request.url.path
-        }
+            "path": request.url.path,
+        },
     )
+
 
 if app:
     app.add_exception_handler(422, validation_exception_handler)
@@ -346,15 +369,12 @@ if app:
 
 # Health check endpoint
 if app:
+
     @app.get("/health")
     async def health_check():
         """Health check endpoint."""
         try:
-            status = {
-                "status": "healthy",
-                "timestamp": time.time(),
-                "services": {}
-            }
+            status = {"status": "healthy", "timestamp": time.time(), "services": {}}
 
             # Check database
             if database_manager:
@@ -368,17 +388,23 @@ if app:
             # Check thread manager
             if thread_manager:
                 thread_status = thread_manager.get_status()
-                status["services"]["thread_manager"] = "healthy" if not thread_status["shutdown"] else "unhealthy"
+                status["services"]["thread_manager"] = (
+                    "healthy" if not thread_status["shutdown"] else "unhealthy"
+                )
 
             # Check message processor
             if message_processor:
                 processor_status = message_processor.get_status()
-                status["services"]["message_processor"] = "healthy" if processor_status["processing"] else "unhealthy"
+                status["services"]["message_processor"] = (
+                    "healthy" if processor_status["processing"] else "unhealthy"
+                )
 
             # Check websocket manager
             if websocket_manager:
                 ws_status = websocket_manager.get_stats()
-                status["services"]["websocket_manager"] = "healthy" if ws_status["broadcasting"] else "unhealthy"
+                status["services"]["websocket_manager"] = (
+                    "healthy" if ws_status["broadcasting"] else "unhealthy"
+                )
 
             return status
 
@@ -389,20 +415,19 @@ if app:
                 content={
                     "status": "unhealthy",
                     "error": str(e),
-                    "timestamp": time.time()
-                }
+                    "timestamp": time.time(),
+                },
             )
+
 
 # Metrics endpoint
 if app:
+
     @app.get("/metrics")
     async def get_metrics():
         """Get system metrics."""
         try:
-            metrics = {
-                "timestamp": time.time(),
-                "system": {}
-            }
+            metrics = {"timestamp": time.time(), "system": {}}
 
             # Database metrics
             if database_manager:
@@ -422,7 +447,9 @@ if app:
 
             # Notification metrics
             if notification_manager:
-                metrics["system"]["notification_manager"] = notification_manager.get_stats()
+                metrics["system"][
+                    "notification_manager"
+                ] = notification_manager.get_stats()
 
             # Analytics metrics
             if analytics_manager:
@@ -434,12 +461,14 @@ if app:
             logger.error(f"Metrics error: {e}")
             raise HTTPException(status_code=500, detail="Error retrieving metrics")
 
+
 # Authentication dependency
 
 # Include v1 router
 if app:
     try:
         from plexichat.interfaces.api.v1.router import router as v1_router
+
         app.include_router(v1_router)
         logger.info("Successfully included v1 API router")
     except ImportError as e:
@@ -448,6 +477,7 @@ if app:
 
 # WebSocket endpoint
 if app:
+
     @app.websocket("/ws/{user_id}")
     async def websocket_endpoint(websocket, user_id: int):
         """WebSocket endpoint for real-time communication."""
@@ -456,7 +486,9 @@ if app:
 
             # Connect WebSocket
             if websocket_manager:
-                success = await websocket_manager.connect(websocket, connection_id, user_id)
+                success = await websocket_manager.connect(
+                    websocket, connection_id, user_id
+                )
                 if not success:
                     await websocket.close(code=1000, reason="Connection failed")
                     return
@@ -468,14 +500,18 @@ if app:
                     # Receive message
                     data = await websocket.receive_text()
                     # SECURITY: eval() removed - use safe alternatives
-                    message_data = json.loads(data)  # In production, use json.loads with proper validation
+                    message_data = json.loads(
+                        data
+                    )  # In production, use json.loads with proper validation
 
                     # Handle different message types
                     message_type = message_data.get("type", "unknown")
 
                     if message_type == "ping":
                         # Respond to ping
-                        await websocket.send_text('{"type": "pong", "timestamp": "' + str(time.time()) + '"}')
+                        await websocket.send_text(
+                            '{"type": "pong", "timestamp": "' + str(time.time()) + '"}'
+                        )
 
                     elif message_type == "join_channel":
                         # Join channel
@@ -487,14 +523,16 @@ if app:
                         # Leave channel
                         channel = message_data.get("channel")
                         if channel and websocket_manager:
-                            await websocket_manager.leave_channel(connection_id, channel)
+                            await websocket_manager.leave_channel(
+                                connection_id, channel
+                            )
 
                     # Track analytics
                     if analytics_manager:
                         await analytics_manager.track_event(
                             "websocket_message",
                             user_id=user_id,
-                            properties={"message_type": message_type}
+                            properties={"message_type": message_type},
                         )
 
             except Exception as e:
@@ -507,6 +545,7 @@ if app:
 
         except Exception as e:
             logger.error(f"WebSocket connection error: {e}")
+
 
 # Run server function
 def run_server(host: str = "0.0.0.0", port: int = 8000, reload: bool = False):
@@ -526,8 +565,9 @@ def run_server(host: str = "0.0.0.0", port: int = 8000, reload: bool = False):
         host=host,
         port=port,
         reload=reload,
-        log_level="info"
+        log_level="info",
     )
+
 
 if __name__ == "__main__":
     print("[X] This module cannot be run standalone!")
