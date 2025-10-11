@@ -1,5 +1,6 @@
 # PlexiChat
-
+AT THE MOMENT THIS DOES NOT WORK. I'm WORKING ON ANOTHER VERSION IN GO BECAUSE THIS IS A MESS (it might look like it works though)
+AI GENERATED DESCRIPTION: (sorry i couldn't be bothered to write a full description)
 **Government-Level Secure Communication Platform**
 
 PlexiChat is a production-ready, enterprise-grade secure communication platform designed for organizations requiring the highest levels of security, performance, and reliability. Built with modern Python architecture and optimized for microsecond-level response times, PlexiChat delivers government-level security with enterprise scalability.
