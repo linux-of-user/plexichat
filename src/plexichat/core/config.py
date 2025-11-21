@@ -414,7 +414,7 @@ class UnifiedConfigManager:
     """Unified configuration manager with Key Vault integration."""
 
     def __init__(self, config_file: Optional[str] = None) -> None:
-        self.config_file = Path(config_file or "data/config/plexichat.yaml")
+        self.config_file = Path(config_file or "config/plexichat.yaml")
         self._config = UnifiedConfig()
         self._lock = threading.RLock()
         self.sensitive_keys = {
@@ -868,10 +868,20 @@ class UnifiedConfigManager:
         # Example per-key validations
         if dotted_key == "network.port":
             if not (1 <= int(value) <= 65535):
-                from plexichat.core.exceptions import ConfigurationError, ErrorCode`n                raise ConfigurationError(`n                    "Network port must be between 1 and 65535",`n                    ErrorCode.CONFIG_VALIDATION_FAILED,`n                    config_key="network.port"`n                )
+                from plexichat.core.exceptions import ConfigurationError, ErrorCode
+                raise ConfigurationError(
+                    "Network port must be between 1 and 65535",
+                    ErrorCode.CONFIG_VALIDATION_FAILED,
+                    config_key="network.port"
+                )
         if dotted_key == "plugin_security.max_cpu_seconds":
             if float(value) <= 0:
-                from plexichat.core.exceptions import ConfigurationError, ErrorCode`n                raise ConfigurationError(`n                    "Plugin security max CPU seconds must be greater than 0",`n                    ErrorCode.CONFIG_VALIDATION_FAILED,`n                    config_key="plugin_security.max_cpu_seconds"`n                )
+                from plexichat.core.exceptions import ConfigurationError, ErrorCode
+                raise ConfigurationError(
+                    "Plugin security max CPU seconds must be greater than 0",
+                    ErrorCode.CONFIG_VALIDATION_FAILED,
+                    config_key="plugin_security.max_cpu_seconds"
+                )
 
     # ----------------------
     # Hot reload support
@@ -985,8 +995,8 @@ class UnifiedConfigManager:
     def __del__(self) -> None:
         try:
             self.stop_hot_reload()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.error(f"Error stopping hot reload: {e}")
 
 
 # ----------------------

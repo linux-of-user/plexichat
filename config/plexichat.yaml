@@ -1,0 +1,58 @@
+system:
+  name: "PlexiChat"
+  version: "1.0.0"
+  environment: "production"
+  debug: false
+  timezone: "UTC"
+
+network:
+  host: "0.0.0.0"
+  port: 8000
+  ssl_enabled: false
+  cors_origins: ["*"]
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 100
+    window_size_seconds: 60
+
+security:
+  secret_key: "4599247d1c9995f2f4ae43cd5a1ff14c83fe1060bb64d415cbce0fe74f32e2ba"
+  jwt_secret: "ef5249fd54f973479619c40d64c723ebd32cc84da66d4e9180dffa69ef08d8a5"
+  session_timeout_seconds: 1800
+  mfa_enabled: true
+  sanitation_enabled: true
+  encryption_key: "dWpoYlBJcUllbzhLX0I1X2swb0NRN3BUcVdCQ3BKRm9oSDdLc1pmQ2UtYz0="
+
+database:
+  type: "sqlite"
+  path: "data/plexichat.db"
+  pool_min: 1
+  pool_max: 10
+  backup_enabled: true
+
+caching:
+  enabled: true
+  l1_max_items: 1000
+  default_ttl_seconds: 300
+  warming_enabled: false
+
+logging:
+  level: "INFO"
+  log_to_file: true
+  file_main: "logs/plexichat.log"
+  retention_days: 14
+  rotation_compress: true
+
+plugins:
+  timeout_seconds: 30
+  max_memory_mb: 128
+  sandboxing_enabled: true
+
+backup:
+  enabled: true
+  retention_days: 30
+  encryption_key: "dWpoYlBJcUllbzhLX0I1X2swb0NRN3BUcVdCQ3BKRm9oSDdLc1pmQ2UtYz0="
+
+keyboard:
+  enabled: true
+  allow_custom_shortcuts: true
