@@ -18,7 +18,7 @@ from plexichat.core.authentication import (
     MFAMethod,
 )
 from plexichat.core.database.manager import database_manager
-from plexichat.core.logging import get_logger
+from plexichat.core.logging.unified_logger import get_logger
 from plexichat.core.security import get_security_system
 from plexichat.core.security.unified_security_module import (
     SecurityContext,

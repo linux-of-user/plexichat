@@ -1,1 +1,0 @@
-// Placeholder MathJax loader

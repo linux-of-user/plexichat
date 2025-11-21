@@ -1,0 +1,8 @@
+{
+  "test.key": "test_value",
+  "user.test_user.user.test_user.preference": "dark_theme",
+  "database.port": 5432,
+  "security.encryption_key": "dWpoYlBJcUllbzhLX0I1X2swb0NRN3BUcVdCQ3BKRm9oSDdLc1pmQ2UtYz0=",
+  "auth.mfa_enabled": true,
+  "user.integration_user.user.integration_user.tier": "premium"
+}

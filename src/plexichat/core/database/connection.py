@@ -8,7 +8,7 @@ import asyncio
 from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
 
-from plexichat.core.logging import get_logger
+from plexichat.core.logging.unified_logger import get_logger
 
 logger = get_logger(__name__)
 

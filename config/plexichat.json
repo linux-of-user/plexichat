@@ -1,0 +1,153 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "debug": false,
+    "workers": 4,
+    "secret_key": "4599247d1c9995f2f4ae43cd5a1ff14c83fe1060bb64d415cbce0fe74f32e2ba",
+    "webhook_secret": "ef5249fd54f973479619c40d64c723ebd32cc84da66d4e9180dffa69ef08d8a5"
+  },
+  "database": {
+    "url": "sqlite:///./plexichat.db",
+    "pool_size": 10,
+    "timeout": 30,
+    "backup_enabled": true,
+    "backup_interval_hours": 6
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "logs/plexichat.log",
+    "max_files": 10,
+    "max_size_mb": 100,
+    "console_level": "INFO",
+    "file_level": "DEBUG",
+    "compress_backups": true,
+    "capture_warnings": true
+  },
+  "security": {
+    "session_timeout": 1800,
+    "max_login_attempts": 5,
+    "password_min_length": 12,
+    "rate_limit_requests": 100,
+    "rate_limit_window": 60,
+    "force_https": false,
+    "csrf_protection": true
+  },
+  "performance": {
+    "cache_size": 1000,
+    "cache_ttl": 3600,
+    "enable_compression": true,
+    "enable_monitoring": true,
+    "monitoring_interval": 60
+  },
+  "testing": {
+    "enabled": true,
+    "interval_minutes": 30,
+    "timeout_seconds": 30,
+    "retry_count": 3,
+    "save_results": true,
+    "alert_on_failure": true
+  },
+  "backup": {
+    "enabled": true,
+    "shard_count": 5,
+    "shard_size_mb": 50,
+    "encryption_enabled": true,
+    "auto_cleanup_days": 30,
+    "distribution_enabled": true
+  },
+  "communication": {
+    "max_message_length": 2000,
+    "max_file_size_mb": 25,
+    "allowed_file_types": [
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "pdf",
+      "txt",
+      "doc",
+      "docx"
+    ],
+    "enable_voice": true,
+    "enable_video": true,
+    "max_channels_per_server": 500,
+    "max_users_per_server": 10000
+   },
+   "keyboard_shortcuts": {
+     "enabled": true,
+     "allow_custom_shortcuts": true,
+     "max_shortcuts_per_user": 50,
+     "default_shortcuts": [
+       {
+         "shortcut_key": "Ctrl+N",
+         "action": "new_message",
+         "description": "Create new message",
+         "enabled": true
+       },
+       {
+         "shortcut_key": "Ctrl+Enter",
+         "action": "send_message",
+         "description": "Send message",
+         "enabled": true
+       },
+       {
+         "shortcut_key": "Ctrl+K",
+         "action": "search",
+         "description": "Open search",
+         "enabled": true
+       },
+       {
+         "shortcut_key": "Ctrl+/",
+         "action": "help",
+         "description": "Show help",
+         "enabled": true
+       },
+       {
+         "shortcut_key": "Ctrl+Shift+P",
+         "action": "command_palette",
+         "description": "Open command palette",
+         "enabled": true
+       },
+       {
+         "shortcut_key": "Ctrl+B",
+         "action": "bold_text",
+         "description": "Make text bold",
+         "enabled": true
+       },
+       {
+         "shortcut_key": "Ctrl+I",
+         "action": "italic_text",
+         "description": "Make text italic",
+         "enabled": true
+       },
+       {
+         "shortcut_key": "Ctrl+U",
+         "action": "underline_text",
+         "description": "Underline text",
+         "enabled": true
+       }
+     ],
+     "accessibility": {
+       "enable_sticky_keys": false,
+       "key_repeat_delay": 500,
+       "key_repeat_rate": 30,
+       "show_shortcut_tooltips": true
+     },
+     "platform_mappings": {
+       "windows": {
+         "meta_key": "Ctrl",
+         "alt_key": "Alt"
+       },
+       "mac": {
+         "meta_key": "Cmd",
+         "alt_key": "Option"
+       },
+       "linux": {
+         "meta_key": "Ctrl",
+         "alt_key": "Alt"
+       }
+     }
+   }
+  }
+}

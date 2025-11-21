@@ -1,1 +1,0 @@
-// Placeholder Termynal JS

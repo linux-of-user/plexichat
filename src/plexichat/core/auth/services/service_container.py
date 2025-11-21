@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from typing import Any, Dict, Optional, Type, TypeVar
 from weakref import WeakValueDictionary
 
-from plexichat.core.logging import get_logger
+from plexichat.core.logging.unified_logger import get_logger
 
 
 logger = get_logger(__name__)

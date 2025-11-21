@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, TypeVar
 from uuid import uuid4
 
-from plexichat.core.logging import get_logger
+from plexichat.core.logging.unified_logger import get_logger
 
 # Import database_manager with proper type checking
 # We use TYPE_CHECKING to avoid circular imports during type checking

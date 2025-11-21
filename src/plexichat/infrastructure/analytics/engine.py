@@ -13,7 +13,7 @@ import threading
 from typing import Any
 
 try:
-    from plexichat.core.config import get_config
+    from src.plexichat.core.config_manager import get_config
 
     settings = get_config() if get_config else None
 except ImportError:

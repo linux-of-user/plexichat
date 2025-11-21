@@ -14,7 +14,7 @@ import re
 from typing import Any
 
 # Unified logging imports
-from plexichat.core.logging import get_logger
+from plexichat.core.logging.unified_logger import get_logger
 
 try:
     from plexichat.core.config_manager import get_config

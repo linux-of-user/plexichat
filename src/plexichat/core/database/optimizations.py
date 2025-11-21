@@ -7,7 +7,7 @@ for improved performance and scalability.
 
 from typing import Any
 
-from plexichat.core.logging import get_logger
+from plexichat.core.logging.unified_logger import get_logger
 
 logger = get_logger(__name__)
 

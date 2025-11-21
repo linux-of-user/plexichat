@@ -11,7 +11,7 @@ from typing import Any
 import jwt
 
 from plexichat.core.auth.services.interfaces import ITokenService
-from plexichat.core.logging import get_logger
+from plexichat.core.logging.unified_logger import get_logger
 
 logger = get_logger(__name__)
 

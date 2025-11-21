@@ -3,7 +3,7 @@ from typing import Any
 
 # Use unified logging system
 try:
-    from plexichat.core.logging import get_logger
+    from plexichat.core.logging.unified_logger import get_logger
 
     logger = get_logger(__name__)
 except Exception:  # Fallback to std logging if unified logging not available

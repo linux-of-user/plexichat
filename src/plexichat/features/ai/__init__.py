@@ -46,7 +46,7 @@ except ImportError:
 # Import AI components
 
 # AI features and services
-from plexichat.core.config_manager import get_config
+from src.plexichat.core.config_manager import get_config
 from plexichat.features.ai.ai_coordinator import AICoordinator
 from plexichat.features.ai.core.ai_abstraction_layer import (
     AIAbstractionLayer,

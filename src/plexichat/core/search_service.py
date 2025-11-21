@@ -13,7 +13,7 @@ from typing import Any
 from uuid import uuid4
 
 from plexichat.core.database.manager import database_manager
-from plexichat.core.logging import get_logger
+from plexichat.core.logging.unified_logger import get_logger
 
 logger = get_logger(__name__)
 
