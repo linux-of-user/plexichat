@@ -1,23 +1,4 @@
 """
-Optimized WebSocket Service for Typing Indicators
-
-High-performance WebSocket broadcasting optimized specifically for typing events.
-"""
-
-import asyncio
-from collections import defaultdict, deque
-from dataclasses import dataclass
-from datetime import UTC, datetime
-import logging
-import time
-from typing import Any
-
-from plexichat.core.config import get_setting
-from plexichat.core.websocket.websocket_manager import websocket_manager
-
-logger = logging.getLogger(__name__)
-
-
 @dataclass
 class TypingBroadcastBatch:
     """Batch of typing events for efficient broadcasting."""

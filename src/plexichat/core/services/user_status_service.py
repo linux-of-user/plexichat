@@ -1,18 +1,26 @@
 """
+PlexiChat - Real-time Communication Platform
+Copyright (C) 2025 PlexiChat Contributors
+
+User Status Service
+"""
+"""
 User Status Service
 
 Manages user status functionality including validation, persistence, and real-time updates.
 """
 
+import asyncio
 from dataclasses import dataclass
 from datetime import UTC, datetime
-import logging
 from typing import Any
+
+from plexichat.core.logging import get_logger
 
 from plexichat.core.database.manager import database_manager
 from plexichat.core.websocket.websocket_manager import websocket_manager
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 VALID_STATUSES = ["online", "away", "busy", "offline"]
 

@@ -1,16 +1,20 @@
 """
 PlexiChat Service Manager
-Consolidated service management for the entire application.
+PlexiChat - Real-time Communication Platform
+Copyright (C) 2025 PlexiChat Contributors
+
+Core Services
 """
 
 from abc import ABC, abstractmethod
 import asyncio
 from collections import defaultdict, deque
 from enum import Enum
-import logging
-from typing import Any
+from typing import Any, Optional
 
-logger = logging.getLogger(__name__)
+from plexichat.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 class ServiceStatus(Enum):
