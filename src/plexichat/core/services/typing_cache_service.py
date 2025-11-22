@@ -7,20 +7,6 @@ Caching layer for frequently accessed typing data to improve performance.
 import logging
 from typing import Any
 
-from plexichat.core.caching.unified_cache_integration import (
-    CacheKeyBuilder,
-    cache_delete,
-    cache_get,
-    cache_set,
-)
-from plexichat.core.config import get_setting
-
-logger = logging.getLogger(__name__)
-
-
-class TypingCacheService:
-    """Service for caching typing-related data."""
-
     def __init__(self):
         self.cache_ttl = get_setting(
             "typing.cache_ttl_seconds", 30
