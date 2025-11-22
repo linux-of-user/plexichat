@@ -1,16 +1,22 @@
-import logging
+"""
+PlexiChat - Real-time Communication Platform
+Copyright (C) 2025 PlexiChat Contributors
+
+Application Setup Module
+"""
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-logger = logging.getLogger(__name__)
-
+from plexichat.core.logging import get_logger
 from plexichat.core.plugins.manager import plugin_manager
 
+logger = get_logger(__name__)
 
-def setup_routers(app: FastAPI):
+
+def setuprouters(app: FastAPI):
     """Setup API routers with error handling, including dynamic plugin routers."""
     # --- Core Routers ---
     core_routers = {
