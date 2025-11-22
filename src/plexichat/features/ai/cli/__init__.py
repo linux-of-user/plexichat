@@ -1,16 +1,12 @@
-# pyright: reportPossiblyUnboundVariable=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
-from typing import Optional
-
-from plexichat.features.ai.cli.ai_cli import AICommandLineInterface
-
 """
-AI CLI Module
-Command-line interface for AI management.:
+PlexiChat - Real-time Communication Platform
+Copyright (C) 2025 PlexiChat Contributors
+
+AI CLI Package
 """
 
-__all__ = ["AICommandLineInterface"]
+from plexichat.core.logging import get_logger
+
+logger = get_logger(__name__)
+
+__all__ = []

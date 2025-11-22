@@ -1,30 +1,12 @@
-# pyright: reportPossiblyUnboundVariable=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
-# Import from simplified version
-from typing import Optional
+"""
+PlexiChat - Real-time Communication Platform
+Copyright (C) 2025 PlexiChat Contributors
 
-from plexichat.features.ai.core.ai_abstraction_layer import (
-    AIAbstractionLayer,
-    AIAccessControl,
-    AIModel,
-    AIProvider,
-    AIRequest,
-    AIResponse,
-    ModelCapability,
-    ModelStatus,
-)
+AI Core Package
+"""
 
-__all__ = [
-    "AIAbstractionLayer",
-    "AIAccessControl",
-    "AIModel",
-    "AIProvider",
-    "AIRequest",
-    "AIResponse",
-    "ModelCapability",
-    "ModelStatus",
-]
+from plexichat.core.logging import get_logger
+
+logger = get_logger(__name__)
+
+__all__ = []

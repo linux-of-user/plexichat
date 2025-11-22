@@ -1,36 +1,12 @@
-# pyright: reportPossiblyUnboundVariable=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
-from typing import Optional
-
-from plexichat.features.ai.providers.anthropic_provider import (
-    AnthropicConfig,
-    AnthropicProvider,
-)
-from plexichat.features.ai.providers.base_provider import (
-    BaseAIProvider,
-    ProviderConfig,
-    ProviderStatus,
-)
-from plexichat.features.ai.providers.ollama_provider import OllamaConfig, OllamaProvider
-from plexichat.features.ai.providers.openai_provider import OpenAIConfig, OpenAIProvider
-
 """
-PlexiChat AI Providers
-Comprehensive AI provider implementations with support for multiple services.
+PlexiChat - Real-time Communication Platform
+Copyright (C) 2025 PlexiChat Contributors
+
+AI Providers Package
 """
 
-__all__ = [
-    "AnthropicConfig",
-    "AnthropicProvider",
-    "BaseAIProvider",
-    "OllamaConfig",
-    "OllamaProvider",
-    "OpenAIConfig",
-    "OpenAIProvider",
-    "ProviderConfig",
-    "ProviderStatus",
-]
+from plexichat.core.logging import get_logger
+
+logger = get_logger(__name__)
+
+__all__ = []
