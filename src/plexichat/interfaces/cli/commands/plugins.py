@@ -7,7 +7,7 @@ from typing import Any
 # Try to import real managers; fall back to mocks for standalone/CI environments
 try:
     from plexichat.core.plugins.manager import (
-        unified_plugin_manager as real_plugin_manager,
+        plugin_manager as real_plugin_manager,
     )
 except Exception:
     real_plugin_manager = None
@@ -270,7 +270,7 @@ class MockSecurityManager:
 # ---------------------------------------------------------------------------
 
 
-def get_enhanced_plugin_manager():
+def get_plugin_manager_instance():
     if real_plugin_manager is not None:
         return real_plugin_manager
     return MockPluginManager()
@@ -313,7 +313,7 @@ class PluginCLI:
     """Command-line interface for plugin management."""
 
     def __init__(self):
-        self.plugin_manager = get_enhanced_plugin_manager()
+        self.plugin_manager = get_plugin_manager_instance()
         self.security_manager = get_security_manager()
 
     async def cmd_list(self, args: list[str]):

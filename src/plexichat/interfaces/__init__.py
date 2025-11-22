@@ -8,7 +8,7 @@ PlexiChat Interface Layer - Clean Recreated Version
 import importlib
 from typing import Dict
 
-from plexichat.core.logging.unified_logger import get_logger
+from plexichat.core.logging.logger import get_logger
 
 logger = get_logger(__name__)
 

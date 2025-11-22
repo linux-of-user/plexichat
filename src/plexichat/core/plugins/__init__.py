@@ -33,7 +33,7 @@ try:
         PluginTestManager,
         PluginType,
         SecurityLevel,
-        UnifiedPluginManager,
+        PluginManager,
         disable_plugin,
         discover_plugins,
         emit_event,
@@ -43,13 +43,13 @@ try:
         get_plugin_info,
         get_plugin_manager,
         load_plugin,
-        unified_plugin_manager,
+        plugin_manager,
         unload_plugin,
     )
 
     # Backward compatibility aliases
-    plugin_manager = unified_plugin_manager
-    PluginManager = UnifiedPluginManager
+    unified_plugin_manager = plugin_manager
+    UnifiedPluginManager = PluginManager
 
 except ImportError as e:
     # Fallback definitions if unified plugin system fails to import
@@ -96,7 +96,7 @@ except ImportError as e:
         async def shutdown(self) -> bool:
             return True
 
-    class UnifiedPluginManager:
+    class PluginManager:
         def __init__(self):
             self.plugins = {}
 
@@ -118,12 +118,12 @@ except ImportError as e:
         async def shutdown(self) -> None:
             pass
 
-    unified_plugin_manager = UnifiedPluginManager()
-    plugin_manager = unified_plugin_manager
-    PluginManager = UnifiedPluginManager
+    plugin_manager = PluginManager()
+    unified_plugin_manager = plugin_manager
+    UnifiedPluginManager = PluginManager
 
-    async def get_plugin_manager() -> UnifiedPluginManager:
-        return unified_plugin_manager
+    async def get_plugin_manager() -> PluginManager:
+        return plugin_manager
 
     async def discover_plugins() -> List[str]:
         return []
@@ -170,7 +170,7 @@ except ImportError as e:
 async def initialize_plugin_system() -> bool:
     """Initialize the plugin system (backward compatibility)."""
     try:
-        return await unified_plugin_manager.initialize()
+        return await plugin_manager.initialize()
     except Exception as e:
         import logging
 
@@ -179,9 +179,9 @@ async def initialize_plugin_system() -> bool:
         return False
 
 
-async def get_plugin_manager_instance() -> UnifiedPluginManager:
+async def get_plugin_manager_instance() -> PluginManager:
     """Get the plugin manager instance (backward compatibility)."""
-    return unified_plugin_manager
+    return plugin_manager
 
 
 # Legacy aliases for backward compatibility
@@ -197,8 +197,8 @@ def get_plugins() -> Dict[str, Any]:
 # Export all the main classes and functions
 __all__ = [
     # Unified plugin system (NEW SINGLE SOURCE OF TRUTH)
-    "UnifiedPluginManager",
-    "unified_plugin_manager",
+    "PluginManager",
+    "plugin_manager",
     "PluginInterface",
     "PluginIsolationManager",
     "PluginTestManager",

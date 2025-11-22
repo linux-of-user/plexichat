@@ -220,7 +220,13 @@ class DateTimeUtils:
                     # Attempt parsing as float string (unix)
                     return datetime.fromtimestamp(float(timestamp), tz=timezone.utc)
                 except Exception:
-                    from plexichat.core.exceptions import ValidationError, ErrorCode`n                    raise ValidationError(`n                        f"Unrecognized timestamp format: {timestamp}",`n                        ErrorCode.VALIDATION_INVALID_FORMAT,`n                        field="timestamp",`n                        value=timestamp`n                    )
+                    from plexichat.core.exceptions import ValidationError, ErrorCode
+                    raise ValidationError(
+                        f"Unrecognized timestamp format: {timestamp}",
+                        ErrorCode.VALIDATION_INVALID_FORMAT,
+                        field="timestamp",
+                        value=timestamp
+                    )
         return datetime.fromtimestamp(float(timestamp), tz=timezone.utc)
 
     @staticmethod

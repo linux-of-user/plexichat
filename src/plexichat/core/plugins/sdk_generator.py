@@ -337,15 +337,15 @@ class PluginSDKGenerator:
 
         try:
             # Import and scan the plugin manager for existing safe APIs
-            from src.plexichat.core.plugins.manager import EnhancedPluginAPI
+            from src.plexichat.core.plugins.manager import PluginAPI
 
-            # Scan EnhancedPluginAPI for safe methods
+            # Scan PluginAPI for safe methods
             api_methods = []
-            for attr_name in dir(EnhancedPluginAPI):
+            for attr_name in dir(PluginAPI):
                 if attr_name.startswith("_"):
                     continue
 
-                attr = getattr(EnhancedPluginAPI, attr_name)
+                attr = getattr(PluginAPI, attr_name)
                 if callable(attr):
                     method_info = self._extract_method_info(
                         attr_name, attr, "plugin_api"

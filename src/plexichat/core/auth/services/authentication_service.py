@@ -18,9 +18,9 @@ from plexichat.core.authentication import (
     MFAMethod,
 )
 from plexichat.core.database.manager import database_manager
-from plexichat.core.logging.unified_logger import get_logger
-from plexichat.core.security import get_security_system
-from plexichat.core.security.unified_security_module import (
+from plexichat.core.logging.logger import get_logger
+from plexichat.core.security.security_manager import (
+    get_security_module,
     SecurityContext,
 )
 
@@ -63,8 +63,8 @@ class AuthenticationService(IAuthenticationService):
         self.audit_service = audit_service or AuditService()
         self.max_failed_attempts = max_failed_attempts
         self.lockout_duration = lockout_duration
-        self.security_system = get_security_system()
-        self.unified_security = self.security_system.get_unified_security()
+        self.lockout_duration = lockout_duration
+        self.unified_security = get_security_module()
 
     async def cleanup_expired_data(self) -> int:
         """Clean up expired sessions and MFA challenges."""

@@ -7,7 +7,7 @@ import re
 import sys
 from typing import ClassVar
 
-# Default PII patterns for redaction (consolidated from plan)
+# Default PII patterns for redaction
 DEFAULT_PII_PATTERNS = [
     r"\b\d{3}-\d{2}-\d{4}\b",  # SSN
     r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",  # Email
@@ -150,16 +150,7 @@ def get_logger(name: str = "plexichat", level: str = "INFO") -> logging.Logger:
     else:
         logger.addHandler(handlers)
 
-    # For plugins, extensible: e.g., logger.addHandler(get_handler_factory(plugin_mode='analytics'))
     return logger
-
-
-def get_logging_manager(name: str = "plexichat", level: str = "INFO") -> logging.Logger:
-    """
-    Get the unified logging manager instance for the application.
-    Returns a configured logger with sanitization and handlers.
-    """
-    return get_logger(name, level)
 
 
 # Make utilities available at module level
@@ -170,7 +161,6 @@ __all__ = [
     "StructuredFormatter",
     "get_handler_factory",
     "get_logger",
-    "get_logging_manager",
     "redact_pii",
     "sanitize_for_logging",
 ]

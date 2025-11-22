@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from typing import Any, Dict, Optional, Type, TypeVar
 from weakref import WeakValueDictionary
 
-from plexichat.core.logging.unified_logger import get_logger
+from plexichat.core.logging.logger import get_logger
 
 
 logger = get_logger(__name__)
@@ -74,7 +74,14 @@ class AuthServiceContainer:
                     self._singletons[interface] = instance
                 return instance
 
-            from plexichat.core.exceptions import SystemError, ErrorCode`n            raise SystemError(`n                f"No registration found for service: {interface.__name__}",`n                ErrorCode.SYSTEM_INTERNAL_ERROR,`n                component="service_container",`n                resource_type="service_registration",`n                resource_id=interface.__name__`n            )
+            from plexichat.core.exceptions import SystemError, ErrorCode
+            raise SystemError(
+                f"No registration found for service: {interface.__name__}",
+                ErrorCode.SYSTEM_INTERNAL_ERROR,
+                component="service_container",
+                resource_type="service_registration",
+                resource_id=interface.__name__
+            )
 
     async def _create_instance_with_factory(self, interface: Type[T]) -> T:
         """Create instance using factory function."""

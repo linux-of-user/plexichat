@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Protocol, runtime_checkable
 
-from plexichat.core.logging.unified_logger import get_logger
+from plexichat.core.logging.logger import get_logger
 
 """
 PlexiChat Module Interfaces and Contracts - SINGLE SOURCE OF TRUTH

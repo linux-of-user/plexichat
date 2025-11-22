@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import asyncio
 from typing import TYPE_CHECKING, Any
 
-from plexichat.core.logging.unified_logger import get_logger
+from plexichat.core.logging.logger import get_logger
 
 # Import database_manager with proper type checking
 if TYPE_CHECKING:

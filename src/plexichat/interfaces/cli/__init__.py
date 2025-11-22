@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 try:
-    from plexichat.core.logging.unified_logger import get_logger
+    from plexichat.core.logging.logger import get_logger
     from plexichat.interfaces.cli.main_cli import main
 
     # Create a simple CLI app reference

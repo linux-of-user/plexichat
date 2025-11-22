@@ -73,7 +73,7 @@ logger.info("Unified logging system initialized (pre-config)")
 from src.plexichat.core.config import get_config
 from src.plexichat.core.config import settings
 from src.plexichat.core.app_setup import setup_routers, setup_static_files
-from src.plexichat.core.plugins.manager import unified_plugin_manager
+from src.plexichat.core.plugins.manager import plugin_manager
 
 # Initialize config
 config = get_config()
@@ -81,9 +81,6 @@ config = get_config()
 # Apply unified logging configuration now that config is available
 try:
     from src.plexichat.core.logging import setup_module_logging
-    
-    # Ensure logging manager is referenced to trigger any internal initialization
-    _lm = get_logging_manager()
     
     # Apply module logging level if present in config
     level = getattr(getattr(config, "logging", None), "level", "INFO")
@@ -556,7 +553,11 @@ async def lifespan(app: FastAPI):
                             
                             # More robust health check from the now-deleted check_plugin_health function
                             if not hasattr(pm, 'loaded_plugins') or len(pm.loaded_plugins) == 0:
-                                from plexichat.core.exceptions import PluginError, ErrorCode`n                                raise PluginError(`n                                    "No loaded plugins found",`n                                    ErrorCode.PLUGIN_NOT_FOUND`n                                )
+                                from plexichat.core.exceptions import PluginError, ErrorCode
+                                raise PluginError(
+                                    "No loaded plugins found",
+                                    ErrorCode.PLUGIN_NOT_FOUND
+                                )
                             
                             info = pm.get_all_plugins_info()
                             if not info:
@@ -746,7 +747,7 @@ async def lifespan(app: FastAPI):
 
         # Ensure logs flushed for unified logging manager if available
         try:
-            logging_manager = get_logging_manager()
+            logging_manager = get_logger()
             if hasattr(logging_manager, 'flush_logs'):
                 logging_manager.flush_logs()
                 logger.info("[LOGS] Flushed logs via unified logging manager")

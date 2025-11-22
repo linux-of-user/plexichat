@@ -7,7 +7,7 @@ Migration system for database schema changes.
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
-from plexichat.core.logging.unified_logger import get_logger
+from plexichat.core.logging.logger import get_logger
 
 # Import database_manager with proper type checking
 if TYPE_CHECKING:

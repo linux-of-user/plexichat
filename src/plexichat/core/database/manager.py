@@ -1,354 +1,209 @@
 """
-PlexiChat Database Manager
-
-Unified database management system with support for multiple database types,
-connection pooling, transactions, and performance optimization.
+Database Manager
+Provides a unified interface for database operations with security integration.
 """
 
-from collections.abc import AsyncGenerator
+import asyncio
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
-from enum import Enum
-import inspect
-import re
-from typing import Any
+from typing import Any, AsyncGenerator
 
-# Unified logging imports
-from plexichat.core.logging.unified_logger import get_logger
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
+from sqlalchemy.pool import NullPool
+from sqlalchemy import text
 
-try:
-    from plexichat.core.config_manager import get_config
-
-    config = get_config("database")
-except ImportError:
-    # This fallback is for when the module is used in a context where the full app isn't available.
-    config = None
-
-# Try to import permission classes, with fallbacks
-try:
-    from plexichat.core.auth.permissions import (  # type: ignore
-        DBOperation,
-        PermissionError,
-        ResourceType,
-        check_permission,
-        format_permission,
-    )
-except ImportError:
-    # Define dummy classes and functions for type hinting and to avoid runtime errors.
-
-    def check_permission(required: str, user_permissions: set[str]) -> None:
-        """Fallback permission check - always allows."""
-        pass
-
-    def format_permission(rt, op, rn: str = "any") -> str:
-        """Fallback permission formatting."""
-        return f"{rt}:{op}:{rn}"
-
-    class DBOperation(Enum):
-        READ = "read"
-        WRITE = "write"
-
-    class ResourceType(Enum):
-        DATABASE = "database"
-
-    class PermissionError(Exception):
-        pass
-
+from plexichat.core.auth.permissions import (
+    DBOperation,
+    ResourceType,
+    check_permission,
+    format_permission,
+)
+from plexichat.core.config import config  # Use the singleton instance
+from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 
-class DatabaseConfig:
-    """Database configuration class."""
-
-    def __init__(self, db_url: str = "sqlite:///:memory:", **kwargs):
-        self.db_url = db_url
-        self.pool_size = kwargs.get("pool_size", 10)
-        self.echo = kwargs.get("echo", False)
-
-
-@dataclass
-class ConnectionMetrics:
-    """Database connection metrics."""
-
-    total_connections: int = 0
-    active_connections: int = 0
-    failed_connections: int = 0
-    avg_query_time: float = 0.0
-
-
 class DatabaseSession:
-    """Database session wrapper with permission checking."""
+    """
+    Wrapper around AsyncSession to add security checks and convenience methods.
+    """
 
-    def __init__(self, connection: Any, user_permissions: set[str]):
-        self.connection = connection
-        self.user_permissions = user_permissions
-
-    def _check_permission(self, operation: DBOperation, resource_name: str) -> None:
-        """Check if user has permission for database operation."""
-        required_permission = format_permission(
-            ResourceType.DATABASE, operation, resource_name
-        )
-        check_permission(required_permission, self.user_permissions)
+    def __init__(
+        self,
+        session: AsyncSession,
+        user_permissions: set[str] | None = None,
+    ):
+        self.session = session
+        self.user_permissions = user_permissions or set()
 
     async def execute(
-        self, query: str, params: dict[str, Any] | tuple | list | None = None
+        self,
+        query: str,
+        params: dict[str, Any] | None = None,
+        check_perms: bool = False,
+        resource_type: ResourceType = ResourceType.TABLE,
+        resource_name: str = "any",
     ) -> Any:
-        """Execute a query with permission checking."""
-        # Extract table/resource from query for permission check
-
-        # Simple heuristic to extract table name from query
-        words = query.strip().split()
-        if len(words) > 2 and words[0].upper() in [
-            "SELECT",
-            "INSERT",
-            "UPDATE",
-            "DELETE",
-        ]:
-            operation = (
-                DBOperation.WRITE if words[0].upper() != "SELECT" else DBOperation.READ
+        """
+        Execute a query with optional permission checking.
+        """
+        if check_perms:
+            required_perm = format_permission(
+                resource_type, DBOperation.WRITE, resource_name
             )
-            # Try to extract table name
-            if words[0].upper() == "SELECT":
-                try:
-                    from_idx = [i for i, w in enumerate(words) if w.upper() == "FROM"][
-                        0
-                    ]
-                    table_name = words[from_idx + 1].strip(";")
-                except (IndexError, ValueError):
-                    table_name = "unknown"
-            elif words[0].upper() == "INSERT":
-                try:
-                    into_idx = [i for i, w in enumerate(words) if w.upper() == "INTO"][
-                        0
-                    ]
-                    table_name = words[into_idx + 1].strip(";")
-                except (IndexError, ValueError):
-                    table_name = "unknown"
-            elif words[0].upper() in ["UPDATE", "DELETE"]:
-                try:
-                    table_name = words[1].strip(";")
-                except IndexError:
-                    table_name = "unknown"
-            else:
-                table_name = "unknown"
-
-            required_permission = format_permission(
-                ResourceType.DATABASE, operation, table_name
-            )
-            check_permission(required_permission, self.user_permissions)
-
-        # Convert tuple/list params to dict for compatibility
-        if isinstance(params, (tuple, list)):
-            params_dict = {}
-            param_counter = 0
-
-            def replace_placeholder(match):
-                nonlocal param_counter
-                key = f"param_{param_counter}"
-                if param_counter < len(params):
-                    params_dict[key] = params[param_counter]
-                param_counter += 1
-                return f":{key}"
-
-            query = re.sub(r"\?", replace_placeholder, query)
-            params = params_dict
+            check_permission(required_perm, self.user_permissions)
 
         try:
-            return await self.connection.execute(query, params or {})
+            result = await self.session.execute(text(query), params)
+            return result
         except Exception as e:
-            logger.error(f"Query execution failed: {e}")
+            logger.error(f"Database execution error: {e}")
             raise
 
     async def fetchall(
-        self, query: str, params: dict[str, Any] | tuple | list | None = None
+        self,
+        query: str,
+        params: dict[str, Any] | None = None,
+        check_perms: bool = False,
+        resource_type: ResourceType = ResourceType.TABLE,
+        resource_name: str = "any",
     ) -> list[dict[str, Any]]:
-        """Fetch all results from a query. Requires raw execution permission."""
-        result = await self.execute(query, params)
-        return [dict(row) for row in await result.fetchall()]
+        """
+        Execute a query and return all results as a list of dictionaries.
+        """
+        if check_perms:
+            required_perm = format_permission(
+                resource_type, DBOperation.READ, resource_name
+            )
+            check_permission(required_perm, self.user_permissions)
+
+        try:
+            result = await self.session.execute(text(query), params)
+            # Convert rows to dicts
+            return [dict(row._mapping) for row in result.fetchall()]
+        except Exception as e:
+            logger.error(f"Database fetchall error: {e}")
+            raise
 
     async def fetchone(
-        self, query: str, params: dict[str, Any] | tuple | list | None = None
+        self,
+        query: str,
+        params: dict[str, Any] | None = None,
+        check_perms: bool = False,
+        resource_type: ResourceType = ResourceType.TABLE,
+        resource_name: str = "any",
     ) -> dict[str, Any] | None:
-        """Fetch one result from a query. Requires raw execution permission."""
-        result = await self.execute(query, params)
-        row = await result.fetchone()
-        return dict(row) if row else None
+        """
+        Execute a query and return a single result as a dictionary.
+        """
+        if check_perms:
+            required_perm = format_permission(
+                resource_type, DBOperation.READ, resource_name
+            )
+            check_permission(required_perm, self.user_permissions)
 
-    async def insert(self, table: str, data: dict[str, Any]) -> Any:
-        """Insert data into a table after a permission check."""
-        self._check_permission(DBOperation.WRITE, table)
-        columns = ", ".join(data.keys())
-        placeholders = ", ".join([f":{key}" for key in data])
-        query = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
-        return await self.execute(query, data)
+        try:
+            result = await self.session.execute(text(query), params)
+            row = result.fetchone()
+            return dict(row._mapping) if row else None
+        except Exception as e:
+            logger.error(f"Database fetchone error: {e}")
+            raise
 
-    async def update(
-        self, table: str, data: dict[str, Any], where: dict[str, Any]
-    ) -> Any:
-        """Update data in a table after permission check."""
-        self._check_permission(DBOperation.WRITE, table)
-        set_clause = ", ".join([f"{key} = :{key}" for key in data])
-        where_clause = " AND ".join([f"{key} = :where_{key}" for key in where])
-        where_params = {f"where_{key}": value for key, value in where.items()}
-        all_params = {**data, **where_params}
-        query = f"UPDATE {table} SET {set_clause} WHERE {where_clause}"
-        return await self.execute(query, all_params)
+    async def commit(self):
+        """Commit the transaction."""
+        await self.session.commit()
 
-    async def delete(self, table: str, where: dict[str, Any]) -> Any:
-        """Delete data from a table after permission check."""
-        self._check_permission(DBOperation.WRITE, table)
-        where_clause = " AND ".join([f"{key} = :{key}" for key in where])
-        query = f"DELETE FROM {table} WHERE {where_clause}"
-        return await self.execute(query, where)
-
-    async def commit(self) -> None:
-        """Commit the current transaction."""
-        if hasattr(self.connection, "commit"):
-            await self.connection.commit()
-
-    async def rollback(self) -> None:
-        """Rollback the current transaction."""
-        if hasattr(self.connection, "rollback"):
-            await self.connection.rollback()
-
-    async def close(self) -> None:
-        """Close the database connection."""
-        if hasattr(self.connection, "close"):
-            await self.connection.close()
+    async def rollback(self):
+        """Rollback the transaction."""
+        await self.session.rollback()
 
 
 class DatabaseManager:
-    """Unified database manager with support for multiple database types."""
+    """
+    Manages database connections and sessions.
+    """
 
-    def __init__(self, config: DatabaseConfig | None = None):
-        self.config = config or DatabaseConfig()
-        self.pool = None
-        self.metrics = ConnectionMetrics()
-        self.is_connected = False
+    def __init__(self):
+        self.engine: AsyncEngine | None = None
+        self.session_maker: async_sessionmaker | None = None
+        self._initialized = False
 
-    async def connect(self) -> None:
-        """Initialize database connection/pool."""
+    async def initialize(self):
+        """Initialize the database connection."""
+        if self._initialized:
+            return
+
+        db_url = config.get("database.url", "sqlite+aiosqlite:///plexichat.db")
+        
+        # Ensure we are using an async driver for SQLite
+        if db_url.startswith("sqlite://") and not db_url.startswith("sqlite+aiosqlite://"):
+             db_url = db_url.replace("sqlite://", "sqlite+aiosqlite://")
+
+        logger.info(f"Initializing database with URL: {db_url}")
+
         try:
-            # This is a placeholder - actual implementation would depend on the database type
-            # For SQLite/PostgreSQL/MySQL, you'd use appropriate async drivers
-            logger.info(f"Connecting to database: {self.config.db_url}")
-            self.is_connected = True
-            self.metrics.total_connections += 1
+            self.engine = create_async_engine(
+                db_url,
+                echo=config.get("database.echo", False),
+                poolclass=NullPool if "sqlite" in db_url else None, # SQLite usually doesn't need pooling in this setup
+            )
+
+            self.session_maker = async_sessionmaker(
+                self.engine, expire_on_commit=False, class_=AsyncSession
+            )
+            
+            # Test connection
+            async with self.engine.begin() as conn:
+                await conn.execute(text("SELECT 1"))
+            
+            self._initialized = True
+            logger.info("Database initialized successfully")
+
         except Exception as e:
-            logger.error(f"Failed to connect to database: {e}")
-            self.metrics.failed_connections += 1
+            logger.critical(f"Failed to initialize database: {e}")
             raise
 
-    async def disconnect(self) -> None:
-        """Close database connections."""
-        try:
-            if self.pool:
-                # Close connection pool
-                pass
-            self.is_connected = False
-            logger.info("Database disconnected")
-        except Exception as e:
-            logger.error(f"Error disconnecting from database: {e}")
+    async def close(self):
+        """Close the database connection."""
+        if self.engine:
+            await self.engine.dispose()
+            self.engine = None
+            self._initialized = False
+            logger.info("Database connection closed")
 
     @asynccontextmanager
     async def get_session(
         self, user_permissions: set[str] | None = None
     ) -> AsyncGenerator[DatabaseSession, None]:
-        """Get a database session with optional permission checking."""
-        if not self.is_connected:
-            await self.connect()
+        """
+        Get a database session context manager.
+        """
+        if not self._initialized:
+            await self.initialize()
 
-        permissions = user_permissions or set()
+        if not self.session_maker:
+             raise RuntimeError("Database not initialized")
 
-        # This would be replaced with actual database connection logic
-        # For now, using a placeholder connection object
-        connection = None  # Would be actual database connection
-
-        session = DatabaseSession(connection, permissions)
-        self.metrics.active_connections += 1
-
-        try:
-            yield session
-        finally:
-            await session.close()
-            self.metrics.active_connections -= 1
-
-    async def execute_transaction(
-        self, operations: list[callable], user_permissions: set[str] | None = None
-    ) -> list[Any]:
-        """Execute multiple operations in a single transaction."""
-        results = []
-        async with self.get_session(user_permissions) as session:
+        async with self.session_maker() as session:
+            db_session = DatabaseSession(session, user_permissions)
             try:
-                for operation in operations:
-                    if inspect.iscoroutinefunction(operation):
-                        result = await operation(session)
-                    else:
-                        result = operation(session)
-                    results.append(result)
-
+                yield db_session
+                # Auto-commit is not enabled by default in this wrapper, 
+                # user must call commit() explicitly or we can do it here?
+                # Usually explicit commit is better for control.
+                # But for convenience, we can commit on exit if no exception.
                 await session.commit()
-                return results
             except Exception as e:
                 await session.rollback()
-                logger.error(f"Transaction failed: {e}")
                 raise
+            finally:
+                await session.close()
 
-    def get_metrics(self) -> ConnectionMetrics:
-        """Get current database metrics."""
-        return self.metrics
-
-    async def health_check(self) -> bool:
-        """Perform a health check on the database connection."""
-        try:
-            async with self.get_session() as session:
-                # Simple query to test connection
-                await session.execute("SELECT 1")
-            return True
-        except Exception as e:
-            logger.error(f"Database health check failed: {e}")
-            return False
-
-
-# Global database manager instance
+# Global instance
 database_manager = DatabaseManager()
-
-
-# Convenience functions
-async def get_database_session(
-    user_permissions: set[str] | None = None,
-) -> AsyncGenerator[DatabaseSession, None]:
-    """Get a database session from the global manager."""
-    async with database_manager.get_session(user_permissions) as session:
-        yield session
-
-
-async def execute_query(
-    query: str,
-    params: dict[str, Any] | None = None,
-    user_permissions: set[str] | None = None,
-) -> Any:
-    """Execute a single query using the global database manager."""
-    async with get_database_session(user_permissions) as session:
-        return await session.execute(query, params)
-
-
-async def fetch_all(
-    query: str,
-    params: dict[str, Any] | None = None,
-    user_permissions: set[str] | None = None,
-) -> list[dict[str, Any]]:
-    """Fetch all results from a query using the global database manager."""
-    async with get_database_session(user_permissions) as session:
-        return await session.fetchall(query, params)
-
-
-async def fetch_one(
-    query: str,
-    params: dict[str, Any] | None = None,
-    user_permissions: set[str] | None = None,
-) -> dict[str, Any] | None:
-    """Fetch one result from a query using the global database manager."""
-    async with get_database_session(user_permissions) as session:
-        return await session.fetchone(query, params)

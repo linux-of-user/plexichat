@@ -9,17 +9,6 @@ import json
 import time
 from typing import Any
 
-from fastapi import HTTPException, Request, status
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse, Response
-
-# Use the unified logging shim so existing imports continue to work while
-# centralizing logging behavior around the unified logger/manager.
-from plexichat.core.logging import (
-    get_logger,
-    get_logging_manager,
-)
-
 # Core imports
 from plexichat.core.security.comprehensive_security_manager import (
     get_security_manager,
