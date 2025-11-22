@@ -34,23 +34,6 @@ from .base import (
 from .base import (
     ProcessLockError as BaseProcessLockError,
 )
-from .base import (
-    RateLimitError as BaseRateLimitError,
-)
-from .base import (
-    StartupError as BaseStartupError,
-)
-from .base import (
-    ValidationError as BaseValidationError,
-)
-
-logger = logging.getLogger(__name__)
-
-
-class BaseAPIException(PlexiChatException):
-    """Base exception for all API errors."""
-
-    def __init__(
         self,
         error_code: PlexiChatErrorCode = PlexiChatErrorCode.SYSTEM_INTERNAL_ERROR,
         message: str | None = None,
