@@ -1,21 +1,4 @@
 """
-PlexiChat Centralized Error Code Management System
-
-This module provides a comprehensive error code management system with:
-- Standardized error codes organized by category
-- HTTP status mappings
-- User-friendly messages
-- Helper functions for consistent error responses
-"""
-
-from http import HTTPStatus
-import logging
-from typing import Any
-
-from .base import (
-    ErrorCategory,
-    ErrorSeverity,
-)
 from .base import (
     PlexiChatErrorCode as BasePlexiChatErrorCode,
 )
