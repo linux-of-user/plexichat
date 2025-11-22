@@ -1,10 +1,12 @@
 """
-PlexiChat Updates System
+PlexiChat - Real-time Communication Platform
+Copyright (C) 2025 PlexiChat Contributors
 
-This package contains update-related functionality.
+Updates Package
 """
 
-from plexichat.core.config_manager import get_config
+from plexichat.core.logging import get_logger
 
-__version__ = get_config("system.version", "0.0.0")
+logger = get_logger(__name__)
+
 __all__ = []
