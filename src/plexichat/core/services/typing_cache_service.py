@@ -1,21 +1,3 @@
-"""
-Typing Cache Service
-
-Caching layer for frequently accessed typing data to improve performance.
-"""
-
-import logging
-from typing import Any
-
-    def __init__(self):
-        self.cache_ttl = get_setting(
-            "typing.cache_ttl_seconds", 30
-        )  # Cache TTL for typing data
-        self.channel_users_cache_ttl = get_setting(
-            "typing.cache_ttl_seconds", 10
-        )  # For channel users list
-        self.typing_status_cache_ttl = get_setting(
-            "typing.cache_ttl_seconds", 5
         )  # For individual typing status
 
     async def get_cached_typing_users(self, channel_id: str) -> list[str] | None:
