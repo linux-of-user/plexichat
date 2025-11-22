@@ -1,15 +1,19 @@
 """
-PlexiChat Core Validation
+PlexiChat - Real-time Communication Platform
+Copyright (C) 2025 PlexiChat Contributors
+
+Core Validation
 Essential validation functions for the entire application.
 """
 
 from dataclasses import dataclass
 import json
-import logging
 import re
 from typing import Any
 
-logger = logging.getLogger(__name__)
+from plexichat.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 @dataclass

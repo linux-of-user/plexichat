@@ -1,14 +1,22 @@
+"""
+PlexiChat - Real-time Communication Platform
+Copyright (C) 2025 PlexiChat Contributors
+
+Core Coordinator
+"""
 # pyright: reportMissingImports=false
 # pyright: reportGeneralTypeIssues=false
 import asyncio
 from dataclasses import dataclass
 from datetime import UTC, datetime
-import logging
 from typing import Any, Dict, Optional
 
+from plexichat.core.logging import get_logger
 from plexichat.core.security.security_manager import get_security_module
 from plexichat.core.database.manager import database_manager
 from plexichat.core.config import get_config
+
+logger = get_logger(__name__)
 
 # Import other coordinators if they exist
 try:
