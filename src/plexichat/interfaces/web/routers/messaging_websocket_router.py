@@ -48,7 +48,7 @@ async def get_websocket_user(
             await websocket.close(code=4001, reason="Authentication token required")
             return None
 
-        # Validate token using unified auth adapter -> UnifiedAuthManager
+        # Validate token using auth adapter -> AuthenticationService
         adapter = get_auth_adapter()
         # Use the underlying auth manager validate_token method which returns (valid, payload)
         try:

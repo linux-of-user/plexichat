@@ -15,7 +15,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
-from plexichat.core.authentication import get_auth_manager as get_unified_auth_manager
+from plexichat.core.auth import get_auth_manager
 from plexichat.core.config import get_config
 from plexichat.core.logging import get_logger
 from plexichat.core.security import (
@@ -28,7 +28,7 @@ from plexichat.core.security import (
     get_network_protection,
 )
 from plexichat.core.security import Severity as SecuritySeverity
-from plexichat.core.security.unified_audit_system import get_unified_audit_system
+from plexichat.core.security.audit import get_audit_system
 
 logger = get_logger(__name__)
 
@@ -50,13 +50,13 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.config = config or get_config().get("security_middleware", {})
         self.enabled = self.config.get("enabled", True)
-        # Use UnifiedAuthManager via get_unified_auth_manager()
+        # Use AuthManager via get_auth_manager()
         try:
-            self.auth_manager = get_unified_auth_manager()
+            self.auth_manager = get_auth_manager()
         except Exception as e:
             # Log this as a security-related initialization issue
             logger.security(
-                f"Failed to obtain unified auth manager: {e}",
+                f"Failed to obtain auth manager: {e}",
                 component="auth_manager",
                 source="security_middleware",
             )
@@ -72,7 +72,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         except Exception:
             self.network_protection = None
         try:
-            self.audit_system = get_unified_audit_system()
+            self.audit_system = get_audit_system()
         except Exception:
             self.audit_system = None
         self.stats = {
@@ -311,7 +311,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 )
                 if not allowed:
                     self.stats["blocked_requests"] += 1
-                    # Log security event via unified logger with context
+                    # Log security event via logger with context
                     logger.security(
                         f"IP blocked by network protection: {threat.description if threat else 'Unknown reason'}",
                         user_id=request_info.get("user_id"),
@@ -352,7 +352,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                 )
                 if not allowed:
                     self.stats["rate_limit_violations"] += 1
-                    # Unified logging for rate-limit violations
+                    # Logging for rate-limit violations
                     logger.security(
                         f"Rate limit exceeded for {client_ip} on {path}",
                         user_id=request_info.get("user_id"),
@@ -411,7 +411,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             threats_detected.append("Suspicious user agent detected")
         if threats_detected:
             self.stats["threats_detected"] += 1
-            # Unified logging for detected threats
+            # Logging for detected threats
             logger.security(
                 f"Input security threats detected: {', '.join(threats_detected)}",
                 user_id=request_info.get("user_id"),
@@ -440,7 +440,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         self, request: Request, request_info: dict[str, Any]
     ) -> dict[str, Any]:
         """
-        Use UnifiedAuthManager for token and API key validation.
+        Use AuthManager for token and API key validation.
         Returns a dict with keys:
           - authenticated: bool
           - reason: optional reason string
@@ -544,7 +544,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                     )
                     return {"authenticated": False, "reason": "Invalid API key"}
         except Exception as e:
-            # Log via unified logger and audit system
+            # Log via logger and audit system
             logger.security(
                 f"Error validating authentication: {e}",
                 source_ip=request_info.get("client_ip"),
@@ -652,7 +652,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         self, request: Request, auth_check: dict[str, Any]
     ) -> dict[str, Any]:
         """
-        Validate session using UnifiedAuthManager.validate_session if session id is available.
+        Validate session using AuthManager.validate_session if session id is available.
         If only token-based auth is used and no session_id exists, allow by default (token already validated).
         """
         session_id = (

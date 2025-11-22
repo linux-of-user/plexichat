@@ -10,8 +10,8 @@ import time
 from typing import Any
 
 # Core imports
-from plexichat.core.security.comprehensive_security_manager import (
-    get_security_manager,
+from plexichat.core.security.security_manager import (
+    get_security_module,
 )
 
 # Authentication manager
@@ -38,7 +38,7 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
         self.enabled = self.config.get("enabled", True)
 
         # Initialize components
-        self.security_manager = get_security_manager()
+        self.security_manager = get_security_module()
         # Use unified logging manager if available
         try:
             self.logging_manager = get_logging_manager()
@@ -334,7 +334,7 @@ class EnhancedSecurityMiddleware(BaseHTTPMiddleware):
             return {"authenticated": False, "user": None}
 
         try:
-            # Validate token/session using UnifiedAuthManager's interface
+            # Validate token/session using AuthManager's interface
             if auth_header and auth_header.startswith("Bearer "):
                 token = auth_header[7:]
                 # validate_token returns (valid: bool, payload: Optional[dict])

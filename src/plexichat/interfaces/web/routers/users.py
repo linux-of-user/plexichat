@@ -25,7 +25,7 @@ from plexichat.core.auth.fastapi_adapter import get_current_user, require_admin
 # Unified auth manager for service integration
 from plexichat.core.authentication import get_auth_manager
 
-# Unified logging
+# Centralized logging
 from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)

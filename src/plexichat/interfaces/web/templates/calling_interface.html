@@ -227,9 +227,9 @@
 <body>
     <div class="calling-container">
         <div class="header">
-            <h1>🔐 PlexiChat Encrypted Calling</h1>
+            <h1> PlexiChat Encrypted Calling</h1>
             <div class="encryption-badge">
-                🛡️ End-to-End Encrypted with AES-256-GCM
+                 End-to-End Encrypted with AES-256-GCM
             </div>
         </div>
         
@@ -237,7 +237,7 @@
             <div class="main-video">
                 <video id="localVideo" autoplay muted></video>
                 <div class="video-overlay">
-                    <div>📹 Local Video</div>
+                    <div> Local Video</div>
                     <div id="callStatus">Connecting...</div>
                 </div>
             </div>
@@ -255,16 +255,16 @@
         
         <div class="controls">
             <button class="control-btn mute" id="muteBtn" title="Mute/Unmute">
-                🎤
+                
             </button>
             <button class="control-btn video" id="videoBtn" title="Enable/Disable Video">
-                📹
+                
             </button>
             <button class="control-btn screen" id="screenBtn" title="Share Screen">
-                🖥️
+                
             </button>
             <button class="control-btn end" id="endBtn" title="End Call">
-                📞
+                
             </button>
         </div>
         
@@ -292,12 +292,12 @@
             
             <div class="info-card">
                 <h3>Encryption</h3>
-                <div class="info-value">🔒 Active</div>
+                <div class="info-value"> Active</div>
             </div>
         </div>
         
         <div class="encryption-info">
-            <strong>🛡️ Security Information</strong><br>
+            <strong> Security Information</strong><br>
             This call is protected with government-grade AES-256-GCM encryption.<br>
             Keys are exchanged using RSA-2048 and verified end-to-end.
         </div>
@@ -306,12 +306,12 @@
     <!-- Incoming Call Modal -->
     <div id="incomingCallModal" class="modal">
         <div class="modal-content">
-            <h2>📞 Incoming Call</h2>
+            <h2> Incoming Call</h2>
             <p><strong>User 1</strong> is calling you</p>
-            <p>🔐 Encrypted Video Call</p>
+            <p> Encrypted Video Call</p>
             <br>
-            <button class="modal-btn accept" onclick="acceptCall()">✅ Accept</button>
-            <button class="modal-btn decline" onclick="declineCall()">❌ Decline</button>
+            <button class="modal-btn accept" onclick="acceptCall()"> Accept</button>
+            <button class="modal-btn decline" onclick="declineCall()"> Decline</button>
         </div>
     </div>
     
@@ -368,10 +368,10 @@
                     }
                 };
                 
-                console.log('✅ Calling interface initialized');
+                console.log(' Calling interface initialized');
                 
             } catch (error) {
-                console.error('❌ Failed to initialize calling:', error);
+                console.error(' Failed to initialize calling:', error);
                 alert('Failed to access camera/microphone. Please check permissions.');
             }
         }
@@ -398,13 +398,13 @@
                     updateCallStatus('Calling...');
                     startCallTimer();
                     
-                    console.log(`📞 Started ${callType} call:`, callId);
+                    console.log(` Started ${callType} call:`, callId);
                 } else {
                     throw new Error('Failed to initiate call');
                 }
                 
             } catch (error) {
-                console.error('❌ Failed to start call:', error);
+                console.error(' Failed to start call:', error);
                 alert('Failed to start call. Please try again.');
             }
         }
@@ -417,7 +417,7 @@
             websocket = new WebSocket(wsUrl);
             
             websocket.onopen = () => {
-                console.log('🔌 WebSocket connected');
+                console.log(' WebSocket connected');
             };
             
             websocket.onmessage = async (event) => {
@@ -426,11 +426,11 @@
             };
             
             websocket.onclose = () => {
-                console.log('🔌 WebSocket disconnected');
+                console.log(' WebSocket disconnected');
             };
             
             websocket.onerror = (error) => {
-                console.error('🔌 WebSocket error:', error);
+                console.error(' WebSocket error:', error);
             };
         }
         
@@ -447,7 +447,7 @@
                     await handleIceCandidate(data.candidate);
                     break;
                 case 'pong':
-                    console.log('🏓 Received pong');
+                    console.log(' Received pong');
                     break;
             }
         }
@@ -467,7 +467,7 @@
                 updateCallStatus('Connected');
                 
             } catch (error) {
-                console.error('❌ Failed to handle offer:', error);
+                console.error(' Failed to handle offer:', error);
             }
         }
         
@@ -478,7 +478,7 @@
                 updateCallStatus('Connected');
                 
             } catch (error) {
-                console.error('❌ Failed to handle answer:', error);
+                console.error(' Failed to handle answer:', error);
             }
         }
         
@@ -488,7 +488,7 @@
                 await peerConnection.addIceCandidate(candidate);
                 
             } catch (error) {
-                console.error('❌ Failed to handle ICE candidate:', error);
+                console.error(' Failed to handle ICE candidate:', error);
             }
         }
         
@@ -499,7 +499,7 @@
                 audioTrack.enabled = !audioTrack.enabled;
                 const muteBtn = document.getElementById('muteBtn');
                 muteBtn.classList.toggle('active', !audioTrack.enabled);
-                muteBtn.textContent = audioTrack.enabled ? '🎤' : '🔇';
+                muteBtn.textContent = audioTrack.enabled ? '' : '';
             }
         }
         
@@ -509,7 +509,7 @@
                 videoTrack.enabled = !videoTrack.enabled;
                 const videoBtn = document.getElementById('videoBtn');
                 videoBtn.classList.toggle('disabled', !videoTrack.enabled);
-                videoBtn.textContent = videoTrack.enabled ? '📹' : '📷';
+                videoBtn.textContent = videoTrack.enabled ? '' : '';
             }
         }
         
@@ -540,7 +540,7 @@
                     localStream.addTrack(newVideoTrack);
                     
                     screenBtn.classList.remove('active');
-                    screenBtn.textContent = '🖥️';
+                    screenBtn.textContent = '';
                     
                 } else {
                     // Start screen sharing
@@ -560,7 +560,7 @@
                     localStream.addTrack(screenTrack);
                     
                     screenBtn.classList.add('active');
-                    screenBtn.textContent = '🛑';
+                    screenBtn.textContent = '';
                     
                     // Handle screen share end
                     screenTrack.onended = () => {
@@ -569,7 +569,7 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Failed to toggle screen share:', error);
+                console.error(' Failed to toggle screen share:', error);
             }
         }
         
@@ -596,7 +596,7 @@
                 window.close();
                 
             } catch (error) {
-                console.error('❌ Failed to end call:', error);
+                console.error(' Failed to end call:', error);
             }
         }
         
@@ -621,13 +621,13 @@
         function acceptCall() {
             document.getElementById('incomingCallModal').style.display = 'none';
             // Handle call acceptance
-            console.log('✅ Call accepted');
+            console.log(' Call accepted');
         }
         
         function declineCall() {
             document.getElementById('incomingCallModal').style.display = 'none';
             // Handle call decline
-            console.log('❌ Call declined');
+            console.log(' Call declined');
         }
         
         // Event listeners

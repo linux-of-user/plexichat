@@ -24,7 +24,7 @@ from fastapi import (
 )
 from pydantic import BaseModel, Field
 
-# Unified logging
+# Centralized logging
 from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -65,7 +65,7 @@ except Exception:
 
 # Authentication and Security imports - use unified FastAPI adapter and security manager
 from plexichat.core.auth.fastapi_adapter import get_current_user_with_permissions
-from plexichat.core.security.security_manager import ThreatLevel, get_security_system
+from plexichat.core.security.security_manager import ThreatLevel, get_security_module
 
 
 # Model imports - Updated for Pydantic v2 compatibility
@@ -299,7 +299,7 @@ async def send_message(
 ):
     user_id = current_user.get("id", 0)
     user_permissions = current_user.get("permissions")
-    security_manager = get_security_system()
+    security_manager = get_security_module()
 
     logger.info(f"User {user_id} attempting to send message to {data.recipient_id}")
 

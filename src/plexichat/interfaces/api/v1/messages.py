@@ -5,7 +5,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from plexichat.core.messaging.unified_messaging_system import get_messaging_system
+from plexichat.core.messaging.system import get_messaging_system
 
 
 # Mock user dependency

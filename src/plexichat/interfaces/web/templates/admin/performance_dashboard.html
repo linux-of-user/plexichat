@@ -739,7 +739,7 @@
             alerts.forEach(alert => {
                 html += `
                     <div class="alert-item alert-${alert.severity}">
-                        <div class="alert-icon">⚠️</div>
+                        <div class="alert-icon"></div>
                         <div class="alert-content">
                             <div class="alert-message">${alert.type}: ${alert.value}</div>
                             <div class="alert-time">${new Date(alert.timestamp).toLocaleString()}</div>

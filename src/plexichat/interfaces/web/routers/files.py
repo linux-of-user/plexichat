@@ -59,9 +59,9 @@ from plexichat.core.auth.fastapi_adapter import get_current_user
 
 # Security system integration
 try:
-    from plexichat.core.security.security_manager import get_security_system
+    from plexichat.core.security.security_manager import get_security_module
 except ImportError:
-    get_security_system = None
+    get_security_module = None
 
 # Use unified security decorators and enums
 # Logging - use unified logger
@@ -407,7 +407,7 @@ async def upload_file(
     client_ip = request.client.host if request.client else "unknown"
     operation_id = f"file_upload_{current_user.get('id')}_{datetime.now().timestamp()}"
 
-    # Unified logging with security context
+    # Logging with security context
     try:
         logger.set_context(
             user_id=str(current_user.get("id", "")),
@@ -430,7 +430,7 @@ async def upload_file(
         )
     except Exception:
         # Ensure logging failures don't block upload
-        logger.debug("Unified logging failed during upload init", exc_info=True)
+        logger.debug("Logging failed during upload init", exc_info=True)
 
     # Performance tracking
     start_ts = time.time()
@@ -441,7 +441,7 @@ async def upload_file(
             logger.debug("Failed to record performance metric: file_upload_started")
 
     # Acquire security system
-    security_system = get_security_system() if get_security_system else None
+    security_system = get_security_module() if get_security_module else None
 
     try:
         # Validate file presence

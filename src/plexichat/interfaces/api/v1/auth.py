@@ -5,19 +5,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr, Field
 
 # from plexichat.core.authentication import get_auth_manager  # Duplicate import removed
-from plexichat.core.auth.fastapi_adapter import get_current_user, rate_limit
-from plexichat.core.authentication import MFAMethod, get_auth_manager
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])
-security = HTTPBearer()
-
-logger = logging.getLogger(__name__)
-
-# Mock data storage (replace with database in production)
-users_db = [
-    {"id": 1, "username": "admin", "email": "admin@plexichat.com", "is_active": True},
-    {"id": 2, "username": "user1", "email": "user1@example.com", "is_active": True},
-]
 
 # Mock session storage (replace with database in production)
 sessions_db = {}

@@ -24,10 +24,8 @@ from typing import Any
 
 # Security integration
 try:
-    from plexichat.core.security.comprehensive_security_manager import (
-        get_security_manager,
-    )
-    from plexichat.core.security.security_manager import get_unified_security_system
+    from plexichat.core.security.security_manager import get_security_module
+    from plexichat.core.security.security_manager import get_security_module
 
     SECURITY_AVAILABLE = True
 except ImportError:
@@ -489,14 +487,14 @@ class EdgeComputingManager:
         # Security integration
         if SECURITY_AVAILABLE:
             try:
-                from plexichat.core.security.comprehensive_security_manager import (
-                    get_security_manager,
+                from plexichat.core.security.security_manager import (
+                    get_security_module,
                 )
                 from plexichat.core.security.security_manager import (
                     get_unified_security_system,
                 )
 
-                self.security_system = get_unified_security_system()
+                self.security_system = get_security_module()
                 self.security_manager = get_security_manager()
             except ImportError:
                 self.security_system = None

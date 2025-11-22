@@ -1733,10 +1733,10 @@ a=rtpmap:96 VP8/90000"""
         try:
             # Prefer the centralized security manager API if available
             from plexichat.core.security.security_manager import (
-                get_security_system,  # type: ignore
+                get_security_module,  # type: ignore
             )
 
-            sec = get_security_system()
+            sec = get_security_module()
             ok, payload = sec.token_manager.verify_token(token)
             return ok, payload
         except Exception as e:

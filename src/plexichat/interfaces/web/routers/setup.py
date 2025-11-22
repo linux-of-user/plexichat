@@ -47,7 +47,7 @@ from fastapi.templating import Jinja2Templates
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from plexichat.core.security.security_context import security_context
-from plexichat.core.security.security_manager import SecurityPolicy, get_security_system
+from plexichat.core.security.security_manager import SecurityPolicy, get_security_module
 
 # Security headers from security.txt
 SECURITY_HEADERS = {
@@ -71,7 +71,7 @@ setup_policy = SecurityPolicy(
 )
 
 # Get the security system and register the policy
-security_system = get_security_system()
+security_system = get_security_module()
 security_system.register_policy(setup_policy)
 
 

@@ -13,9 +13,9 @@ from plexichat.core.auth.fastapi_adapter import get_current_user, rate_limit
 
 # Use the centralized security system
 try:
-    from plexichat.core.security.security_manager import get_security_system
+    from plexichat.core.security.security_manager import get_security_module
 except Exception:
-    get_security_system = None
+    get_security_module = None
 
 # Use the centralized file manager
 try:
@@ -142,9 +142,9 @@ async def upload_file(
 
     # Use centralized security system for thorough validation and sanitization
     security_system = None
-    if get_security_system:
+    if get_security_module:
         try:
-            security_system = get_security_system()
+            security_system = get_security_module()
         except Exception as e:
             logger.debug(f"Could not obtain security system instance: {e}")
             security_system = None

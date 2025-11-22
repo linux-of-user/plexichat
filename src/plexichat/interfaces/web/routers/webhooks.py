@@ -65,7 +65,7 @@ try:
 except ImportError:
     httpx = None
 
-# Unified logging
+# Centralized logging
 from plexichat.core.logging import LogCategory, get_logger
 
 logger = get_logger(__name__)

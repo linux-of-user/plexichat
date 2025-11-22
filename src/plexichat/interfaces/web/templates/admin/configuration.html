@@ -713,7 +713,7 @@ function displayValidationResults(result) {
     if (result.valid && (!result.warnings || result.warnings.length === 0)) {
         const successDiv = document.createElement('div');
         successDiv.className = 'alert alert-success';
-        successDiv.innerHTML = '<strong>✅ Configuration is valid!</strong>';
+        successDiv.innerHTML = '<strong> Configuration is valid!</strong>';
         resultsDiv.appendChild(successDiv);
     }
 
@@ -894,7 +894,7 @@ function findConfigChanges(original, current, prefix = '') {
                 changes.push(`${fullKey}: added`);
             }
         } else if (original[key] !== current[key]) {
-            changes.push(`${fullKey}: ${original[key]} → ${current[key]}`);
+            changes.push(`${fullKey}: ${original[key]}  ${current[key]}`);
         }
     }
 
@@ -904,7 +904,7 @@ function findConfigChanges(original, current, prefix = '') {
 // Mark configuration as changed
 function markConfigChanged() {
     // Add visual indicator that config has changed
-    document.title = '• Configuration - PlexiChat';
+    document.title = ' Configuration - PlexiChat';
 }
 
 // Load configuration backups

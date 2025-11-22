@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 import io
 import json
 
-from plexichat.core.messaging.unified_messaging_system import (
+from plexichat.core.messaging.system import (
     Message,
     get_messaging_system,
 )

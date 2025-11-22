@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 
 from plexichat.core.authentication import Role
 from plexichat.core.logging.logger import get_logger
-from plexichat.core.security import get_security_system
+from plexichat.core.security import get_security_module
 
 from ..config import get_auth_config
 from .interfaces import IUserService
@@ -24,7 +24,7 @@ class UserService(IUserService):
     def __init__(self, security_system=None):
         super().__init__()
         self.config = get_auth_config()
-        self.security_system = security_system or get_security_system()
+        self.security_system = security_system or get_security_module()
 
     def register_user(
         self,

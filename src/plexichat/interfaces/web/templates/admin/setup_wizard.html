@@ -570,7 +570,7 @@
                             <h6><i class="fas fa-exclamation-triangle me-2"></i>HTTPS Setup</h6>
                             <p class="mb-2">HTTPS is currently disabled. You can enable it later through:</p>
                             <ul class="mb-0">
-                                <li>Admin Panel → Security → HTTPS Setup</li>
+                                <li>Admin Panel  Security  HTTPS Setup</li>
                                 <li>Let's Encrypt automatic certificates</li>
                                 <li>Self-signed certificates for testing</li>
                             </ul>
@@ -800,7 +800,7 @@ function updateStepDisplay() {
 
         if (index + 1 < currentStepNumber) {
             indicator.classList.add('completed');
-            indicator.innerHTML = '✓';
+            indicator.innerHTML = '';
         } else if (index + 1 === currentStepNumber) {
             indicator.classList.add('active');
             indicator.innerHTML = index + 1;

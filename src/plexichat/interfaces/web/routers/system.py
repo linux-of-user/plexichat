@@ -16,7 +16,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 
-# Unified logging system
+# Centralized logging system
 from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)

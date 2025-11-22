@@ -1,8 +1,8 @@
 """
-PlexiChat Unified Messaging System - SINGLE SOURCE OF TRUTH
+PlexiChat Messaging System
 
-Consolidates ALL messaging functionality with watertight security like a deep-sea submarine.
-Provides a single, unified interface for all messaging operations with:
+Consolidates messaging functionality with watertight security.
+Provides a single interface for all messaging operations with:
 - Message routing and delivery
 - End-to-end encryption
 - Real-time messaging
@@ -188,9 +188,9 @@ class MessageValidator:
         # Security validation
         if SECURITY_AVAILABLE:
             try:
-                from plexichat.core.security.security_manager import get_security_system
+                from plexichat.core.security.security_manager import get_security_module
 
-                security_system = get_security_system()
+                security_system = get_security_module()
                 threats = security_system.input_sanitizer.detect_threats(
                     message.content
                 )
@@ -343,9 +343,9 @@ class ChannelManager:
         ]
 
 
-class UnifiedMessagingSystem:
+class MessagingSystem:
     """
-    Unified Messaging System providing watertight security like a deep-sea submarine.
+    Messaging System providing watertight security.
 
     Consolidates all messaging functionality:
     - Message processing and validation
@@ -378,12 +378,12 @@ class UnifiedMessagingSystem:
         # Security integration
         if SECURITY_AVAILABLE:
             try:
-                from plexichat.core.security.comprehensive_security_manager import (
-                    get_security_manager,
+                from plexichat.core.security.security_manager import (
+                    get_security_module,
                 )
-                from plexichat.core.security.security_manager import get_security_system
+                from plexichat.core.security.security_manager import get_security_module
 
-                self.security_system = get_security_system()
+                self.security_system = get_security_module()
                 self.security_manager = get_security_manager()
             except ImportError:
                 self.security_system = None
@@ -638,6 +638,7 @@ class UnifiedMessagingSystem:
                                 "channel_id": message.metadata.channel_id,
                                 "thread_id": message.metadata.thread_id,
                                 "sender_id": message.metadata.sender_id,
+                                "thread_id": message.metadata.thread_id,
                             },
                         )
                 except Exception as e:
@@ -977,25 +978,25 @@ class UnifiedMessagingSystem:
 
     async def shutdown(self) -> None:
         """Shutdown the messaging system."""
-        logger.info("Unified Messaging System shutting down")
+        logger.info("Messaging System shutting down")
 
 
 # Global messaging system instance
-_global_messaging_system: UnifiedMessagingSystem | None = None
+_global_messaging_system: MessagingSystem | None = None
 
 
-def get_messaging_system() -> UnifiedMessagingSystem:
+def get_messaging_system() -> MessagingSystem:
     """Get the global messaging system instance."""
     global _global_messaging_system
     if _global_messaging_system is None:
-        _global_messaging_system = UnifiedMessagingSystem()
+        _global_messaging_system = MessagingSystem()
     return _global_messaging_system
 
 
-async def initialize_messaging_system() -> UnifiedMessagingSystem:
+async def initialize_messaging_system() -> MessagingSystem:
     """Initialize the global messaging system."""
     global _global_messaging_system
-    _global_messaging_system = UnifiedMessagingSystem()
+    _global_messaging_system = MessagingSystem()
     return _global_messaging_system
 
 
@@ -1020,7 +1021,7 @@ __all__ = [
     "MessageType",
     "MessageValidator",
     "Thread",
-    "UnifiedMessagingSystem",
+    "MessagingSystem",
     "get_messaging_system",
     "initialize_messaging_system",
     "shutdown_messaging_system",

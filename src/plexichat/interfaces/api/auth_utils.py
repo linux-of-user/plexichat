@@ -12,8 +12,8 @@ except ImportError:
     database_manager = None
 
 try:
-    from plexichat.core.security.comprehensive_security_manager import (
-        get_security_manager,
+    from plexichat.core.security.security_manager import (
+        get_security_module,
     )
 
     security_manager = get_security_manager()

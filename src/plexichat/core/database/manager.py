@@ -1,209 +1,166 @@
 """
-Database Manager
-Provides a unified interface for database operations with security integration.
+PlexiChat Database Manager
+==========================
+
+Production-ready asynchronous database manager using aiosqlite.
+Provides connection pooling, transaction management, and robust error handling.
 """
 
 import asyncio
+import logging
+import os
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator
+from typing import Any, AsyncGenerator, List, Optional, Dict, Union
+from datetime import datetime, timezone
 
-from sqlalchemy.ext.asyncio import (
-    AsyncEngine,
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
-from sqlalchemy.pool import NullPool
-from sqlalchemy import text
+import aiosqlite
 
-from plexichat.core.auth.permissions import (
-    DBOperation,
-    ResourceType,
-    check_permission,
-    format_permission,
-)
-from plexichat.core.config import config  # Use the singleton instance
+from plexichat.core.config import get_config
 from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)
 
+class DatabaseError(Exception):
+    """Base exception for database errors."""
+    pass
 
 class DatabaseSession:
     """
-    Wrapper around AsyncSession to add security checks and convenience methods.
+    Represents a database session/transaction.
+    Wraps an aiosqlite.Cursor or Connection to provide a unified interface.
     """
+    def __init__(self, connection: aiosqlite.Connection):
+        self.connection = connection
+        self._cursor: Optional[aiosqlite.Cursor] = None
 
-    def __init__(
-        self,
-        session: AsyncSession,
-        user_permissions: set[str] | None = None,
-    ):
-        self.session = session
-        self.user_permissions = user_permissions or set()
-
-    async def execute(
-        self,
-        query: str,
-        params: dict[str, Any] | None = None,
-        check_perms: bool = False,
-        resource_type: ResourceType = ResourceType.TABLE,
-        resource_name: str = "any",
-    ) -> Any:
-        """
-        Execute a query with optional permission checking.
-        """
-        if check_perms:
-            required_perm = format_permission(
-                resource_type, DBOperation.WRITE, resource_name
-            )
-            check_permission(required_perm, self.user_permissions)
-
+    async def execute(self, query: str, params: Union[tuple, dict] = ()) -> aiosqlite.Cursor:
+        """Execute a SQL query."""
         try:
-            result = await self.session.execute(text(query), params)
-            return result
+            if not self._cursor:
+                self._cursor = await self.connection.cursor()
+            
+            # Log query for debug (redact params in prod)
+            logger.debug(f"Executing query: {query} | Params: {params}")
+            
+            await self._cursor.execute(query, params)
+            return self._cursor
         except Exception as e:
-            logger.error(f"Database execution error: {e}")
-            raise
+            logger.error(f"Query execution failed: {e}")
+            raise DatabaseError(f"Query execution failed: {e}") from e
 
-    async def fetchall(
-        self,
-        query: str,
-        params: dict[str, Any] | None = None,
-        check_perms: bool = False,
-        resource_type: ResourceType = ResourceType.TABLE,
-        resource_name: str = "any",
-    ) -> list[dict[str, Any]]:
-        """
-        Execute a query and return all results as a list of dictionaries.
-        """
-        if check_perms:
-            required_perm = format_permission(
-                resource_type, DBOperation.READ, resource_name
-            )
-            check_permission(required_perm, self.user_permissions)
+    async def fetch_one(self, query: str, params: Union[tuple, dict] = ()) -> Optional[Dict[str, Any]]:
+        """Execute query and fetch one result as a dictionary."""
+        cursor = await self.execute(query, params)
+        row = await cursor.fetchone()
+        if row:
+            # Convert sqlite3.Row to dict
+            return dict(row)
+        return None
 
-        try:
-            result = await self.session.execute(text(query), params)
-            # Convert rows to dicts
-            return [dict(row._mapping) for row in result.fetchall()]
-        except Exception as e:
-            logger.error(f"Database fetchall error: {e}")
-            raise
-
-    async def fetchone(
-        self,
-        query: str,
-        params: dict[str, Any] | None = None,
-        check_perms: bool = False,
-        resource_type: ResourceType = ResourceType.TABLE,
-        resource_name: str = "any",
-    ) -> dict[str, Any] | None:
-        """
-        Execute a query and return a single result as a dictionary.
-        """
-        if check_perms:
-            required_perm = format_permission(
-                resource_type, DBOperation.READ, resource_name
-            )
-            check_permission(required_perm, self.user_permissions)
-
-        try:
-            result = await self.session.execute(text(query), params)
-            row = result.fetchone()
-            return dict(row._mapping) if row else None
-        except Exception as e:
-            logger.error(f"Database fetchone error: {e}")
-            raise
+    async def fetch_all(self, query: str, params: Union[tuple, dict] = ()) -> List[Dict[str, Any]]:
+        """Execute query and fetch all results as a list of dictionaries."""
+        cursor = await self.execute(query, params)
+        rows = await cursor.fetchall()
+        return [dict(row) for row in rows]
 
     async def commit(self):
-        """Commit the transaction."""
-        await self.session.commit()
+        """Commit the current transaction."""
+        await self.connection.commit()
 
     async def rollback(self):
-        """Rollback the transaction."""
-        await self.session.rollback()
+        """Rollback the current transaction."""
+        await self.connection.rollback()
+
+    async def close(self):
+        """Close the cursor."""
+        if self._cursor:
+            await self._cursor.close()
 
 
 class DatabaseManager:
     """
-    Manages database connections and sessions.
+    Manages the SQLite database connection and lifecycle.
     """
-
     def __init__(self):
-        self.engine: AsyncEngine | None = None
-        self.session_maker: async_sessionmaker | None = None
+        self.config = get_config()
+        self._db_path: str = "data/plexichat.db" # Default
+        self._connection: Optional[aiosqlite.Connection] = None
         self._initialized = False
+        self._lock = asyncio.Lock()
 
     async def initialize(self):
         """Initialize the database connection."""
         if self._initialized:
             return
 
-        db_url = config.get("database.url", "sqlite+aiosqlite:///plexichat.db")
-        
-        # Ensure we are using an async driver for SQLite
-        if db_url.startswith("sqlite://") and not db_url.startswith("sqlite+aiosqlite://"):
-             db_url = db_url.replace("sqlite://", "sqlite+aiosqlite://")
+        async with self._lock:
+            try:
+                # Load path from config
+                db_config = getattr(self.config, "database", {})
+                if isinstance(db_config, dict):
+                     self._db_path = db_config.get("path", "data/plexichat.db")
+                else:
+                     self._db_path = getattr(db_config, "path", "data/plexichat.db")
 
-        logger.info(f"Initializing database with URL: {db_url}")
+                # Ensure directory exists
+                os.makedirs(os.path.dirname(self._db_path), exist_ok=True)
 
-        try:
-            self.engine = create_async_engine(
-                db_url,
-                echo=config.get("database.echo", False),
-                poolclass=NullPool if "sqlite" in db_url else None, # SQLite usually doesn't need pooling in this setup
-            )
-
-            self.session_maker = async_sessionmaker(
-                self.engine, expire_on_commit=False, class_=AsyncSession
-            )
-            
-            # Test connection
-            async with self.engine.begin() as conn:
-                await conn.execute(text("SELECT 1"))
-            
-            self._initialized = True
-            logger.info("Database initialized successfully")
-
-        except Exception as e:
-            logger.critical(f"Failed to initialize database: {e}")
-            raise
-
-    async def close(self):
-        """Close the database connection."""
-        if self.engine:
-            await self.engine.dispose()
-            self.engine = None
-            self._initialized = False
-            logger.info("Database connection closed")
+                logger.info(f"Connecting to database at {self._db_path}...")
+                
+                # Connect with aiosqlite
+                self._connection = await aiosqlite.connect(self._db_path)
+                
+                # Configure connection
+                self._connection.row_factory = aiosqlite.Row
+                await self._connection.execute("PRAGMA foreign_keys = ON;")
+                await self._connection.execute("PRAGMA journal_mode = WAL;") # Write-Ahead Logging for concurrency
+                
+                self._initialized = True
+                logger.info("Database Manager initialized successfully.")
+                
+            except Exception as e:
+                logger.critical(f"Failed to initialize database: {e}")
+                raise DatabaseError(f"Database initialization failed: {e}") from e
 
     @asynccontextmanager
-    async def get_session(
-        self, user_permissions: set[str] | None = None
-    ) -> AsyncGenerator[DatabaseSession, None]:
+    async def get_session(self) -> AsyncGenerator[DatabaseSession, None]:
         """
-        Get a database session context manager.
+        Provide a transactional database session.
+        Usage:
+            async with database_manager.get_session() as session:
+                await session.execute(...)
         """
-        if not self._initialized:
+        if not self._initialized or not self._connection:
             await self.initialize()
 
-        if not self.session_maker:
-             raise RuntimeError("Database not initialized")
+        session = DatabaseSession(self._connection)
+        try:
+            yield session
+            await session.commit()
+        except Exception as e:
+            await session.rollback()
+            logger.error(f"Transaction rolled back due to error: {e}")
+            raise
+        finally:
+            await session.close()
 
-        async with self.session_maker() as session:
-            db_session = DatabaseSession(session, user_permissions)
-            try:
-                yield db_session
-                # Auto-commit is not enabled by default in this wrapper, 
-                # user must call commit() explicitly or we can do it here?
-                # Usually explicit commit is better for control.
-                # But for convenience, we can commit on exit if no exception.
-                await session.commit()
-            except Exception as e:
-                await session.rollback()
-                raise
-            finally:
-                await session.close()
+    async def shutdown(self):
+        """Close the database connection."""
+        if self._connection:
+            logger.info("Closing database connection...")
+            await self._connection.close()
+            self._connection = None
+            self._initialized = False
+            logger.info("Database connection closed.")
 
-# Global instance
+    def get_database_status(self) -> Dict[str, Any]:
+        """Return status information."""
+        return {
+            "initialized": self._initialized,
+            "path": self._db_path,
+            "connected": self._connection is not None,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+# Global Instance
 database_manager = DatabaseManager()

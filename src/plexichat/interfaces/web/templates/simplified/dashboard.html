@@ -306,16 +306,16 @@
         <!-- Quick Actions -->
         <div class="actions">
             <button class="btn btn-primary" onclick="toggleServer()">
-                <span id="server-action">🛑 Stop Server</span>
+                <span id="server-action"> Stop Server</span>
             </button>
             <a href="/admin" class="btn btn-secondary">
-                ⚙️ Admin Panel
+                 Admin Panel
             </a>
             <a href="/docs" class="btn btn-secondary">
-                📚 Documentation
+                 Documentation
             </a>
             <button class="btn btn-secondary" onclick="runTests()">
-                🧪 Run Tests
+                 Run Tests
             </button>
         </div>
 
@@ -418,12 +418,12 @@
             const status = document.getElementById('server-status');
             
             if (serverRunning) {
-                button.textContent = '🚀 Start Server';
+                button.textContent = ' Start Server';
                 status.textContent = 'Stopped';
                 status.className = 'metric-value danger';
                 addLogEntry('Server stopped', 'warning');
             } else {
-                button.textContent = '🛑 Stop Server';
+                button.textContent = ' Stop Server';
                 status.textContent = 'Running';
                 status.className = 'metric-value success';
                 addLogEntry('Server started', 'success');

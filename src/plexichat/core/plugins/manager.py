@@ -67,7 +67,7 @@ except ImportError:
 
 
 try:
-    from src.plexichat.core.unified_config import (
+    from src.plexichat.core.config import (
         get_max_plugin_memory,
         get_plugin_sandbox_enabled,
         get_plugin_timeout,

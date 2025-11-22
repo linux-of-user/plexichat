@@ -23,14 +23,14 @@ try:
     from plexichat.core.database.manager import database_manager, get_session
     from plexichat.core.middleware.rate_limiting import get_rate_limiter
     from plexichat.core.security.security_context import SecurityContext, SecurityLevel
-    from plexichat.core.security.security_manager import get_security_system
+    from plexichat.core.security.security_manager import get_security_module
 except ImportError:
     # Fallback for standalone execution
     database_manager = None
     get_session = None
     get_config_manager = None
     get_config = lambda x: None
-    get_security_system = None
+    get_security_module = None
     get_rate_limiter = None
     SecurityContext = None
     SecurityLevel = None
@@ -303,8 +303,8 @@ def security_required(security_level=None):
             # Extract security context from kwargs if provided
             security_context = kwargs.get("security_context")
 
-            if self.security_config.require_authentication and get_security_system:
-                security_system = get_security_system()
+            if self.security_config.require_authentication and get_security_module:
+                security_system = get_security_module()
 
                 if not security_context:
                     await self.audit_logger.log_operation(

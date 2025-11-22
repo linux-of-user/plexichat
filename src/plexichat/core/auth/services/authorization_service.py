@@ -8,16 +8,14 @@ from plexichat.core.auth.models.permission import Permission
 from plexichat.core.auth.models.role import Role
 
 
-def get_security_system():
-    """Get security system instance."""
-    return None
+from plexichat.core.security.security_manager import get_security_module
 
 
 class AuthorizationService:
     """Service for handling authorization logic."""
 
     def __init__(self):
-        self.security_system = None
+        self.security_system = get_security_module()
 
     def check_permission(self, user_id: str, permission: Permission) -> bool:
         """Check if user has permission."""

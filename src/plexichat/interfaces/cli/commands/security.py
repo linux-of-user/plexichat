@@ -8,7 +8,7 @@ import json
 import logging
 from typing import Any
 
-# Use the unified authentication manager and Role enum
+# Use the authentication manager and Role enum
 from plexichat.core.authentication import Role, get_auth_manager
 from plexichat.core.middleware.rate_limiting import (
     ComprehensiveRateLimiter,
@@ -28,7 +28,8 @@ try:
         PermissionStatus,
         PermissionType,
         SecurityPolicy,
-        get_security_manager,
+        SecurityPolicy,
+        get_security_module,
         plugin_security_manager,
     )
 except Exception:
@@ -36,7 +37,7 @@ except Exception:
     PermissionType = None
     SecurityPolicy = None
     PermissionStatus = None
-    get_security_manager = None
+    get_security_module = None
 
 try:
     from plexichat.core.security.key_vault import key_vault
@@ -51,7 +52,7 @@ class SecurityCLI:
 
     def __init__(self):
         self.rate_limiter = ComprehensiveRateLimiter()
-        # Use unified auth manager for permission and role operations
+        # Use auth manager for permission and role operations
         self.auth_manager = get_auth_manager()
         self.ddos = get_ddos_protection() if get_ddos_protection else None
         self.plugin_sec = plugin_security_manager if plugin_security_manager else None
@@ -688,7 +689,7 @@ class SecurityCLI:
 
     # Permission Management Commands (updated to use unified auth manager)
     async def list_roles(self) -> None:
-        """List all roles using the unified auth manager."""
+        """List all roles using the auth manager."""
         self.print_colored(" User Roles", "cyan")
         self.print_colored("=" * 50, "cyan")
 
@@ -698,7 +699,7 @@ class SecurityCLI:
             return
 
         # Convert Role enum -> permission sets
-        # Present a simple summary since unified manager doesn't carry rich metadata
+        # Present a simple summary since manager doesn't carry rich metadata
         sorted_roles = sorted(roles_mapping.items(), key=lambda r: r[0].value)
         for role_enum, perms in sorted_roles:
             system_badge = (
@@ -720,7 +721,7 @@ class SecurityCLI:
                 )
 
     async def show_role(self, role_name: str) -> None:
-        """Show detailed information about a role from the unified auth manager."""
+        """Show detailed information about a role from the auth manager."""
         # Try to resolve role_name to Role enum by value or member name
         role_enum = None
         try:
@@ -750,7 +751,7 @@ class SecurityCLI:
         This operation is not available; instruct the operator accordingly.
         """
         self.print_colored(
-            "Creating custom roles is not supported via the unified auth manager CLI.",
+            "Creating custom roles is not supported via the auth manager CLI.",
             "red",
         )
         self.print_colored(
@@ -765,7 +766,7 @@ class SecurityCLI:
         Instead, you can remove permissions from a role via update_user_permissions or update the code/config.
         """
         self.print_colored(
-            "Deleting roles is not supported via the unified auth manager CLI.", "red"
+            "Deleting roles is not supported via the auth manager CLI.", "red"
         )
         self.print_colored(
             "Remove or change role definitions in code/config and restart the service.",
@@ -779,7 +780,7 @@ class SecurityCLI:
         scope: str = "global",
         scope_id: str | None = None,
     ) -> None:
-        """Assign a role to a user using unified auth manager."""
+        """Assign a role to a user using auth manager."""
         # Resolve role_name to Role enum
         role_enum = None
         try:

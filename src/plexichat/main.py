@@ -43,7 +43,7 @@ _basic_logger = logging.getLogger(__name__)
 
 # Initialize variables
 database_manager = None
-UnifiedAuthManager = None
+AuthManager = None
 
 # Try to import core modules with fallbacks
 try:
@@ -55,19 +55,19 @@ except ImportError as e:
 
 # Try to import authentication class for type/reference (not initializing yet)
 try:
-    from src.plexichat.core.authentication import UnifiedAuthManager  # type: ignore
+    from src.plexichat.core.auth import AuthenticationService as AuthManager  # type: ignore
     _basic_logger.info("Auth manager class imported successfully")
 except Exception as e:
     # Not fatal here; we'll initialize the auth manager during startup
     _basic_logger.warning(f"Auth manager class not available: {e}")
-    UnifiedAuthManager = None
+    AuthManager = None
 
-# Import unified logging system
+# Import centralized logging system
 from src.plexichat.core.logging import get_logger, get_logging_manager
 
-# Use unified logger for the module
+# Use centralized logger for the module
 logger = get_logger('plexichat.main')
-logger.info("Unified logging system initialized (pre-config)")
+logger.info("Logging system initialized (pre-config)")
 
 # Load configuration system (required)
 from src.plexichat.core.config import get_config
@@ -78,7 +78,7 @@ from src.plexichat.core.plugins.manager import plugin_manager
 # Initialize config
 config = get_config()
 
-# Apply unified logging configuration now that config is available
+# Apply centralized logging configuration now that config is available
 try:
     from src.plexichat.core.logging import setup_module_logging
     
@@ -88,14 +88,14 @@ try:
     
     # Update logger reference to ensure we have the configured logger
     logger = get_logger('plexichat.main')
-    logger.info("Unified logging configured with application config")
+    logger.info("Logging configured with application config")
 except Exception as e:
-    logger.warning(f"Failed to apply unified logging configuration: {e}")
+    logger.warning(f"Failed to apply logging configuration: {e}")
 
-# Get production mode from unified config
+# Get production mode from config
 production_mode = getattr(getattr(config, "system", None), "environment", None) == "production"
 
-logger.info(f"[CONFIG] Unified configuration loaded - Environment: {getattr(getattr(config, 'system', None), 'environment', 'unknown')}")
+logger.info(f"[CONFIG] Configuration loaded - Environment: {getattr(getattr(config, 'system', None), 'environment', 'unknown')}")
 logger.info(f"[CONFIG] Production mode: {production_mode}")
 try:
     logger.info(f"[CONFIG] CORS origins: {config.network.cors_origins}")
@@ -122,10 +122,16 @@ async def lifespan(app: FastAPI):
     app.state.security_validated = False
     app.state.auth_cache_initialized = False
     app.state.auth_manager = None
-
+    
+    # Initialize system coordinator
+    from src.plexichat.core.coordinator import system_coordinator
+    
     # Startup
     try:
         overall_start = time.perf_counter()
+        
+        # Initialize the unified system coordinator
+        await system_coordinator.initialize_system()
 
         # Initialize configuration system
         try:
@@ -175,13 +181,13 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning(f"[SDK] Could not run SDK regeneration check: {e}")
 
-        # Initialize cache system using unified config
+        # Initialize cache system using config
         try:
-            from src.plexichat.core.caching.unified_cache_integration import UnifiedCacheIntegration
+            from src.plexichat.core.cache.manager import secure_cache
 
             cache_start = time.perf_counter()
 
-            # Get cache configuration from unified config
+            # Get cache configuration from config
             cache_config = {
                 "enabled": getattr(getattr(config, "caching", None), "enabled", False),
                 "l1_max_size": getattr(getattr(config, "caching", None), "l1_max_items", None),
@@ -207,8 +213,8 @@ async def lifespan(app: FastAPI):
             }
 
             if cache_config.get("enabled"):
-                cache_integration = UnifiedCacheIntegration()
-                await cache_integration.initialize(cache_config)
+                # secure_cache is already initialized globally, but we can re-configure/init if needed
+                await secure_cache._initialize_cache()
                 cache_end = time.perf_counter()
                 cache_duration = (cache_end - cache_start) * 1000.0
                 app.state.performance_metrics.append({"operation": "cache_init", "duration_ms": cache_duration})
@@ -235,8 +241,8 @@ async def lifespan(app: FastAPI):
 
         # Validate security system components early during startup
         try:
-            from src.plexichat.core.security.security_manager import get_security_system
-            ss = get_security_system()
+            from src.plexichat.core.security.security_manager import get_security_module
+            ss = get_security_module()
             # Basic validation of security system capabilities
             required_methods = [
                 "validate_file_upload",
@@ -259,9 +265,9 @@ async def lifespan(app: FastAPI):
             logger.warning(f"[SECURITY] Could not validate security system: {e}")
             app.state.security_validated = False
 
-        # Initialize UnifiedAuthManager (ensure authentication initialized and attached to app state)
+        # Initialize AuthManager (ensure authentication initialized and attached to app state)
         try:
-            from src.plexichat.core.authentication import initialize_auth_manager, get_auth_manager
+            from src.plexichat.core.auth import initialize_auth_manager, get_auth_manager
             auth_start = time.perf_counter()
             
             # Try to initialize the auth manager with proper error handling
@@ -299,16 +305,16 @@ async def lifespan(app: FastAPI):
                 auth_end = time.perf_counter()
                 auth_duration = (auth_end - auth_start) * 1000.0
                 app.state.performance_metrics.append({"operation": "auth_manager_init", "duration_ms": auth_duration})
-                logger.info(f"[AUTH] UnifiedAuthManager initialized successfully ({auth_duration:.1f}ms)")
+                logger.info(f"[AUTH] AuthManager initialized successfully ({auth_duration:.1f}ms)")
             else:
-                logger.error("[AUTH] Failed to initialize UnifiedAuthManager - auth_manager is None")
+                logger.error("[AUTH] Failed to initialize AuthManager - auth_manager is None")
                 app.state.auth_manager = None
                 
         except ImportError as e:
             logger.error(f"[AUTH] Authentication module not available: {e}")
             app.state.auth_manager = None
         except Exception as e:
-            logger.error(f"[AUTH] Failed to initialize UnifiedAuthManager: {e}")
+            logger.error(f"[AUTH] Failed to initialize AuthManager: {e}")
             app.state.auth_manager = None
 
         # Initialize authentication cache system to speed up token verification
@@ -330,7 +336,7 @@ async def lifespan(app: FastAPI):
                         ac = get_auth_cache()
                         if ac:
                             app.state.auth_manager.auth_cache = ac  # type: ignore
-                            logger.info("[AUTH] Attached auth cache to UnifiedAuthManager")
+                            logger.info("[AUTH] Attached auth cache to AuthManager")
                     except Exception:
                         # Non-fatal: continue
                         pass
@@ -344,7 +350,7 @@ async def lifespan(app: FastAPI):
             from src.plexichat.core.notifications.email_service import EmailConfig, initialize_email_service
             email_start = time.perf_counter()
 
-            # Get email configuration from unified config
+            # Get email configuration from config
             email_config_data = getattr(getattr(config, "notifications", None), "email", None)
             if email_config_data:
                 email_config = EmailConfig(
@@ -392,7 +398,7 @@ async def lifespan(app: FastAPI):
                     logger.error(f"[PLUGINS] Could not regenerate plugins_internal: {regen_e}")
             
             # Initialize the plugin manager
-            await unified_plugin_manager.initialize()
+            await plugin_manager.initialize()
             
             plugin_end = time.perf_counter()
             plugin_duration = (plugin_end - plugin_start) * 1000.0
@@ -549,7 +555,7 @@ async def lifespan(app: FastAPI):
 
                         # Plugin manager health
                         try:
-                            from src.plexichat.core.plugins.manager import unified_plugin_manager as pm
+                            from src.plexichat.core.plugins.manager import plugin_manager as pm
                             
                             # More robust health check from the now-deleted check_plugin_health function
                             if not hasattr(pm, 'loaded_plugins') or len(pm.loaded_plugins) == 0:
@@ -648,8 +654,7 @@ async def lifespan(app: FastAPI):
     try:
         # Shutdown cache system
         try:
-            from src.plexichat.core.performance.multi_tier_cache_manager import get_cache_manager
-            cache_manager = get_cache_manager()
+            from plexichat.core.cache.manager import cache_manager
             if hasattr(cache_manager, 'shutdown'):
                 await cache_manager.shutdown()
             logger.info("[CACHE] Cache system shutdown completed")
@@ -683,76 +688,22 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning(f"[WEBSOCKET] Error stopping WebSocket cleanup task: {e}")
 
-        # Shutdown UnifiedAuthManager properly
+        # Shutdown AuthManager properly
+        # Unified System Shutdown
         try:
-            from src.plexichat.core.authentication import shutdown_auth_manager
-            # Attempt to shut down global auth manager instance if present
-            if app.state.auth_manager:
-                try:
-                    result = await shutdown_auth_manager()
-                    logger.info("[AUTH] UnifiedAuthManager shut down successfully")
-                except TypeError:
-                    # fallback if shutdown_auth_manager is synchronous
-                    try:
-                        result = shutdown_auth_manager()
-                        logger.info("[AUTH] UnifiedAuthManager shut down (sync fallback)")
-                    except Exception as sync_e:
-                        logger.warning(f"[AUTH] Sync shutdown failed: {sync_e}")
-                except Exception as async_e:
-                    logger.warning(f"[AUTH] Async shutdown failed: {async_e}")
-                    # Try sync shutdown as fallback
-                    try:
-                        _ = shutdown_auth_manager()
-                        logger.info("[AUTH] UnifiedAuthManager shut down (sync fallback after async failure)")
-                    except Exception as sync_fallback_e:
-        
-                        logger.warning(f"[AUTH] Both async and sync shutdown failed: {sync_fallback_e}")
-            else:
-                logger.debug("[AUTH] No auth manager to shut down")
-        except ImportError as e:
-            logger.debug(f"[AUTH] Auth manager shutdown not available: {e}")
+            logger.info("[SHUTDOWN] Initiating unified system shutdown...")
+            await system_coordinator.shutdown_system()
+            logger.info("[SHUTDOWN] System shutdown complete")
         except Exception as e:
-            logger.warning(f"[AUTH] Error shutting down UnifiedAuthManager: {e}")
+            logger.error(f"[SHUTDOWN] Error during system shutdown: {e}")
 
-        # Shutdown other services
-        # Stop microsecond optimizer
-        try:
-            from src.plexichat.core.performance.microsecond_optimizer import stop_microsecond_optimization
-            await stop_microsecond_optimization()
-            logger.info("[SHUTDOWN] Microsecond optimization stopped")
-        except ImportError:
-            pass
-        except Exception as e:
-            logger.warning(f"[PERF] Error stopping microsecond optimizer: {e}")
-
-        # Shutdown plugin manager
-        try:
-            if hasattr(unified_plugin_manager, 'shutdown'):
-                await unified_plugin_manager.shutdown()
-                logger.info("[PLUGINS] Plugin manager shut down")
-        except Exception as e:
-            logger.warning(f"[PLUGINS] Error shutting down plugin manager: {e}")
-
-        # Cleanup resources
-        if database_manager:
-            logger.info("[DB] Closing database connections...")
-            try:
-                if hasattr(database_manager, 'cleanup'):
-                    await database_manager.cleanup()
-                    logger.info("[DB] Database cleanup completed")
-                else:
-                    logger.info("[DB] Database manager does not have cleanup method")
-            except Exception as e:
-                logger.warning(f"[DB] Error during database cleanup: {e}")
-
-        # Ensure logs flushed for unified logging manager if available
+        # Ensure logs flushed
         try:
             logging_manager = get_logger()
             if hasattr(logging_manager, 'flush_logs'):
                 logging_manager.flush_logs()
-                logger.info("[LOGS] Flushed logs via unified logging manager")
-        except Exception as e:
-            logger.debug(f"[LOGS] Could not flush logs: {e}")
+        except Exception:
+            pass
 
         logger.info("[CHECK] PlexiChat application shutdown complete")
     except Exception as e:
@@ -829,8 +780,8 @@ async def security_middleware(request, call_next):
 
     # Enforce additional security checks via security system if validated
     try:
-        from src.plexichat.core.security.security_manager import get_security_system
-        ss = get_security_system()
+        from src.plexichat.core.security.security_manager import get_security_module
+        ss = get_security_module()
         if ss and hasattr(ss, "inspect_request"):
             # allow security manager to short-circuit requests (e.g., block malicious payloads)
             inspect_result = ss.inspect_request(request)

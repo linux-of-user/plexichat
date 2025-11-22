@@ -7,7 +7,7 @@ from fastapi.templating import Jinja2Templates
 
 logger = logging.getLogger(__name__)
 
-from plexichat.core.plugins.manager import unified_plugin_manager
+from plexichat.core.plugins.manager import plugin_manager
 
 
 def setup_routers(app: FastAPI):
@@ -41,7 +41,7 @@ def setup_routers(app: FastAPI):
     # --- Plugin Routers ---
     logger.info("Loading plugin routers...")
     try:
-        plugin_routers = unified_plugin_manager.get_all_plugin_routers()
+        plugin_routers = plugin_manager.get_all_plugin_routers()
         if not plugin_routers:
             logger.info("No plugin routers found to load.")
         else:

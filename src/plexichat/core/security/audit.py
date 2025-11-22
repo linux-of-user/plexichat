@@ -24,14 +24,9 @@ from plexichat.core.config import get_config
 from plexichat.core.logging import get_logger
 
 """
-PlexiChat Unified Audit System - SINGLE SOURCE OF TRUTH
+PlexiChat Audit System
 
-CONSOLIDATED from multiple audit and monitoring systems:
-- core_system/logging/security_logger.py - INTEGRATED
-- features/blockchain/audit_trails.py - INTEGRATED
-- features/security/distributed_monitoring.py - INTEGRATED
-
-Features:
+Consolidated audit logging and monitoring functionality:
 - Immutable blockchain-based audit trails
 - Tamper-resistant security logging
 - Real-time distributed monitoring
@@ -487,9 +482,9 @@ class AuditBlockchain:
         }
 
 
-class UnifiedAuditSystem:
+class AuditSystem:
     """
-    Unified Audit System - Single Source of Truth
+    Audit System
 
     Consolidates all audit logging and monitoring functionality with
     immutable blockchain-based trails and comprehensive security monitoring.
@@ -499,14 +494,14 @@ class UnifiedAuditSystem:
         if config is not None:
             raw_config: Any = config
         else:
-            # Try to get audit config from unified config system
+            # Try to get audit config from config system
             try:
-                unified_config = get_config()
+                system_config = get_config()
                 # Access audit config through attribute access
-                audit_config = getattr(unified_config, "audit", {})
+                audit_config = getattr(system_config, "audit", {})
                 raw_config: Any = audit_config if isinstance(audit_config, dict) else {}
             except (AttributeError, TypeError):
-                # Fallback to empty config if unified config is not available
+                # Fallback to empty config if config is not available
                 raw_config: Any = {}
         self.config: dict[str, Any] = raw_config if isinstance(raw_config, dict) else {}
         self.initialized = False
@@ -554,10 +549,10 @@ class UnifiedAuditSystem:
         # Thread safety
         self._lock = threading.RLock()
 
-        logger.info("Unified Audit System initialized")
+        logger.info("Audit System initialized")
 
     async def initialize(self) -> bool:
-        """Initialize the unified audit system."""
+        """Initialize the audit system."""
         try:
             # Start monitoring tasks
             asyncio.create_task(self._monitoring_loop())
@@ -565,11 +560,11 @@ class UnifiedAuditSystem:
             asyncio.create_task(self._metrics_collection_loop())
 
             self.initialized = True
-            logger.info("Unified Audit System initialized successfully")
+            logger.info("Audit System initialized successfully")
             return True
 
         except Exception as e:
-            logger.error(f"Unified Audit System initialization failed: {e}")
+            logger.error(f"Audit System initialization failed: {e}")
             return False
 
     def log_security_event(
@@ -588,7 +583,7 @@ class UnifiedAuditSystem:
         correlation_id: str | None = None,
         compliance_tags: list[str] | None = None,
     ) -> str:
-        """Log a security event to the unified audit system."""
+        """Log a security event to the audit system."""
 
         event_id = str(uuid.uuid4())
 
@@ -901,27 +896,22 @@ class UnifiedAuditSystem:
         }
 
 
-# Global instance - SINGLE SOURCE OF TRUTH
-_unified_audit_system: UnifiedAuditSystem | None = None
+# Global instance
+_audit_system: AuditSystem | None = None
 
 
-def get_unified_audit_system() -> "UnifiedAuditSystem":
-    """Get the global unified audit system instance."""
-    global _unified_audit_system
-    if _unified_audit_system is None:
-        _unified_audit_system = UnifiedAuditSystem()
-    return _unified_audit_system
+def get_audit_system() -> "AuditSystem":
+    """Get the global audit system instance."""
+    global _audit_system
+    if _audit_system is None:
+        _audit_system = AuditSystem()
+    return _audit_system
 
 
 # Export main components
 __all__ = [
-    "AuditBlock",
-    "AuditBlockchain",
-    "SecurityEvent",
-    "SecurityEventType",
-    "SecuritySeverity",
     "TamperResistantLogger",
     "ThreatLevel",
-    "UnifiedAuditSystem",
-    "get_unified_audit_system",
+    "AuditSystem",
+    "get_audit_system",
 ]

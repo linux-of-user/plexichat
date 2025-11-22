@@ -15,7 +15,7 @@ from typing import Any
 
 from plexichat.core.cache import CacheLevel, QuantumSecureCache, secure_cache
 from plexichat.core.security.security_manager import (
-    get_security_system,
+    get_security_module,
 )
 
 logger = logging.getLogger(__name__)
@@ -106,7 +106,7 @@ class AuthenticationCache:
     ):  # 15 minutes
 
         self.cache = cache_instance or secure_cache
-        self.security_system = get_security_system()
+        self.security_system = get_security_module()
 
         # Cache TTL settings
         self.default_token_cache_ttl = default_token_cache_ttl

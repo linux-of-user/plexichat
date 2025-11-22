@@ -21,8 +21,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 """
-Unified CLI Default Interface for PlexiChat
-===========================================
+CLI Default Interface for PlexiChat
+===================================
 
 Default CLI interface that runs without subcommands.
 Provides 300+ commands in a unified interface that works
@@ -30,8 +30,8 @@ in both terminal and web UI with identical functionality.
 """
 
 
-class UnifiedCLIDefault:
-    """Unified CLI that runs as the default interface."""
+class CLIDefault:
+    """CLI that runs as the default interface."""
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
@@ -431,7 +431,7 @@ class UnifiedCLIDefault:
         @click.option("--quiet", "-q", is_flag=True, help="Suppress output")
         @click.pass_context
         def cli(ctx, verbose: bool, json: bool, quiet: bool):
-            """PlexiChat Unified CLI System - 300+ Commands (Default Interface)"""
+            """PlexiChat CLI System - 300+ Commands (Default Interface)"""
             ctx.ensure_object(dict)
             ctx.obj["verbose"] = verbose
             ctx.obj["json"] = json
@@ -447,7 +447,7 @@ class UnifiedCLIDefault:
 
     def run_interactive_mode(self, ctx):
         """Run interactive CLI mode."""
-        print("=== PlexiChat Unified CLI - Interactive Mode ===")
+        print("=== PlexiChat CLI - Interactive Mode ===")
         print(f"Available commands: {len(self.commands)}")
         print("Type 'help' for command list, 'quit' to exit")
         print()
@@ -582,7 +582,7 @@ class UnifiedCLIDefault:
 
 def main():
     """Main entry point."""
-    cli = UnifiedCLIDefault()
+    cli = CLIDefault()
 
     if len(sys.argv) > 1 and sys.argv[1] == "--web":
         cli.run_web()

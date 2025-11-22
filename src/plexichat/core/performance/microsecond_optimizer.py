@@ -40,10 +40,8 @@ from typing import Any
 
 # Security integration
 try:
-    from plexichat.core.security.comprehensive_security_manager import (
-        get_security_manager,
-    )
-    from plexichat.core.security.security_manager import get_unified_security_system
+    from plexichat.core.security.security_manager import get_security_module
+    from plexichat.core.security.security_manager import get_security_module
 
     SECURITY_AVAILABLE = True
 except ImportError:
@@ -51,7 +49,7 @@ except ImportError:
 
 # Cache integration
 try:
-    from plexichat.core.performance.multi_tier_cache_manager import get_cache_manager
+    from plexichat.core.cache.manager import cache_manager
 
     CACHE_AVAILABLE = True
 except ImportError:
@@ -69,7 +67,7 @@ except ImportError:
 
 # Messaging integration
 try:
-    from plexichat.core.messaging.unified_messaging_system import get_messaging_system
+    from plexichat.core.messaging.system import get_messaging_system
 
     MESSAGING_AVAILABLE = True
 except ImportError:
@@ -405,24 +403,22 @@ class AdvancedMicrosecondOptimizer:
             # Initialize system integrations
             if SECURITY_AVAILABLE:
                 try:
-                    from plexichat.core.security.comprehensive_security_manager import (
-                        get_security_manager,
+                    from plexichat.core.security.security_manager import (
+                        get_security_module,
                     )
                     from plexichat.core.security.security_manager import (
                         get_unified_security_system,
                     )
 
-                    self.security_system = get_unified_security_system()
+                    self.security_system = get_security_module()
                 except ImportError:
                     pass
 
             if CACHE_AVAILABLE:
                 try:
-                    from plexichat.core.performance.multi_tier_cache_manager import (
-                        get_cache_manager,
-                    )
+                    from plexichat.core.cache.manager import cache_manager
 
-                    self.cache_manager = get_cache_manager()
+                    self.cache_manager = cache_manager
                 except ImportError:
                     pass
 
@@ -438,7 +434,7 @@ class AdvancedMicrosecondOptimizer:
 
             if MESSAGING_AVAILABLE:
                 try:
-                    from plexichat.core.messaging.unified_messaging_system import (
+                    from plexichat.core.messaging.system import (
                         get_messaging_system,
                     )
 

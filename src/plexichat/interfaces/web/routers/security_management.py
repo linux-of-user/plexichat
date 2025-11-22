@@ -40,7 +40,7 @@ try:
         QuantumEncryptionManager,
         get_quantum_manager,
     )
-    from plexichat.core.security.security_manager import get_security_manager
+    from plexichat.core.security.security_manager import get_security_module
 except ImportError as e:
     logging.warning(f"Security module imports failed: {e}")
     # Fallback for development
@@ -48,7 +48,7 @@ except ImportError as e:
     get_quantum_manager = None
     DynamicRateLimitingMiddleware = None
     get_config_manager = None
-    get_security_manager = None
+    get_security_module = None
 
 logger = logging.getLogger(__name__)
 

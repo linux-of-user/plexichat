@@ -16,7 +16,7 @@ except ImportError:
     Console = Table = Panel = None
 
 # Mock imports for dependencies that might not be installed
-unified_plugin_manager = None
+plugin_manager = None
 database_manager = None
 thread_manager = None
 message_processor = None

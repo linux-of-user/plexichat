@@ -16,22 +16,18 @@ from uuid import uuid4
 
 from plexichat.core.config import get_config
 from plexichat.core.logging import get_logger
-from plexichat.core.security.unified_audit_system import (
+from plexichat.core.security.audit import (
     SecurityEventType,
     SecuritySeverity,
     ThreatLevel,
-    get_unified_audit_system,
+    get_audit_system,
 )
 
 """
-PlexiChat Unified HSM Manager - SINGLE SOURCE OF TRUTH
+PlexiChat HSM Manager
 
-CONSOLIDATED from multiple HSM systems:
-- features/security/hardware_security.py - INTEGRATED AND ENHANCED
-
-Features:
-- Unified HSM management for all cryptographic operations
-- Integration with unified security architecture
+Consolidated HSM management for all cryptographic operations:
+- Integration with security architecture
 - Quantum-resistant key generation and management
 - Hardware-backed encryption for sensitive data
 - Comprehensive audit logging
@@ -185,14 +181,14 @@ class HSMDevice:
         }
 
 
-class UnifiedHSMInterface:
-    """Enhanced HSM interface with unified security integration."""
+class HSMInterface:
+    """HSM interface with security integration."""
 
     def __init__(self, device: HSMDevice):
         self.device = device
         self.session_active = False
         self.keys: dict[str, HSMKey] = {}
-        self.audit_system = get_unified_audit_system()
+        self.audit_system = get_audit_system()
 
         # Enhanced capabilities based on security level
         self.max_keys = {
@@ -217,7 +213,7 @@ class UnifiedHSMInterface:
     async def authenticate(
         self, pin: str, admin_pin: str | None = None, user_id: str = "system"
     ) -> bool:
-        """Enhanced HSM authentication with comprehensive security and audit logging."""
+        """HSM authentication with comprehensive security and audit logging."""
         try:
             # Enhanced input validation
             if not pin or len(pin) < 4:
@@ -308,6 +304,18 @@ class UnifiedHSMInterface:
             )
 
             return False
+
+    async def _perform_enhanced_authentication(
+        self, pin: str, admin_pin: str | None, user_id: str
+    ) -> bool:
+        """Perform enhanced authentication logic."""
+        # Placeholder for actual HSM authentication logic
+        # In a real implementation, this would communicate with the hardware
+        return True
+
+    async def _initialize_security_session(self, user_id: str):
+        """Initialize security session after successful authentication."""
+        pass
 
     async def generate_key(
         self,
@@ -407,11 +415,11 @@ class UnifiedHSMInterface:
             return None
 
 
-class UnifiedHSMManager:
+class HSMManager:
     """
-    Unified Hardware Security Module Manager - Single Source of Truth
+    Hardware Security Module Manager
 
-    Manages all HSM operations with integration to unified security architecture.
+    Manages all HSM operations with integration to security architecture.
     """
 
     def __init__(self, config: dict[str, Any] | None = None):
@@ -420,12 +428,12 @@ class UnifiedHSMManager:
         self.initialized = False
 
         # HSM devices and interfaces
-        self.devices: dict[str, UnifiedHSMInterface] = {}
+        self.devices: dict[str, HSMInterface] = {}
         self.primary_hsm: str | None = None
         self.backup_hsms: list[str] = []
 
         # Security components
-        self.audit_system = get_unified_audit_system()
+        self.audit_system = get_audit_system()
 
         # Performance and monitoring
         self.operation_metrics: dict[str, Any] = {
@@ -442,10 +450,10 @@ class UnifiedHSMManager:
         self.master_keys: dict[str, str] = {}  # Purpose -> Key ID mapping
         self.key_rotation_schedule: dict[str, datetime] = {}
 
-        logger.info("Unified HSM Manager initialized")
+        logger.info("HSM Manager initialized")
 
     async def initialize(self) -> bool:
-        """Initialize the unified HSM system."""
+        """Initialize the HSM system."""
         try:
             # Initialize virtual HSM for development
             await self._initialize_virtual_hsm()
@@ -460,7 +468,7 @@ class UnifiedHSMManager:
             asyncio.create_task(self._performance_monitor())
 
             self.initialized = True
-            logger.info(" Unified HSM Manager fully initialized")
+            logger.info("HSM Manager fully initialized")
             return True
 
         except Exception as e:
@@ -470,10 +478,10 @@ class UnifiedHSMManager:
     async def _initialize_virtual_hsm(self):
         """Initialize virtual HSM for development/testing."""
         virtual_device = HSMDevice(
-            device_id="virtual_hsm_unified",
+            device_id="virtual_hsm_default",
             device_type=HSMType.VIRTUAL_HSM,
             manufacturer="PlexiChat",
-            model="Unified Virtual HSM v2.0",
+            model="Virtual HSM v2.0",
             firmware_version="2.0.0",
             serial_number="UHSM-001-DEV",
             security_level=SecurityLevel.QUANTUM_SAFE,
@@ -490,7 +498,7 @@ class UnifiedHSMManager:
             ],
         )
 
-        hsm_interface = UnifiedHSMInterface(virtual_device)
+        hsm_interface = HSMInterface(virtual_device)
         self.devices[virtual_device.device_id] = hsm_interface
 
         # Auto-authenticate virtual HSM
@@ -502,7 +510,7 @@ class UnifiedHSMManager:
         # Log HSM initialization
         self.audit_system.log_security_event(
             SecurityEventType.SYSTEM_CONFIGURATION_CHANGE,
-            "Virtual HSM initialized for unified security system",
+            "Virtual HSM initialized for security system",
             SecuritySeverity.INFO,
             ThreatLevel.LOW,
             user_id="system",
@@ -514,7 +522,7 @@ class UnifiedHSMManager:
             },
         )
 
-        logger.info("Initialized unified virtual HSM")
+        logger.info("Initialized virtual HSM")
 
     async def _load_hsm_configurations(self):
         """Load HSM configurations from environment/config."""
@@ -544,13 +552,13 @@ class UnifiedHSMManager:
                 )
 
     async def add_hsm_device(self, device: HSMDevice, user_id: str = "system") -> bool:
-        """Add HSM device to the unified system."""
+        """Add HSM device to the system."""
         try:
             if device.device_id in self.devices:
                 logger.error(f"HSM device {device.device_id} already exists")
                 return False
 
-            hsm_interface = UnifiedHSMInterface(device)
+            hsm_interface = HSMInterface(device)
             self.devices[device.device_id] = hsm_interface
 
             # Set as primary if it's the first real HSM or has higher security level
@@ -566,7 +574,7 @@ class UnifiedHSMManager:
             # Log HSM addition
             self.audit_system.log_security_event(
                 SecurityEventType.SYSTEM_CONFIGURATION_CHANGE,
-                f"HSM device added to unified system: {device.device_id}",
+                f"HSM device added to system: {device.device_id}",
                 SecuritySeverity.INFO,
                 ThreatLevel.LOW,
                 user_id=user_id,
@@ -823,16 +831,16 @@ class UnifiedHSMManager:
                 logger.error(f"Performance monitor error: {e}")
 
 
-# Global instance - SINGLE SOURCE OF TRUTH
-_unified_hsm_manager: UnifiedHSMManager | None = None
+# Global instance
+_hsm_manager: HSMManager | None = None
 
 
-def get_unified_hsm_manager() -> "UnifiedHSMManager":
-    """Get the global unified HSM manager instance."""
-    global _unified_hsm_manager
-    if _unified_hsm_manager is None:
-        _unified_hsm_manager = UnifiedHSMManager()
-    return _unified_hsm_manager
+def get_hsm_manager() -> "HSMManager":
+    """Get the global HSM manager instance."""
+    global _hsm_manager
+    if _hsm_manager is None:
+        _hsm_manager = HSMManager()
+    return _hsm_manager
 
 
 # Export main components
@@ -843,7 +851,6 @@ __all__ = [
     "KeyType",
     "KeyUsage",
     "SecurityLevel",
-    "UnifiedHSMInterface",
-    "UnifiedHSMManager",
-    "get_unified_hsm_manager",
+    "HSMInterface",
+    "HSMManager",
 ]

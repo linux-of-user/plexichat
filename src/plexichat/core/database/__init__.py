@@ -1,78 +1,57 @@
-"""
-PlexiChat Database Abstraction Layer
+from typing import Any, Dict, Optional, List
+from .config import config
+from .logging import get_logger
+import sqlite3
+import os
 
-Provides a unified interface for database operations across different database types.
-Supports SQLite, PostgreSQL, MySQL, and other databases through a common API.
-"""
+logger = get_logger(__name__)
 
-from typing import TYPE_CHECKING
+class Database:
+    _instance = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(Database, cls).__new__(cls)
+            cls._instance._connect()
+        return cls._instance
 
-from plexichat.core.database.connection import (
-    ConnectionPool,
-    ConnectionProtocol,
-    DatabaseConnection,
-)
-from plexichat.core.database.manager import (
-    DatabaseConfig,
-    DatabaseManager,
-    DatabaseOperation,
-    DatabasePermissionError,
-    DatabaseResourceType,
-    DatabaseSession,
-    DatabaseType,
-    database_manager,
-    execute_query,
-    execute_transaction,
-)
-from plexichat.core.database.migrations import create_migration, run_migrations
-from plexichat.core.database.models import (
-    BaseModel,
-    SchemaDict,
-    create_tables,
-    drop_tables,
-)
-from plexichat.core.database.session import get_session
+    def _connect(self):
+        db_type = config.get("database.type", "sqlite")
+        if db_type == "sqlite":
+            db_path = config.get("database.path", "data/plexichat.db")
+            os.makedirs(os.path.dirname(db_path), exist_ok=True)
+            self.conn = sqlite3.connect(db_path, check_same_thread=False)
+            self.conn.row_factory = sqlite3.Row
+            logger.info(f"Connected to SQLite database at {db_path}")
+        else:
+            logger.error(f"Unsupported database type: {db_type}")
+            raise ValueError(f"Unsupported database type: {db_type}")
 
-if TYPE_CHECKING:
-    from plexichat.core.database.manager import (
-        DatabaseConnection as DatabaseConnectionProtocol,
-    )
+    def execute(self, query: str, params: tuple = ()) -> Any:
+        """
+        Execute a query safely.
+        """
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute(query, params)
+            self.conn.commit()
+            return cursor
+        except Exception as e:
+            logger.error(f"Database error: {e}")
+            self.conn.rollback()
+            raise
 
+    def fetch_one(self, query: str, params: tuple = ()) -> Optional[Dict[str, Any]]:
+        cursor = self.execute(query, params)
+        row = cursor.fetchone()
+        return dict(row) if row else None
 
-# Initialize database system
-async def initialize_database_system() -> None:
-    """Initialize the database system."""
-    await database_manager.initialize()
+    def fetch_all(self, query: str, params: tuple = ()) -> List[Dict[str, Any]]:
+        cursor = self.execute(query, params)
+        return [dict(row) for row in cursor.fetchall()]
 
+    def close(self):
+        if self.conn:
+            self.conn.close()
 
-# Export main components
-__all__ = [
-    # Core manager
-    "database_manager",
-    "DatabaseManager",
-    "DatabaseConfig",
-    "DatabaseType",
-    "DatabaseOperation",
-    "DatabaseResourceType",
-    "DatabasePermissionError",
-    # Session management
-    "get_session",
-    "DatabaseSession",
-    # Operations
-    "execute_query",
-    "execute_transaction",
-    # Models
-    "BaseModel",
-    "SchemaDict",
-    "create_tables",
-    "drop_tables",
-    # Migrations
-    "run_migrations",
-    "create_migration",
-    # Connection
-    "DatabaseConnection",
-    "ConnectionProtocol",
-    "ConnectionPool",
-    # Initialization
-    "initialize_database_system",
-]
+db = Database()

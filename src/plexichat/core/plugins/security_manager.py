@@ -39,7 +39,7 @@ from weakref import WeakSet
 import psutil
 
 # Core imports with fallbacks
-from src.plexichat.core.security.security_manager import get_security_system
+from src.plexichat.core.security.security_manager import get_security_module
 
 try:
     from src.plexichat.core.config_manager import (
@@ -1315,7 +1315,7 @@ class PluginSecurityManager:
         self.logger = get_logger("plugin.security")
         # Reference the core security system for shared sanitization/policies
         try:
-            self._core_security = get_security_system()
+            self._core_security = get_security_module()
         except Exception:
             self._core_security = None
         self._permission_requests: Dict[str, List[PermissionRequest]] = defaultdict(

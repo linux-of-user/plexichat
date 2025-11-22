@@ -19,7 +19,7 @@ import psutil
 from plexichat.core.security.security_manager import (
     SecurityContext,
     SecurityLevel,
-    get_security_system,
+    get_security_module,
 )
 
 # Logging setup
@@ -352,7 +352,7 @@ class NodeManager:
         self.node_info = NodeInfo(config=config)
 
         # Initialize security integration
-        self.security_system = get_security_system()
+        self.security_system = get_security_module()
         self.authenticator = NodeAuthenticator(self.security_system)
 
         # Initialize monitoring and communication

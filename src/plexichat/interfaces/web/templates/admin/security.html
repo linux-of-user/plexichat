@@ -679,8 +679,8 @@ function displaySecurityChecks(checks) {
 
         const iconClass = check.status === 'pass' ? 'pass' :
                          check.status === 'fail' ? 'fail' : 'warning';
-        const iconSymbol = check.status === 'pass' ? '✓' :
-                          check.status === 'fail' ? '✗' : '!';
+        const iconSymbol = check.status === 'pass' ? '' :
+                          check.status === 'fail' ? '' : '!';
 
         checkElement.innerHTML = `
             <div class="security-check-icon ${iconClass}">${iconSymbol}</div>
@@ -996,17 +996,17 @@ async function testHttpsConnection() {
         if (result.success) {
             contentDiv.innerHTML = `
                 <ul class="mb-0">
-                    <li>✅ HTTPS connection successful</li>
-                    <li>✅ Certificate is valid</li>
-                    <li>✅ Encryption: ${result.encryption || 'TLS 1.2+'}</li>
-                    <li>✅ Certificate expires: ${result.expires || 'Unknown'}</li>
+                    <li> HTTPS connection successful</li>
+                    <li> Certificate is valid</li>
+                    <li> Encryption: ${result.encryption || 'TLS 1.2+'}</li>
+                    <li> Certificate expires: ${result.expires || 'Unknown'}</li>
                 </ul>
             `;
             resultsDiv.className = 'alert alert-success';
         } else {
             contentDiv.innerHTML = `
                 <ul class="mb-0">
-                    <li>❌ HTTPS test failed</li>
+                    <li> HTTPS test failed</li>
                     <li>Error: ${result.message}</li>
                 </ul>
             `;

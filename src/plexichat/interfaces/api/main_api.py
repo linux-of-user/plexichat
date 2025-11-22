@@ -59,11 +59,11 @@ try:
 except ImportError:
     notification_manager = None
 
-from plexichat.core.monitoring.unified_monitoring_system import get_analytics_manager
-from plexichat.core.security.comprehensive_security_manager import get_security_manager
+from plexichat.core.monitoring.monitoring_system import get_analytics_manager
+from plexichat.core.security.security_manager import get_security_module
 
 # Get security manager instance
-security_manager = get_security_manager()
+security_manager = get_security_module()
 
 # Get analytics manager instance
 analytics_manager = get_analytics_manager()

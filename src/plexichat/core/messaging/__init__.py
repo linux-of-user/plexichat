@@ -1,129 +1,69 @@
 """
-PlexiChat Core Messaging System - SINGLE SOURCE OF TRUTH
+PlexiChat Core Messaging System
 
-Consolidated messaging functionality with fallback implementations.
+Consolidated messaging functionality.
 """
 
-import asyncio
 import logging
-from typing import Any, Dict, List, Optional
-import warnings
 
-# Use shared fallback implementations
+# Import from the new messaging system
+from plexichat.core.messaging.system import (
+    Channel,
+    ChannelManager,
+    ChannelType,
+    EncryptionLevel,
+    Message,
+    MessageEncryption,
+    MessageMetadata,
+    MessageRouter,
+    MessageStatus,
+    MessageType,
+    MessageValidator,
+    MessagingSystem,
+    Thread,
+    get_messaging_system,
+    initialize_messaging_system,
+    shutdown_messaging_system,
+)
+
 logger = logging.getLogger(__name__)
 
-try:
-    from plexichat.core.utils.fallbacks import (
-        ChannelManager,
-        ChannelSettings,
-        ChannelType,
-        EncryptionLevel,
-        MessageDelivery,
-        MessageEncryption,
-        MessageMetadata,
-        MessageRouter,
-        MessageStatus,
-        MessageType,
-        MessageValidator,
-        UnifiedMessagingManager,
-        create_channel,
-        get_channel_messages,
-        get_fallback_instance,
-        get_message,
-        get_messaging_manager,
-        send_message,
-    )
-
-    USE_SHARED_FALLBACKS = True
-    logger.info("Using shared fallback implementations for messaging")
-except ImportError:
-    # Fallback to local definitions if shared fallbacks unavailable
-    USE_SHARED_FALLBACKS = False
-    logger.warning("Shared fallbacks unavailable, using local implementations")
-
-if USE_SHARED_FALLBACKS:
-    unified_messaging_manager = get_fallback_instance("UnifiedMessagingManager")
-else:
-    # Local fallbacks (preserved for compatibility)
-    class UnifiedMessagingManager:  # type: ignore
-        def __init__(self):
-            pass
-
-    class MessageEncryption:  # type: ignore
-        def __init__(self):
-            pass
-
-    class MessageValidator:  # type: ignore
-        def __init__(self):
-            pass
-
-    class MessageRouter:  # type: ignore
-        def __init__(self):
-            pass
-
-    class ChannelManager:  # type: ignore
-        def __init__(self):
-            pass
-
-    class MessageMetadata:  # type: ignore
-        def __init__(self, **kwargs):
-            self.__dict__.update(kwargs)
-
-    class MessageDelivery:  # type: ignore
-        def __init__(self, **kwargs):
-            self.__dict__.update(kwargs)
-
-    class ChannelSettings:  # type: ignore
-        def __init__(self, **kwargs):
-            self.__dict__.update(kwargs)
-
-    class MessageType:  # type: ignore
-        TEXT = "text"
-        IMAGE = "image"
-        FILE = "file"
-
-    class ChannelType:  # type: ignore
-        PUBLIC = "public"
-        PRIVATE = "private"
-        GROUP = "group"
-
-    class MessageStatus:  # type: ignore
-        PENDING = "pending"
-        SENT = "sent"
-        DELIVERED = "delivered"
-        READ = "read"
-
-    class EncryptionLevel:  # type: ignore
-        NONE = "none"
-        BASIC = "basic"
-        ADVANCED = "advanced"
-
-    unified_messaging_manager = UnifiedMessagingManager()
-
-    async def send_message(*args, **kwargs):  # type: ignore
-        return None
-
-    async def get_message(*args, **kwargs):  # type: ignore
-        return None
-
-    async def get_channel_messages(*args, **kwargs):  # type: ignore
-        return []
-
-    async def create_channel(*args, **kwargs):  # type: ignore
-        return None
-
-    def get_messaging_manager():  # type: ignore
-        return unified_messaging_manager
-
+# Initialize the global instance
+messaging_system = get_messaging_system()
 
 # Backward compatibility aliases
-messaging_manager = unified_messaging_manager
-MessagingManager = UnifiedMessagingManager
-MessageProcessor = UnifiedMessagingManager
-message_processor = unified_messaging_manager
+UnifiedMessagingManager = MessagingSystem
+unified_messaging_manager = messaging_system
+messaging_manager = messaging_system
+MessagingManager = MessagingSystem
+MessageProcessor = MessagingSystem
+message_processor = messaging_system
 
 
 # Legacy function aliases
+async def send_message(*args, **kwargs):
+    """Send message (proxy to messaging system)."""
+    return await messaging_system.send_message(*args, **kwargs)
+
+
+async def get_message(*args, **kwargs):
+    """Get message (proxy to messaging system)."""
+    # Note: get_message is not directly exposed in MessagingSystem, 
+    # usually retrieved via get_channel_messages or internal storage
+    # This is a stub for backward compatibility if needed
+    return None
+
+
+async def get_channel_messages(*args, **kwargs):
+    """Get channel messages (proxy to messaging system)."""
+    return await messaging_system.get_channel_messages(*args, **kwargs)
+
+
+async def create_channel(*args, **kwargs):
+    """Create channel (proxy to messaging system)."""
+    return messaging_system.channel_manager.create_channel(*args, **kwargs)
+
+
 async def queue_message(sender_id: str, channel_id: str, content: str, **kwargs):
     """Queue message (backward compatibility)."""
     return await send_message(sender_id, channel_id, content, **kwargs)
@@ -142,17 +82,18 @@ class MessageData:
 
 # Export all the main classes and functions
 __all__ = [
-    # Unified messaging system (NEW SINGLE SOURCE OF TRUTH)
-    "UnifiedMessagingManager",
-    "unified_messaging_manager",
+    # Messaging system
+    "MessagingSystem",
+    "messaging_system",
     "MessageEncryption",
     "MessageValidator",
     "MessageRouter",
     "ChannelManager",
+    "Thread",
     # Data classes
+    "Message",
     "MessageMetadata",
-    "MessageDelivery",
-    "ChannelSettings",
+    "Channel",
     "MessageType",
     "ChannelType",
     "MessageStatus",
@@ -163,8 +104,12 @@ __all__ = [
     "get_message",
     "get_channel_messages",
     "create_channel",
-    "get_messaging_manager",
+    "get_messaging_system",
+    "initialize_messaging_system",
+    "shutdown_messaging_system",
     # Backward compatibility aliases
+    "UnifiedMessagingManager",
+    "unified_messaging_manager",
     "messaging_manager",
     "MessagingManager",
     "MessageProcessor",

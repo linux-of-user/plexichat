@@ -98,15 +98,15 @@ except Exception:
 
 
 # Try to import the global security system for validation
-_get_security_system = None
+_get_security_module = None
 try:
     from plexichat.core.security.security_manager import (
-        get_security_system,  # type: ignore
+        get_security_module,  # type: ignore
     )
 
-    _get_security_system = get_security_system
+    _get_security_module = get_security_module
 except Exception:
-    _get_security_system = None
+    _get_security_module = None
 
 
 # Pydantic Models
@@ -583,9 +583,9 @@ async def upload_image_setting(
 
     # Use SecuritySystem for validation if available
     sanitized_filename_from_security = None
-    if _get_security_system:
+    if _get_security_module:
         try:
-            security = _get_security_system()
+            security = _get_security_module()
             # Use the original uploaded filename for security validation to catch traversal attempts in user-supplied names.
             original_name = getattr(file, "filename", "") or ""
             allowed, message = security.validate_file_upload(
@@ -628,7 +628,7 @@ async def upload_image_setting(
     # Secondary validation: ensure content_type is acceptable for images (defensive)
     if content_type not in ALLOWED_IMAGE_TYPES:
         # If security system is present, it would have validated content type. If not, reject here.
-        if not _get_security_system:
+        if not _get_security_module:
             raise HTTPException(
                 status_code=400, detail=f"Unsupported image type: {content_type}"
             )

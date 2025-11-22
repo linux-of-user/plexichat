@@ -8,7 +8,7 @@ import logging
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from plexichat.core.messaging.unified_messaging_system import get_messaging_system
+from plexichat.core.messaging.system import get_messaging_system
 
 logger = logging.getLogger(__name__)
 

@@ -19,7 +19,7 @@ class MockAdminManager:
     sessions = {}
 
 
-class MockUnifiedPluginManager:
+class MockPluginManager:
     class MockIsolationManager:
         def get_plugin_module_requests(self):
             return {}
@@ -34,7 +34,7 @@ class MockUnifiedPluginManager:
 
 
 admin_manager = MockAdminManager()
-unified_plugin_manager = MockUnifiedPluginManager()
+plugin_manager = MockPluginManager()
 settings = {}
 
 

@@ -1,5 +1,5 @@
 """
-PlexiChat Unified Monitoring System
+PlexiChat Monitoring System
 
 Provides comprehensive monitoring capabilities for the PlexiChat system.
 """
@@ -26,8 +26,8 @@ class AnalyticsEvent:
     session_id: str | None = None
 
 
-class UnifiedMonitoringSystem(MonitorBase):
-    """Unified monitoring system for PlexiChat."""
+class MonitoringSystem(MonitorBase):
+    """Monitoring system for PlexiChat."""
 
     def __init__(self) -> None:
         super().__init__()
@@ -36,7 +36,7 @@ class UnifiedMonitoringSystem(MonitorBase):
         self.last_alerts: dict[str, datetime] = {}
         self.initialized = False
 
-        logger.info("Unified monitoring system initialized")
+        logger.info("Monitoring system initialized")
 
     def initialize(self) -> bool:
         """Initialize the monitoring system."""
@@ -221,7 +221,7 @@ class UnifiedMonitoringSystem(MonitorBase):
 
 
 # Global instance
-unified_monitoring_system = UnifiedMonitoringSystem()
+monitoring_system = MonitoringSystem()
 
 
 # Convenience functions
@@ -229,22 +229,22 @@ def record_metric(
     name: str, value: float, unit: str = "", tags: dict[str, str] | None = None
 ) -> None:
     """Record a metric value."""
-    unified_monitoring_system.record_metric(name, value, unit, tags)
+    monitoring_system.record_metric(name, value, unit, tags)
 
 
 def get_metrics(name: str, since: datetime | None = None) -> list[MetricData]:
     """Get metrics by name."""
-    return unified_monitoring_system.get_metrics(name, since)
+    return monitoring_system.get_metrics(name, since)
 
 
 def get_latest_metric(name: str) -> MetricData | None:
     """Get the latest metric value."""
-    return unified_monitoring_system.get_latest_metric(name)
+    return monitoring_system.get_latest_metric(name)
 
 
 def get_system_status() -> dict[str, Any]:
     """Get overall system status."""
-    return unified_monitoring_system.get_system_status()
+    return monitoring_system.get_system_status()
 
 
 def track_event(
@@ -254,36 +254,18 @@ def track_event(
     session_id: str | None = None,
 ) -> None:
     """Track an analytics event."""
-    unified_monitoring_system.track_event(event_type, data, user_id, session_id)
+    monitoring_system.track_event(event_type, data, user_id, session_id)
 
 
-def get_analytics_manager() -> UnifiedMonitoringSystem:
+def get_analytics_manager() -> MonitoringSystem:
     """Get the analytics manager (backward compatibility)."""
-    return unified_monitoring_system
+    return monitoring_system
 
 
 def get_analytics_metrics(**kwargs: Any) -> dict[str, Any]:
     """Get analytics metrics (backward compatibility)."""
-    return unified_monitoring_system.get_system_status()
+    return monitoring_system.get_system_status()
 
-
-# Alias for backward compatibility
-UnifiedMonitoringManager = UnifiedMonitoringSystem
-AnalyticsCollector = UnifiedMonitoringSystem  # Another alias
-
-
-# Add EventType enum for compatibility
-class EventType:
-    """Event types for analytics."""
-
-    USER_ACTION = "user_action"
-    SYSTEM_EVENT = "system_event"
-    ERROR_EVENT = "error_event"
-    PERFORMANCE_EVENT = "performance_event"
-
-
-# Global instance alias
-unified_monitoring_manager = unified_monitoring_system
 
 # Export all
 __all__ = [
@@ -292,8 +274,7 @@ __all__ = [
     "AnalyticsEvent",
     "EventType",
     "MetricData",
-    "UnifiedMonitoringManager",  # Backward compatibility
-    "UnifiedMonitoringSystem",
+    "MonitoringSystem",
     "get_analytics_manager",  # Backward compatibility
     "get_analytics_metrics",  # Backward compatibility
     "get_latest_metric",
@@ -301,6 +282,5 @@ __all__ = [
     "get_system_status",
     "record_metric",
     "track_event",
-    "unified_monitoring_manager",  # Backward compatibility
-    "unified_monitoring_system",
+    "monitoring_system",
 ]

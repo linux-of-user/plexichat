@@ -48,8 +48,8 @@ try:
     )
 
     # Backward compatibility aliases
-    unified_plugin_manager = plugin_manager
-    UnifiedPluginManager = PluginManager
+    # unified_plugin_manager = plugin_manager
+    # UnifiedPluginManager = PluginManager
 
 except ImportError as e:
     # Fallback definitions if unified plugin system fails to import
@@ -119,8 +119,8 @@ except ImportError as e:
             pass
 
     plugin_manager = PluginManager()
-    unified_plugin_manager = plugin_manager
-    UnifiedPluginManager = PluginManager
+    # unified_plugin_manager = plugin_manager
+    # UnifiedPluginManager = PluginManager
 
     async def get_plugin_manager() -> PluginManager:
         return plugin_manager

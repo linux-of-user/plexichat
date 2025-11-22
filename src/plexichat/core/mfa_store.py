@@ -1,12 +1,12 @@
 import hashlib
 from typing import Any
 
-# Use unified logging system
+# Centralized logging system
 try:
     from plexichat.core.logging.logger import get_logger
 
     logger = get_logger(__name__)
-except Exception:  # Fallback to std logging if unified logging not available
+except Exception:  # Fallback to std logging if centralized logging not available
     import logging
 
     logger = logging.getLogger(__name__)

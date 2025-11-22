@@ -1,5 +1,5 @@
 """
-Unified Security Module for PlexiChat
+Security Module for PlexiChat
 Comprehensive security framework providing watertight protection like a deep-sea submarine.
 
 This module integrates all security components into a cohesive system with:
@@ -65,9 +65,9 @@ class SecurityEvent:
     resolved: bool = False
 
 
-class UnifiedSecurityModule:
+class SecurityModule:
     """
-    Unified Security Module providing watertight protection like a deep-sea submarine.
+    Security Module providing watertight protection like a deep-sea submarine.
 
     Features:
     - Multi-layer rate limiting (per-user, per-IP, dynamic global)
@@ -107,7 +107,7 @@ class UnifiedSecurityModule:
         # Initialize subsystems
         self._initialize_subsystems()
 
-        logger.info("Unified Security Module initialized with watertight protection")
+        logger.info("Security Module initialized with watertight protection")
 
     def _get_default_config(self) -> dict[str, Any]:
         """Get default security configuration."""
@@ -527,7 +527,7 @@ class UnifiedSecurityModule:
     async def shutdown(self):
         """Shutdown the security module."""
         try:
-            logger.info("Unified Security Module shutting down")
+            logger.info("Security Module shutting down")
 
             # Shutdown subsystems
             if self.rate_limiter and hasattr(self.rate_limiter, "shutdown"):
@@ -548,23 +548,23 @@ class UnifiedSecurityModule:
 
 
 # Global security module instance
-_global_security_module: UnifiedSecurityModule | None = None
+_global_security_module: SecurityModule | None = None
 
 
-def get_security_module() -> UnifiedSecurityModule:
+def get_security_module() -> SecurityModule:
     """Get the global security module instance."""
     global _global_security_module
     if _global_security_module is None:
-        _global_security_module = UnifiedSecurityModule()
+        _global_security_module = SecurityModule()
     return _global_security_module
 
 
 async def initialize_security_module(
     config: dict[str, Any] | None = None,
-) -> UnifiedSecurityModule:
+) -> SecurityModule:
     """Initialize the global security module."""
     global _global_security_module
-    _global_security_module = UnifiedSecurityModule(config)
+    _global_security_module = SecurityModule(config)
     return _global_security_module
 
 
@@ -582,7 +582,7 @@ __all__ = [
     "SecurityEventType",
     "SecurityLevel",
     "ThreatLevel",
-    "UnifiedSecurityModule",
+    "SecurityModule",
     "get_security_module",
     "initialize_security_module",
     "shutdown_security_module",

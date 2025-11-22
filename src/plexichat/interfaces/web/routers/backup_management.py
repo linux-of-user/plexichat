@@ -67,7 +67,7 @@ except Exception:
 # Import authentication (use unified FastAPI adapter)
 from plexichat.core.auth.fastapi_adapter import require_admin
 
-# Unified logging
+# Centralized logging
 from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)

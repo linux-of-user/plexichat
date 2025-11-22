@@ -25,11 +25,12 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from plexichat.core.auth.fastapi_adapter import get_auth_adapter
 
-# Use unified authentication manager and FastAPI adapter
-from plexichat.core.authentication import Role, get_auth_manager
+# Use authentication manager and FastAPI adapter
+from plexichat.core.auth import get_auth_manager
+from plexichat.core.authentication import Role
 from plexichat.core.config import settings
 from plexichat.core.logging import get_logger
-from plexichat.core.plugins.manager import unified_plugin_manager
+from plexichat.core.plugins.manager import plugin_manager
 
 # Security headers from security.txt
 SECURITY_HEADERS = {
@@ -176,7 +177,7 @@ class AdminCreateRequest(BaseModel):
     role: str = "admin"
 
 
-# Create a local wrapper around unified auth manager exposing admin-oriented helpers
+# Create a local wrapper around auth manager exposing admin-oriented helpers
 @dataclass
 class AdminUser:
     username: str
@@ -190,7 +191,7 @@ class AdminUser:
 
 class AdminManagerWrapper:
     """
-    Wrapper that adapts the UnifiedAuthManager to the legacy admin_manager interface used by the web admin router.
+    Wrapper that adapts the AuthManager to the legacy admin_manager interface used by the web admin router.
     Provides both sync and async helpers as needed by the endpoints in this module.
     """
 
@@ -233,7 +234,7 @@ class AdminManagerWrapper:
 
     @property
     def sessions(self) -> dict[str, Any]:
-        """Expose active sessions mapping from unified auth manager."""
+        """Expose active sessions mapping from auth manager."""
         try:
             return getattr(self.auth_manager, "active_sessions", {})
         except Exception:
@@ -266,7 +267,7 @@ class AdminManagerWrapper:
         Validate a token (access token) and return a simple admin-like object if valid.
         """
         try:
-            # Validate token via unified manager
+            # Validate token via manager
             valid, payload = await self.auth_manager.validate_token(token)
             if not valid or not payload:
                 return None
@@ -312,7 +313,7 @@ class AdminManagerWrapper:
         return self.admins
 
     def has_permission(self, username: str, permission: str) -> bool:
-        """Check permission using unified auth manager."""
+        """Check permission using auth manager."""
         try:
             return self.auth_manager.check_permission(username, permission)
         except Exception as e:
@@ -356,7 +357,7 @@ class AdminManagerWrapper:
             except Exception:
                 role_enum = Role.ADMIN
 
-            # Assign role via unified manager
+            # Assign role via manager
             try:
                 self.auth_manager.assign_role(username, role_enum)
             except Exception:
@@ -461,7 +462,7 @@ async def get_current_admin(request: Request) -> dict[str, Any] | None:
                 token = auth_header[7:]
         if not token:
             return None
-        # Validate token/session via unified auth manager wrapper
+        # Validate token/session via auth manager wrapper
         admin = await admin_manager.validate_session(token)
         if admin:
             return {
@@ -612,9 +613,9 @@ async def admin_dashboard(request: Request):
         except Exception:
             backup_status = {"available": False}
         try:
-            from plexichat.core.security.security_manager import get_security_system
+            from plexichat.core.security.security_manager import get_security_module
 
-            security = get_security_system()
+            security = get_security_module()
             security_status = (
                 security.get_security_status() if security else {"available": False}
             )
@@ -962,14 +963,14 @@ async def admin_system(request: Request):
         plugin_summary = {}
         try:
             plugin_summary = {
-                "total_discovered": unified_plugin_manager.stats.get(
+                "total_discovered": plugin_manager.stats.get(
                     "total_discovered", 0
                 ),
-                "total_loaded": unified_plugin_manager.stats.get("total_loaded", 0),
-                "total_enabled": unified_plugin_manager.stats.get("total_enabled", 0),
+                "total_loaded": plugin_manager.stats.get("total_loaded", 0),
+                "total_enabled": plugin_manager.stats.get("total_enabled", 0),
                 "plugins": [
                     format_plugin_info(info)
-                    for info in unified_plugin_manager.plugin_info.values()
+                    for info in plugin_manager.plugin_info.values()
                 ],
             }
         except Exception:
@@ -1033,11 +1034,11 @@ async def plugins_page(request: Request):
     try:
         plugins = [
             format_plugin_info(info)
-            for info in unified_plugin_manager.plugin_info.values()
+            for info in plugin_manager.plugin_info.values()
         ]
         # Collect module import requests
         module_requests = (
-            unified_plugin_manager.isolation_manager.get_plugin_module_requests()
+            plugin_manager.isolation_manager.get_plugin_module_requests()
         )
         context = {
             "request": request,
@@ -1057,10 +1058,10 @@ async def api_list_plugins(_admin: dict = Depends(require_admin)):
     try:
         plugins = [
             format_plugin_info(info)
-            for info in unified_plugin_manager.plugin_info.values()
+            for info in plugin_manager.plugin_info.values()
         ]
         module_requests = (
-            unified_plugin_manager.isolation_manager.get_plugin_module_requests()
+            plugin_manager.isolation_manager.get_plugin_module_requests()
         )
         return JSONResponse({"plugins": plugins, "module_requests": module_requests})
     except Exception as e:
@@ -1077,7 +1078,7 @@ async def approve_all_plugin_requests(
     """Grant all currently requested module imports for a plugin or all plugins if plugin_name omitted."""
     form = await request.form()
     plugin_name = form.get("plugin_name")
-    isolation = unified_plugin_manager.isolation_manager
+    isolation = plugin_manager.isolation_manager
     requests_map = isolation.get_plugin_module_requests()
     approved = []
     denied = []
@@ -1141,7 +1142,7 @@ async def enable_plugin(
     plugin_name: str = Form(...), admin: dict = Depends(require_admin)
 ):
     try:
-        success = await unified_plugin_manager.enable_plugin(plugin_name)
+        success = await plugin_manager.enable_plugin(plugin_name)
         _append_audit_log(
             "enable_plugin", admin, {"plugin": plugin_name, "success": success}
         )
@@ -1158,7 +1159,7 @@ async def disable_plugin(
     plugin_name: str = Form(...), admin: dict = Depends(require_admin)
 ):
     try:
-        success = await unified_plugin_manager.disable_plugin(plugin_name)
+        success = await plugin_manager.disable_plugin(plugin_name)
         _append_audit_log(
             "disable_plugin", admin, {"plugin": plugin_name, "success": success}
         )
@@ -1175,8 +1176,8 @@ async def reload_plugin(
     plugin_name: str = Form(...), admin: dict = Depends(require_admin)
 ):
     try:
-        success_unload = await unified_plugin_manager.unload_plugin(plugin_name)
-        success_load = await unified_plugin_manager.load_plugin(plugin_name)
+        success_unload = await plugin_manager.unload_plugin(plugin_name)
+        success_load = await plugin_manager.load_plugin(plugin_name)
         _append_audit_log(
             "reload_plugin",
             admin,
@@ -1213,9 +1214,9 @@ async def security_center(request: Request):
         except Exception:
             ddos_info = {"available": False, "blocked_ips": []}
         try:
-            from plexichat.core.security.security_manager import get_security_system
+            from plexichat.core.security.security_manager import get_security_module
 
-            sec = get_security_system()
+            sec = get_security_module()
             security_events = []  # Real system could provide events; placeholder
             if sec:
                 try:
@@ -1266,9 +1267,9 @@ async def api_security(_admin: dict = Depends(require_admin)):
         except Exception:
             ddos_info = {"available": False, "blocked_ips": []}
         try:
-            from plexichat.core.security.security_manager import get_security_system
+            from plexichat.core.security.security_manager import get_security_module
 
-            sec = get_security_system()
+            sec = get_security_module()
             security_summary = (
                 sec.get_security_status()
                 if sec and hasattr(sec, "get_security_status")
@@ -1681,7 +1682,7 @@ async def https_setup(
 async def list_plugin_module_requests(request: Request):
     _admin = await require_admin(request)
     """List all plugin module import requests from plugins."""
-    isolation_manager = unified_plugin_manager.isolation_manager
+    isolation_manager = plugin_manager.isolation_manager
     return {"requests": isolation_manager.get_plugin_module_requests()}
 
 
@@ -1693,7 +1694,7 @@ async def grant_plugin_module(
     _admin: dict = Depends(require_admin),
 ):
     """Grant a plugin permission to import a module."""
-    isolation_manager = unified_plugin_manager.isolation_manager
+    isolation_manager = plugin_manager.isolation_manager
     isolation_manager.grant_plugin_module_permission(plugin_name, module_name)
     _append_audit_log(
         "grant_plugin_module", _admin, {"plugin": plugin_name, "module": module_name}
@@ -1709,7 +1710,7 @@ async def revoke_plugin_module(
     _admin: dict = Depends(require_admin),
 ):
     """Revoke a plugin's permission to import a module."""
-    isolation_manager = unified_plugin_manager.isolation_manager
+    isolation_manager = plugin_manager.isolation_manager
     isolation_manager.revoke_plugin_module_permission(plugin_name, module_name)
     _append_audit_log(
         "revoke_plugin_module", _admin, {"plugin": plugin_name, "module": module_name}

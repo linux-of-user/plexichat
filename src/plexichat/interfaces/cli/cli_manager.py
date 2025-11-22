@@ -2,6 +2,8 @@ import importlib
 import logging
 from pathlib import Path
 import pkgutil
+import shlex
+from typing import Any, Dict
 
 import click
 
@@ -76,6 +78,53 @@ class CLIManager:
             cli.add_command(command_group)
 
         return cli
+
+    def execute_system_command(
+        self, command_str: str, context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Execute a system command via the CLI interface.
+
+        Args:
+            command_str: The command string to execute
+            context: Execution context (user, ip, etc.)
+
+        Returns:
+            Dict containing 'success', 'message', and 'data'
+        """
+        from click.testing import CliRunner
+
+        try:
+            # Security check: ensure command is not empty
+            if not command_str or not command_str.strip():
+                return {"success": False, "message": "Empty command"}
+
+            # Build the CLI app
+            cli = self.build_cli()
+
+            # Parse command string into arguments
+            args = shlex.split(command_str)
+
+            # Run the command
+            runner = CliRunner()
+            result = runner.invoke(cli, args, catch_exceptions=False)
+
+            if result.exit_code == 0:
+                return {
+                    "success": True,
+                    "message": "Command executed successfully",
+                    "data": {"output": result.output},
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": f"Command failed with exit code {result.exit_code}",
+                    "data": {"output": result.output, "error": str(result.exception)},
+                }
+
+        except Exception as e:
+            logger.error(f"Error executing CLI command: {e}")
+            return {"success": False, "message": str(e)}
 
 
 def main():

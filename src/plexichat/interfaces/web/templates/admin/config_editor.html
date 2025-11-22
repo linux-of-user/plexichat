@@ -453,7 +453,7 @@
                             <i class="${icon} config-file-icon"></i>
                             <div class="flex-grow-1">
                                 <div class="fw-medium">${file.filename}</div>
-                                <small class="text-muted">${size} • ${new Date(file.modified).toLocaleDateString()}</small>
+                                <small class="text-muted">${size}  ${new Date(file.modified).toLocaleDateString()}</small>
                             </div>
                         </div>
                     `;
@@ -669,7 +669,7 @@
             updateEditorStatus() {
                 const filename = document.getElementById('editor-filename');
                 if (this.hasUnsavedChanges) {
-                    filename.textContent = this.currentFile + ' •';
+                    filename.textContent = this.currentFile + ' ';
                 } else {
                     filename.textContent = this.currentFile || 'Select a configuration file';
                 }

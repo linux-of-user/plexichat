@@ -5,7 +5,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
 from plexichat.core.authentication import get_auth_manager
-from plexichat.core.messaging.unified_messaging_system import get_messaging_system
+from plexichat.core.messaging.system import get_messaging_system
 from plexichat.core.services.message_threads_service import get_message_threads_service
 
 security = HTTPBearer()

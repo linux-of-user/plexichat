@@ -731,7 +731,7 @@
                         <div class="mb-2"><strong>Type:</strong> ${result.summary_type}</div>
                         <div class="mb-2"><strong>Confidence:</strong> ${(result.confidence_score * 100).toFixed(1)}%</div>
                         <div class="mb-2"><strong>Processing Time:</strong> ${result.processing_time_ms.toFixed(0)}ms</div>
-                        <div class="mb-2"><strong>Compression:</strong> ${result.word_count_original} → ${result.word_count_summary} words (${(result.compression_ratio * 100).toFixed(1)}%)</div>
+                        <div class="mb-2"><strong>Compression:</strong> ${result.word_count_original}  ${result.word_count_summary} words (${(result.compression_ratio * 100).toFixed(1)}%)</div>
                         ${result.key_topics.length > 0 ? `<div class="mb-2"><strong>Key Topics:</strong> ${result.key_topics.join(', ')}</div>` : ''}
                         <div class="mt-3"><strong>Summary:</strong></div>
                         <div class="border p-2 bg-light">${result.summary}</div>

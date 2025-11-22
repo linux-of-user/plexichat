@@ -11,7 +11,7 @@ PlexiChat Core Security System - SINGLE SOURCE OF TRUTH
 
 Consolidates ALL security functionality from:
 - core/security/security_manager.py - INTEGRATED
-- core/security/unified_security_manager.py - INTEGRATED
+- core/security/security_manager.py - INTEGRATED
 - features/security/ (all modules) - INTEGRATED
 - Related security components - INTEGRATED
 
@@ -36,11 +36,11 @@ from plexichat.core.security.security_manager import (
     ThreatLevel,
     TokenManager,
     UserCredentials,
-    get_security_system,
+    get_security_module,
 )
 
 # Backward compatibility aliases
-security_manager = get_security_system()
+security_manager = get_security_module()
 SecurityManager = SecuritySystem
 
 # Provide Network Protection and RateLimitRequest stubs/implementations
@@ -239,7 +239,7 @@ __all__ = [
     "SecurityContext",
     "SecurityToken",
     # Main functions
-    "get_security_system",
+    "get_security_module",
     # Network protection utilities (required by FastAPI adapter)
     "get_network_protection",
     "RateLimitRequest",

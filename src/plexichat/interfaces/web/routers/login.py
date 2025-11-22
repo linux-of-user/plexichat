@@ -56,7 +56,7 @@ except ImportError:
 
 # Model imports
 
-# Unified logging
+# Centralized logging
 from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)

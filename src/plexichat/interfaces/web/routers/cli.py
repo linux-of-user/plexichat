@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 
-from plexichat.interfaces.cli.cli_manager import UnifiedCLI
+from plexichat.interfaces.cli.cli_manager import CLIManager
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/cli", tags=["cli"])
@@ -68,7 +68,7 @@ async def execute_cli_command(
     req: CLIExecuteRequest, request: Request, user: str = Depends(is_admin)
 ) -> CLIExecuteResponse:
     """
-    Execute a CLI command securely using the UnifiedCLI system.
+    Execute a CLI command securely using the CLIManager system.
     Requires admin authentication and is rate-limited.
     """
     client_ip = request.client.host if request.client else "unknown"
@@ -76,7 +76,7 @@ async def execute_cli_command(
     check_rate_limit(user, client_ip)
     logger.info(f"[CLI] User '{user}' from {client_ip} executing command: {command}")
 
-    cli = UnifiedCLI()
+    cli = CLIManager()
     try:
         # Run the command in the unified CLI system
         # (simulate terminal mode, capture output)

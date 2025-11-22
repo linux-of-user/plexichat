@@ -498,7 +498,7 @@
 <body>
     <!-- Theme Selector -->
     <div class="theme-selector" id="themeSelector">
-        <h4 style="margin-bottom: 10px;">🎨 Theme</h4>
+        <h4 style="margin-bottom: 10px;"> Theme</h4>
         <div class="theme-option" onclick="setTheme('dark')">
             <div class="theme-color" style="background: #2c3e50;"></div>
             <span>Dark Blue</span>
@@ -521,20 +521,20 @@
     <div class="header">
         <div class="header-content">
             <h1>
-                🛡️ Advanced Moderation Dashboard
+                 Advanced Moderation Dashboard
                 <span style="font-size: 0.6em; opacity: 0.8;">v3.0</span>
             </h1>
             <div class="header-actions">
                 <button class="btn info" onclick="showAIConfig()">
-                    🤖 AI Config
+                     AI Config
                 </button>
                 <button class="btn warning" onclick="showReports()">
-                    📊 Reports
+                     Reports
                 </button>
                 <button class="btn success" onclick="showSettings()">
-                    ⚙️ Settings
+                     Settings
                 </button>
-                <a href="/logs" class="btn">📋 Logs</a>
+                <a href="/logs" class="btn"> Logs</a>
             </div>
         </div>
     </div>
@@ -543,38 +543,38 @@
     <div class="main-container">
         <!-- Sidebar Navigation -->
         <div class="sidebar">
-            <h3>📋 Navigation</h3>
+            <h3> Navigation</h3>
             <div class="nav-item active" onclick="showSection('queue')" id="nav-queue">
-                🔍 Moderation Queue
+                 Moderation Queue
             </div>
             <div class="nav-item" onclick="showSection('ai-analysis')" id="nav-ai">
-                🤖 AI Analysis
+                 AI Analysis
             </div>
             <div class="nav-item" onclick="showSection('human-review')" id="nav-human">
-                👥 Human Review
+                 Human Review
             </div>
             <div class="nav-item" onclick="showSection('appeals')" id="nav-appeals">
-                ⚖️ Appeals
+                 Appeals
             </div>
             <div class="nav-item" onclick="showSection('filters')" id="nav-filters">
-                🔧 Content Filters
+                 Content Filters
             </div>
             <div class="nav-item" onclick="showSection('analytics')" id="nav-analytics">
-                📈 Analytics
+                 Analytics
             </div>
             <div class="nav-item" onclick="showSection('audit')" id="nav-audit">
-                📝 Audit Log
+                 Audit Log
             </div>
 
-            <h3 style="margin-top: 30px;">⚡ Quick Actions</h3>
+            <h3 style="margin-top: 30px;"> Quick Actions</h3>
             <div class="nav-item" onclick="bulkApprove()">
-                ✅ Bulk Approve
+                 Bulk Approve
             </div>
             <div class="nav-item" onclick="bulkReject()">
-                ❌ Bulk Reject
+                 Bulk Reject
             </div>
             <div class="nav-item" onclick="exportData()">
-                📥 Export Data
+                 Export Data
             </div>
         </div>
 
@@ -604,7 +604,7 @@
             <div id="section-queue" class="content-section">
                 <div class="moderation-queue">
                     <div class="queue-header">
-                        <h2>🔍 Moderation Queue</h2>
+                        <h2> Moderation Queue</h2>
                         <div class="queue-filters">
                             <select class="filter-select" id="priorityFilter" onchange="filterQueue()">
                                 <option value="">All Priorities</option>
@@ -618,7 +618,7 @@
                                 <option value="user">Users</option>
                                 <option value="file">Files</option>
                             </select>
-                            <button class="btn" onclick="refreshQueue()">🔄 Refresh</button>
+                            <button class="btn" onclick="refreshQueue()"> Refresh</button>
                         </div>
                     </div>
 
@@ -634,42 +634,42 @@
 
             <!-- AI Analysis Section -->
             <div id="section-ai-analysis" class="content-section" style="display: none;">
-                <h2>🤖 AI Analysis Dashboard</h2>
+                <h2> AI Analysis Dashboard</h2>
                 <p>AI-powered content analysis and recommendations.</p>
                 <!-- AI analysis content will be added here -->
             </div>
 
             <!-- Human Review Section -->
             <div id="section-human-review" class="content-section" style="display: none;">
-                <h2>👥 Human Review Workflow</h2>
+                <h2> Human Review Workflow</h2>
                 <p>Human moderator assignments and review processes.</p>
                 <!-- Human review content will be added here -->
             </div>
 
             <!-- Appeals Section -->
             <div id="section-appeals" class="content-section" style="display: none;">
-                <h2>⚖️ Appeals Management</h2>
+                <h2> Appeals Management</h2>
                 <p>User appeals and dispute resolution.</p>
                 <!-- Appeals content will be added here -->
             </div>
 
             <!-- Content Filters Section -->
             <div id="section-filters" class="content-section" style="display: none;">
-                <h2>🔧 Content Filters</h2>
+                <h2> Content Filters</h2>
                 <p>Manage content filtering rules and patterns.</p>
                 <!-- Filters content will be added here -->
             </div>
 
             <!-- Analytics Section -->
             <div id="section-analytics" class="content-section" style="display: none;">
-                <h2>📈 Moderation Analytics</h2>
+                <h2> Moderation Analytics</h2>
                 <p>Comprehensive moderation statistics and trends.</p>
                 <!-- Analytics content will be added here -->
             </div>
 
             <!-- Audit Log Section -->
             <div id="section-audit" class="content-section" style="display: none;">
-                <h2>📝 Audit Log</h2>
+                <h2> Audit Log</h2>
                 <p>Complete audit trail of moderation actions.</p>
                 <!-- Audit log content will be added here -->
             </div>
@@ -711,7 +711,7 @@
     <div id="aiConfigModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>🤖 AI Moderation Configuration</h3>
+                <h3> AI Moderation Configuration</h3>
                 <button class="close-btn" onclick="closeModal('aiConfigModal')">&times;</button>
             </div>
             <div class="form-group">
@@ -829,9 +829,9 @@
                 <div class="moderation-item ${item.priority}-priority" data-id="${item.id}">
                     <div class="item-header">
                         <div class="item-meta">
-                            <span>📅 ${formatDate(item.timestamp)}</span>
-                            <span>👤 ${item.reporter}</span>
-                            <span>📝 ${item.type}</span>
+                            <span> ${formatDate(item.timestamp)}</span>
+                            <span> ${item.reporter}</span>
+                            <span> ${item.type}</span>
                         </div>
                         <div class="priority-badge priority-${item.priority}">
                             ${item.priority} priority
@@ -844,7 +844,7 @@
                     </div>
 
                     <div class="ai-analysis">
-                        <h4>🤖 AI Analysis</h4>
+                        <h4> AI Analysis</h4>
                         <p><strong>Recommendation:</strong> ${item.aiRecommendation}</p>
                         <p><strong>Confidence:</strong></p>
                         <div class="confidence-bar">
@@ -855,16 +855,16 @@
 
                     <div class="item-actions">
                         <button class="action-btn approve" onclick="moderationAction('${item.id}', 'approve')">
-                            ✅ Approve
+                             Approve
                         </button>
                         <button class="action-btn reject" onclick="moderationAction('${item.id}', 'reject')">
-                            ❌ Reject
+                             Reject
                         </button>
                         <button class="action-btn escalate" onclick="moderationAction('${item.id}', 'escalate')">
-                            ⬆️ Escalate
+                             Escalate
                         </button>
                         <button class="action-btn review" onclick="moderationAction('${item.id}', 'review')">
-                            👥 Human Review
+                             Human Review
                         </button>
                     </div>
                 </div>
@@ -890,10 +890,10 @@
             currentAction = action;
 
             const actionTitles = {
-                approve: '✅ Approve Content',
-                reject: '❌ Reject Content',
-                escalate: '⬆️ Escalate to Senior Moderator',
-                review: '👥 Assign Human Review'
+                approve: ' Approve Content',
+                reject: ' Reject Content',
+                escalate: ' Escalate to Senior Moderator',
+                review: ' Assign Human Review'
             };
 
             document.getElementById('modalTitle').textContent = actionTitles[action];
@@ -933,7 +933,7 @@
             document.getElementById('actionNotes').value = '';
 
             // Show success message
-            showNotification(`✅ ${currentAction.charAt(0).toUpperCase() + currentAction.slice(1)} action completed`, 'success');
+            showNotification(` ${currentAction.charAt(0).toUpperCase() + currentAction.slice(1)} action completed`, 'success');
         }
 
         // Navigation functions
@@ -971,7 +971,7 @@
             };
 
             console.log('Saving AI config:', config);
-            showNotification('✅ AI configuration saved successfully', 'success');
+            showNotification(' AI configuration saved successfully', 'success');
             closeModal('aiConfigModal');
         }
 
@@ -994,14 +994,14 @@
         }
 
         function refreshQueue() {
-            showNotification('🔄 Refreshing moderation queue...', 'info');
+            showNotification(' Refreshing moderation queue...', 'info');
             loadModerationQueue();
         }
 
         // Bulk actions
         function bulkApprove() {
             if (confirm('Approve all visible items in the queue?')) {
-                showNotification('✅ Bulk approval completed', 'success');
+                showNotification(' Bulk approval completed', 'success');
                 document.getElementById('moderationItems').innerHTML =
                     '<div style="text-align: center; padding: 50px; color: var(--text-secondary);">No items in moderation queue</div>';
             }
@@ -1009,17 +1009,17 @@
 
         function bulkReject() {
             if (confirm('Reject all visible items in the queue?')) {
-                showNotification('❌ Bulk rejection completed', 'warning');
+                showNotification(' Bulk rejection completed', 'warning');
                 document.getElementById('moderationItems').innerHTML =
                     '<div style="text-align: center; padding: 50px; color: var(--text-secondary);">No items in moderation queue</div>';
             }
         }
 
         function exportData() {
-            showNotification('📥 Exporting moderation data...', 'info');
+            showNotification(' Exporting moderation data...', 'info');
             // Simulate export
             setTimeout(() => {
-                showNotification('✅ Data exported successfully', 'success');
+                showNotification(' Data exported successfully', 'success');
             }, 2000);
         }
 
@@ -1037,7 +1037,7 @@
                 document.documentElement.style.setProperty('--primary-color', theme.primary);
                 document.documentElement.style.setProperty('--secondary-color', theme.secondary);
                 localStorage.setItem('moderationTheme', themeName);
-                showNotification(`🎨 Theme changed to ${themeName}`, 'info');
+                showNotification(` Theme changed to ${themeName}`, 'info');
             }
         }
 
@@ -1089,11 +1089,11 @@
 
         // Additional functions for other sections
         function showReports() {
-            showNotification('📊 Loading moderation reports...', 'info');
+            showNotification(' Loading moderation reports...', 'info');
         }
 
         function showSettings() {
-            showNotification('⚙️ Opening moderation settings...', 'info');
+            showNotification(' Opening moderation settings...', 'info');
         }
 
         // Close modals when clicking outside

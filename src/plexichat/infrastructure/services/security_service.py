@@ -11,8 +11,8 @@ from pathlib import Path
 import random
 from typing import Any
 
-from plexichat.core.security.comprehensive_security_manager import (
-    ComprehensiveSecurityManager,
+from plexichat.core.security.security_manager import (
+    SecurityModule,
 )
 from plexichat.infrastructure.services.advanced_ddos_service import (
     enhanced_ddos_service,
@@ -20,8 +20,7 @@ from plexichat.infrastructure.services.advanced_ddos_service import (
 from plugins.advanced_antivirus.core.message_scanner import MessageAntivirusScanner
 
 """
-import time
-Unified Security Integration Layer
+Security Integration Layer
 
 Coordinates all security systems including:
 - SQL injection detection and progressive blocking
@@ -95,9 +94,9 @@ class SecurityAssessment:
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
-class UnifiedSecurityService:
+class SecurityService:
     """
-    Unified security service that coordinates all security systems.
+    Security service that coordinates all security systems.
 
     This service acts as the central coordinator for:
     - SQL injection detection
@@ -187,13 +186,13 @@ class UnifiedSecurityService:
             ],
         }
 
-        logger.info("Unified Security Service initialized")
+        logger.info("Security Service initialized")
 
     def _initialize_security_services(self):
         """Initialize all security service components."""
         # Import and initialize security services
         try:
-            self.security_service = ComprehensiveSecurityManager()
+            self.security_service = SecurityModule()
         except ImportError:
             logger.warning("Security service not available")
             self.security_service = None
@@ -211,7 +210,10 @@ class UnifiedSecurityService:
             self.ddos_service = None
 
         try:
-            self.rate_limiter = rate_limiter
+            # Try to import rate limiter if available
+            # Note: This was missing in the original file's imports
+            from plexichat.core.middleware.rate_limiting import get_rate_limiter
+            self.rate_limiter = get_rate_limiter()
         except ImportError:
             logger.warning("Rate limiter not available")
             self.rate_limiter = None
@@ -336,11 +338,8 @@ class UnifiedSecurityService:
         try:
             # Check rate limit
             try:
-                from plexichat.core.middleware.rate_limiting import get_rate_limiter
-
-                rl = get_rate_limiter()
                 endpoint = "/security/assessment"
-                allowed, info = await rl.check_ip_action(
+                allowed, info = await self.rate_limiter.check_ip_action(
                     str(assessment.client_ip), endpoint
                 )
                 assessment.rate_limit_result = {"allowed": allowed, **info}
@@ -355,7 +354,7 @@ class UnifiedSecurityService:
                     )
                     assessment.retry_after = info.get("retry_after", 60)
             except Exception as e:
-                logger.warning(f"Unified rate limiter unavailable: {e}")
+                logger.warning(f"Rate limiter check failed: {e}")
                 return
 
         except Exception as e:
@@ -599,5 +598,10 @@ class UnifiedSecurityService:
         }
 
 
-# Global unified security service
-unified_security_service = UnifiedSecurityService()
+# Global security service
+security_service = SecurityService()
+
+# Backward compatibility aliases
+# UnifiedSecurityService = SecurityService
+# unified_security_service = security_service
+
