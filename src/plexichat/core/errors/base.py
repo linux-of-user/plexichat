@@ -3,21 +3,6 @@ PlexiChat Errors Base Module
 
 Centralized base for all error handling components including enums, classes, and functions.
 Consolidates overlapping implementations from error_codes.py, error_manager.py, and exceptions.py.
-"""
-
-from dataclasses import dataclass
-from datetime import datetime
-from enum import Enum
-from http import HTTPStatus
-import logging
-from typing import Any
-
-logger = logging.getLogger(__name__)
-
-
-class ErrorCategory(Enum):
-    """Error categories for organizing different types of errors."""
-
     AUTHENTICATION = "authentication"
     AUTHORIZATION = "authorization"
     VALIDATION = "validation"

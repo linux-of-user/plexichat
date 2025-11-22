@@ -1,18 +1,3 @@
-"""
-Message Threads Service
-Handles database operations and business logic for message threads.
-"""
-
-from dataclasses import dataclass, field
-from datetime import UTC, datetime
-import logging
-from typing import Any
-from uuid import uuid4
-
-from plexichat.core.database.manager import database_manager
-from plexichat.core.services.core_services import BaseService
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass
