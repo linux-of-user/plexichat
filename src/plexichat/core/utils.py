@@ -1,11 +1,13 @@
 """
-PlexiChat Core Utilities
+PlexiChat - Real-time Communication Platform
+Copyright (C) 2025 PlexiChat Contributors
+
+Core Utilities
 Consolidated utility functions for the entire application.
 """
 
 import hashlib
 import json
-import logging
 import re
 import secrets
 import time
@@ -19,7 +21,7 @@ from typing import (
     Callable,
     Dict,
     Iterable,
-    Iterator,
+   Iterator,
     List,
     Optional,
     Sequence,
@@ -29,7 +31,9 @@ from typing import (
     Union,
 )
 
-logger = logging.getLogger(__name__)
+from plexichat.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 # Security-oriented constants
 MAX_FILENAME_LENGTH = 120
