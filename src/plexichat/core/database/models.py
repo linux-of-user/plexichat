@@ -1,48 +1,75 @@
-from dataclasses import dataclass, field
-from datetime import UTC, datetime
-from typing import Any, Dict, List, Optional
-from uuid import uuid4
-from . import db
-from ..logging import get_logger
+"""
+PlexiChat Database Models
+=========================
 
-logger = get_logger(__name__)
+SQLAlchemy models for the PlexiChat database.
+"""
 
-@dataclass
-class BaseModel:
-    """Base model for database entities."""
-    id: str = field(default_factory=lambda: str(uuid4()))
-    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+from datetime import datetime, timezone
+from typing import Optional
 
-    def to_dict(self) -> Dict[str, Any]:
-        result = {}
-        for key, value in self.__dict__.items():
-            if isinstance(value, datetime):
-                result[key] = value.isoformat()
-            else:
-                result[key] = value
-        return result
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
-# Schema Definitions
-USER_SCHEMA = {
-    "id": "TEXT PRIMARY KEY",
-    "username": "TEXT UNIQUE NOT NULL",
-    "email": "TEXT UNIQUE NOT NULL",
-    "password_hash": "TEXT",
-    "created_at": "TEXT NOT NULL",
-    "updated_at": "TEXT NOT NULL"
-}
+Base = declarative_base()
 
-# ... (We can add more schemas here as needed, keeping it simple for now)
+class User(Base):
+    """User model."""
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(255), unique=True, nullable=False, index=True)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(255), nullable=False)
+    is_active = Column(Boolean, default=True)
+    is_admin = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    
+    # Relationships
+    sessions = relationship("Session", back_populates="user", cascade="all, delete-orphan")
+    messages = relationship("Message", back_populates="user", cascade="all, delete-orphan")
 
-def create_tables():
-    """Create tables based on schemas."""
-    # Simple implementation for now
-    try:
-        # Users
-        columns = ", ".join([f"{k} {v}" for k, v in USER_SCHEMA.items()])
-        db.execute(f"CREATE TABLE IF NOT EXISTS users ({columns})")
-        logger.info("Tables created successfully.")
-    except Exception as e:
-        logger.error(f"Error creating tables: {e}")
+class Session(Base):
+    """Session model for tracking user sessions."""
+    __tablename__ = "sessions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(String(255), unique=True, nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_agent = Column(String(500))
+    ip_address = Column(String(50))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    expires_at = Column(DateTime, nullable=False)
+    
+    # Relationships
+    user = relationship("User", back_populates="sessions")
 
+class Channel(Base):
+    """Channel model for messaging."""
+    __tablename__ = "channels"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    is_private = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    # Relationships
+    messages = relationship("Message", back_populates="channel", cascade="all, delete-orphan")
+
+class Message(Base):
+    """Message model."""
+    __tablename__ = "messages"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    channel_id = Column(Integer, ForeignKey("channels.id"), nullable=False)
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    edited_at = Column(DateTime, nullable=True)
+    
+    # Relationships
+    user = relationship("User", back_populates="messages")
+    channel = relationship("Channel", back_populates="messages")
