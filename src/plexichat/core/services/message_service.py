@@ -1,21 +1,3 @@
-"""Shared message service used by both API and Web routers.
-@dataclass
-class Message:
-    content: str
-    sender: str | None = None
-    channel: str | None = None
-    message_type: str = "text"
-    flags: list[str] | None = None
-
-    async def checksum(self) -> str:
-        """Async wrapper for optimized checksum calculation."""
-        loop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            None, lambda: calculate_checksum(self.content)
-        )
-
-
-# Register the checksum function for compilation (Cython)
 optimizer.register_function(
     "plexichat.core.services.message_service", "calculate_checksum", compiler="cython"
 )
