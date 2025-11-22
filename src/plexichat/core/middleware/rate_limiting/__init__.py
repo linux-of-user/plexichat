@@ -1,32 +1,12 @@
 """
-Unified Rate Limiting Module
-Consolidated, feature-complete rate limiting for PlexiChat.
-This package unifies previous implementations:
-- unified_rate_limiter
-- rate_limiter (Redis/InMemory)
-- account_rate_limiting_middleware
-- dynamic_rate_limiting_middleware
-- infrastructure global rate limiting
+PlexiChat - Real-time Communication Platform
+Copyright (C) 2025 PlexiChat Contributors
 
-All consumers should import from this package going forward.
+Rate Limiting Package
 """
 
-from .engine import (
-    RateLimitAlgorithm,
-    RateLimitConfig,
-    RateLimitMiddleware,
-    RateLimitStrategy,
-    UnifiedRateLimiter,
-    configure_rate_limiter,
-    get_rate_limiter,
-)
+from plexichat.core.logging import get_logger
 
-__all__ = [
-    "RateLimitAlgorithm",
-    "RateLimitConfig",
-    "RateLimitMiddleware",
-    "RateLimitStrategy",
-    "UnifiedRateLimiter",
-    "configure_rate_limiter",
-    "get_rate_limiter",
-]
+logger = get_logger(__name__)
+
+__all__ = []
