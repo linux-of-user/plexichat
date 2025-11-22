@@ -1,28 +1,12 @@
-# pyright: reportMissingImports=false
-# pyright: reportGeneralTypeIssues=false
-# pyright: reportPossiblyUnboundVariable=false
-# pyright: reportArgumentType=false
-# pyright: reportCallIssue=false
-# pyright: reportAttributeAccessIssue=false
-# pyright: reportAssignmentType=false
-# pyright: reportReturnType=false
-# from .edge_computing_manager import *  # Temporarily disabled due to syntax errors
+"""
+PlexiChat - Real-time Communication Platform
+Copyright (C) 2025 PlexiChat Contributors
 
+Performance Package
+"""
 
-__all__ = [
-    "EdgeComputingManager",
-    "EdgeNode",
-    "LoadLevel",
-    "LoadMetrics",
-    "NodeType",
-    "ScalingAction",
-    "ScalingDecision",
-    "get_edge_computing_manager",
-]
+from plexichat.core.logging import get_logger
 
-# Version information
-from plexichat.core.config_manager import get_config
+logger = get_logger(__name__)
 
-__version__ = get_config("system.version", "0.0.0")
-__author__ = "PlexiChat Development Team"
-__description__ = "PlexiChat Performance & Edge Computing Module"
+__all__ = []

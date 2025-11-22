@@ -1,28 +1,12 @@
-"""PlexiChat Core Cache Module with Type Safety and Integration"""
+"""
+PlexiChat - Real-time Communication Platform
+Copyright (C) 2025 PlexiChat Contributors
 
-from .manager import (
-    CacheExpiration,
-    CacheKey,
-    CacheLevel,
-    CacheStats,
-    CacheStrategy,
-    CacheTags,
-    CacheValue,
-    QuantumSecureCache,
-    SecureCacheEntry,
-    secure_cache,
-)
+Cache Package
+"""
 
-__all__ = [
-    "QuantumSecureCache",
-    "secure_cache",
-    "CacheLevel",
-    "CacheStrategy",
-    "SecureCacheEntry",
-    "CacheStats",
-    # Type exports for better integration
-    "CacheKey",
-    "CacheValue",
-    "CacheExpiration",
-    "CacheTags",
-]
+from plexichat.core.logging import get_logger
+
+logger = get_logger(__name__)
+
+__all__ = []

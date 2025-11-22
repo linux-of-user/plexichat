@@ -1,55 +1,12 @@
-"""PlexiChat WebSocket"""
+"""
+PlexiChat - Real-time Communication Platform
+Copyright (C) 2025 PlexiChat Contributors
 
-import logging
-from typing import TYPE_CHECKING, Any, Dict, Optional
+WebSocket Package
+"""
 
-logger = logging.getLogger(__name__)
+from plexichat.core.logging import get_logger
 
-# Try to import from websocket_manager, fall back to local implementations
-try:
-    from plexichat.core.websocket.websocket_manager import (
-        WebSocketConnection as _WebSocketConnection,
-    )
-    from plexichat.core.websocket.websocket_manager import (
-        WebSocketManager as _WebSocketManager,
-    )
+logger = get_logger(__name__)
 
-    # Use the imported classes
-    WebSocketManager = _WebSocketManager  # type: ignore
-    WebSocketConnection = _WebSocketConnection  # type: ignore
-
-except ImportError:
-    logger.warning("Using fallback WebSocket implementations")
-
-    # Fallback classes
-    class WebSocketManager:  # type: ignore
-        def __init__(self):
-            pass
-
-    class WebSocketConnection:  # type: ignore
-        def __init__(self):
-            pass
-
-
-# Set to None to indicate unavailable
-websocket_manager = None
-connect_websocket = None
-disconnect_websocket = None
-send_to_user = None
-send_to_channel = None
-broadcast_message = None
-
-__all__ = [
-    "WebSocketConnection",
-    "WebSocketManager",
-    "broadcast_message",
-    "connect_websocket",
-    "disconnect_websocket",
-    "send_to_channel",
-    "send_to_user",
-    "websocket_manager",
-]
-
-from plexichat.core.config_manager import get_config
-
-__version__ = get_config("system.version", "0.0.0")
+__all__ = []
