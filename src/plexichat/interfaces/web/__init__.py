@@ -1,21 +1,6 @@
 """
 PlexiChat Web Interface
 
-Enhanced web interface with comprehensive functionality and performance optimization.
-Uses EXISTING database abstraction and optimization systems.
-"""
-
-import logging
-from typing import Any, Optional
-
-# Setup basic logging
-logger = logging.getLogger(__name__)
-
-# FastAPI imports
-try:
-    from fastapi import FastAPI
-    from fastapi.middleware.cors import CORSMiddleware
-    from fastapi.responses import JSONResponse
 
     logger.info("FastAPI imports successful")
 except ImportError as e:

@@ -42,7 +42,9 @@ except ImportError:
     PerformanceOptimizationEngine = None
     get_performance_logger = None
 
-logger = logging.getLogger(__name__)
+from plexichat.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 # Initialize EXISTING performance systems
 performance_logger = get_performance_logger() if get_performance_logger else None

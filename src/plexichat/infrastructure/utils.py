@@ -2,21 +2,6 @@
 PlexiChat Infrastructure Utilities
 Consolidated infrastructure utilities for monitoring, security, and performance.
 """
-
-import asyncio
-from collections import defaultdict, deque
-from contextlib import asynccontextmanager
-from functools import wraps
-import logging
-import time
-from typing import Any
-
-logger = logging.getLogger(__name__)
-
-
-class PerformanceMonitor:
-    """Simple performance monitoring."""
-
     def __init__(self):
         self.metrics: dict[str, list[float]] = defaultdict(list)
         self.start_times: dict[str, float] = {}

@@ -3,24 +3,6 @@ PlexiChat Plugin Internal API - Auto-Generated
 ==============================================
 
 This module provides the secure interface between plugins and PlexiChat core services.
-It acts as a sandboxed bridge that exposes only safe, whitelisted functionality.
-
-Generated on: 2025-09-10T19:42:50.376697
-SDK Version: 1.0.0
-PlexiChat Version: 1.0.0
-
-WARNING: This file is auto-generated. Do not edit manually!
-Changes will be overwritten when the plugin system starts.
-"""
-
-import asyncio
-import json
-import logging
-import threading
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union, Callable
-from contextlib import asynccontextmanager
 
 # Version information
 SDK_VERSION = "1.0.0"

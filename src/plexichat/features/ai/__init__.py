@@ -1,99 +1,12 @@
 """
-PlexiChat AI Features - MODERN ARCHITECTURE
+PlexiChat - Real-time Communication Platform
+Copyright (C) 2025 PlexiChat Contributors
 
-Comprehensive AI system with provider abstraction, featuring:
-- Multi-provider AI integration (OpenAI, Anthropic, Ollama, etc.)
-- AI-powered features (summarization, content suggestions, sentiment analysis)
-- Content moderation and safety systems
-- Real-time monitoring and analytics
-- Provider management and failover
-- API endpoints for AI features
-
-Uses shared components for consistent error handling and type definitions.
+AI Features Package
 """
 
-# Import shared components (NEW ARCHITECTURE) - with fallbacks
-try:
-    from plexichat.shared.exceptions import (  # type: ignore
-        RateLimitError,
-        SecurityError,
-        ValidationError,
-    )
-    from plexichat.shared.models import Event, Priority, Status, User  # type: ignore
-    from plexichat.shared.types import JSON, ConfigDict, UserId  # type: ignore
-except ImportError:
-    # Fallback types for standalone usage
-    from typing import Any, Dict
+from plexichat.core.logging import get_logger
 
-    User = Any
-    Event = Any
-    Priority = str
-    Status = str
-    UserId = str
-    JSON = dict[str, Any]
-    ConfigDict = dict[str, Any]
+logger = get_logger(__name__)
 
-    class ValidationError(Exception):
-        pass
-
-    class SecurityError(Exception):
-        pass
-
-    class RateLimitError(Exception):
-        pass
-
-
-# Import AI components
-
-# AI features and services
-from src.plexichat.core.config_manager import get_config
-from plexichat.features.ai.ai_coordinator import AICoordinator
-from plexichat.features.ai.core.ai_abstraction_layer import (
-    AIAbstractionLayer,
-    AIAccessControl,
-    AIModel,
-    AIProvider,
-    AIRequest,
-    AIResponse,
-    ModelCapability,
-    ModelStatus,
-)
-
-__version__ = get_config("system.version", "0.0.0")
-__all__ = [
-    # Core AI components
-    "AIAbstractionLayer",
-    "AIRequest",
-    "AIResponse",
-    "AIModel",
-    "AIProvider",
-    "ModelCapability",
-    "ModelStatus",
-    "AIAccessControl",
-    "AICoordinator",
-    # Shared components re-exports
-    "User",
-    "Event",
-    "Priority",
-    "Status",
-    "UserId",
-    "JSON",
-    "ConfigDict",
-    "ValidationError",
-    "SecurityError",
-    "RateLimitError",
-]
-
-# AI system capabilities
-AI_FEATURES = {
-    "multi_provider_support": True,
-    "content_moderation": True,
-    "sentiment_analysis": True,
-    "text_summarization": True,
-    "content_suggestions": True,
-    "semantic_search": True,
-    "real_time_monitoring": True,
-    "provider_failover": True,
-    "api_integration": True,
-    "web_ui_management": True,
-}
+__all__ = []

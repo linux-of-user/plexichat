@@ -160,15 +160,15 @@ KEYBOARD_SHORTCUTS = {
         {"keys": ["Enter"], "description": "Send message"},
         {"keys": ["Shift", "Enter"], "description": "New line in message"},
         {"keys": ["Ctrl", "Enter"], "description": "Send message (alternative)"},
-        {"keys": ["↑"], "description": "Edit last message"},
+        {"keys": ["UP"], "description": "Edit last message"},
         {"keys": ["Tab"], "description": "Navigate through mentions"},
     ],
     "navigation": [
-        {"keys": ["Alt", "↑"], "description": "Previous channel"},
-        {"keys": ["Alt", "↓"], "description": "Next channel"},
+        {"keys": ["Alt", "UP"], "description": "Previous channel"},
+        {"keys": ["Alt", "DOWN"], "description": "Next channel"},
         {"keys": ["Ctrl", "1-9"], "description": "Switch to server 1-9"},
-        {"keys": ["Ctrl", "Shift", "↑"], "description": "Scroll to top"},
-        {"keys": ["Ctrl", "Shift", "↓"], "description": "Scroll to bottom"},
+        {"keys": ["Ctrl", "Shift", "UP"], "description": "Scroll to top"},
+        {"keys": ["Ctrl", "Shift", "DOWN"], "description": "Scroll to bottom"},
     ],
 }
 

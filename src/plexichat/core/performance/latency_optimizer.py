@@ -130,7 +130,7 @@ class RequestPreprocessor:
 
             processing_time = (time.perf_counter() - start_time) * 1_000_000
             self.logger.debug(
-                f"Request preprocessing completed in {processing_time:.2f}µs"
+                f"Request preprocessing completed in {processing_time:.2f}us"
             )
 
             return optimized_data
@@ -292,7 +292,7 @@ class ResponseCompressor:
 
             processing_time = (time.perf_counter() - start_time) * 1_000_000
             self.logger.debug(
-                f"Response compression completed in {processing_time:.2f}µs (ratio: {compression_ratio:.3f})"
+                f"Response compression completed in {processing_time:.2f}us (ratio: {compression_ratio:.3f})"
             )
 
             return compressed_data, compression_ratio

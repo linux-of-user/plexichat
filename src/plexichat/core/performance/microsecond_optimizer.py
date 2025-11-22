@@ -727,7 +727,7 @@ class AdvancedMicrosecondOptimizer:
             )
 
             # Cache result if beneficial
-            if metrics.duration_microseconds > 100:  # Cache operations > 100μs
+            if metrics.duration_microseconds > 100:  # Cache operations > 100us
                 self.operation_cache[cache_key] = result
 
             # Store metrics

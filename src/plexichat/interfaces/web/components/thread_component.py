@@ -41,7 +41,7 @@ class ThreadComponent:
                         </div>
                     </div>
                     <div class="thread-status">
-                        {"<span class='resolved-badge'>✓</span>" if thread['is_resolved'] else ""}
+                        {"<span class='resolved-badge'>[X]</span>" if thread['is_resolved'] else ""}
                     </div>
                 </div>
             """
@@ -348,7 +348,7 @@ class ThreadComponent:
                         </div>
                     </div>
                     <div class="thread-status">
-                        ${thread.is_resolved ? '<span class="resolved-badge">✓</span>' : ''}
+                        ${thread.is_resolved ? '<span class="resolved-badge">[X]</span>' : ''}
                     </div>
                 </div>
             `).join('');

@@ -322,15 +322,15 @@ def validate(validate_only: bool):
         if errors:
             click.echo("Configuration Errors:", err=True)
             for error in errors:
-                click.echo(f"  ❌ {error}", err=True)
+                click.echo(f"  [ERROR] {error}", err=True)
 
         if warnings:
             click.echo("Configuration Warnings:")
             for warning in warnings:
-                click.echo(f"  ⚠️  {warning}")
+                click.echo(f"  [WARNING] {warning}")
 
         if not errors and not warnings:
-            click.echo("✅ Configuration is valid.")
+            click.echo("[OK] Configuration is valid.")
 
         if errors:
             sys.exit(1)

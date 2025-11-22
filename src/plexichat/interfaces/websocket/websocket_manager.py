@@ -13,22 +13,6 @@ try:
 except ImportError:
     # Fallback types for testing or environments without FastAPI
     from typing import Any
-
-    WebSocket = Any
-    WebSocketDisconnect = Exception
-
-from src.plexichat.core.services.typing_service import typing_service
-from src.plexichat.core.websocket.websocket_manager import (
-    websocket_manager as core_websocket_manager,
-)
-
-logger = logging.getLogger(__name__)
-
-
-class WebSocketManagerInterface:
-    """Interface layer for WebSocket management with typing integration."""
-
-    def __init__(self) -> None:
         self.core_manager = core_websocket_manager
         self.typing_service = typing_service
 
