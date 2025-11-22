@@ -12,12 +12,13 @@ from uuid import uuid4
 
 from plexichat.core.config import get_setting
 from plexichat.core.database.manager import database_manager
+from plexichat.core.logging import get_logger
 from plexichat.core.services.optimized_websocket_service import (
     optimized_websocket_service,
 )
 from plexichat.core.websocket.websocket_manager import websocket_manager
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass

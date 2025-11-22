@@ -1,22 +1,4 @@
 """Shared message service used by both API and Web routers.
-This module centralizes message validation, formatting, and persistence hooks
-so features stay consistent across interfaces. No features are removed.
-"""
-
-from __future__ import annotations
-
-import asyncio
-from dataclasses import dataclass
-import logging
-from typing import Any
-
-from plexichat.infrastructure.utils.compilation import optimizer
-
-from .message_checksum import calculate_checksum
-
-logger = logging.getLogger(__name__)
-
-
 @dataclass
 class Message:
     content: str
