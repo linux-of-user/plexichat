@@ -1,66 +1,12 @@
-"""PlexiChat Files"""
+"""
+PlexiChat - Real-time Communication Platform
+Copyright (C) 2025 PlexiChat Contributors
 
-import logging
-from typing import Any, Dict, List, Optional
+Files Package
+"""
 
-# Use shared fallback implementations
-logger = logging.getLogger(__name__)
+from plexichat.core.logging import get_logger
 
-try:
-    from plexichat.core.utils.fallbacks import (
-        FileManager,
-        FileMetadata,
-        delete_file,
-        get_fallback_instance,
-        get_file_data,
-        get_file_metadata,
-        upload_file,
-    )
+logger = get_logger(__name__)
 
-    USE_SHARED_FALLBACKS = True
-    logger.info("Using shared fallback implementations for files")
-except ImportError:
-    # Fallback to local definitions if shared fallbacks unavailable
-    USE_SHARED_FALLBACKS = False
-    logger.warning("Shared fallbacks unavailable, using local implementations")
-
-if USE_SHARED_FALLBACKS:
-    file_manager = get_fallback_instance("FileManager")
-else:
-    # Local fallbacks (preserved for compatibility)
-    class FileManager:  # type: ignore
-        def __init__(self):
-            pass
-
-    class FileMetadata:  # type: ignore
-        def __init__(self, **kwargs):
-            self.__dict__.update(kwargs)
-
-    file_manager = None
-
-    def upload_file(*args, **kwargs):  # type: ignore
-        return None
-
-    def get_file_metadata(*args, **kwargs):  # type: ignore
-        return None
-
-    def get_file_data(*args, **kwargs):  # type: ignore
-        return None
-
-    def delete_file(*args, **kwargs):  # type: ignore
-        return False
-
-
-__all__ = [
-    "FileManager",
-    "FileMetadata",
-    "delete_file",
-    "file_manager",
-    "get_file_data",
-    "get_file_metadata",
-    "upload_file",
-]
-
-from plexichat.core.utils.fallbacks import get_module_version
-
-__version__ = get_module_version()
+__all__ = []
