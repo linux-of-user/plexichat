@@ -4,11 +4,7 @@ Copyright (C) 2025 PlexiChat Contributors
 
 User Status Service
 """
-"""
-User Status Service
 
-Manages user status functionality including validation, persistence, and real-time updates.
-"""
 
 import asyncio
 from dataclasses import dataclass

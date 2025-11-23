@@ -1,18 +1,23 @@
-        )  # For individual typing status
+from plexichat.core.logging import get_logger
+from plexichat.core.config import get_config
+from plexichat.core.caching.unified_cache_integration import (
+    cache_get,
+    cache_set,
+    cache_delete,
+    CacheKeyBuilder,
+)
 
-    async def get_cached_typing_users(self, channel_id: str) -> list[str] | None:
-        """Get cached typing users for a channel."""
-        cache_key = CacheKeyBuilder.build("typing", "channel_users", channel_id)
+logger = get_logger(__name__)
+config = get_config()
 
-        try:
-            cached_data = await cache_get(cache_key)
-            if cached_data:
-                logger.debug(f"Cache hit for typing users in channel {channel_id}")
-                return cached_data
-        except Exception as e:
-            logger.warning(f"Error getting cached typing users: {e}")
 
-        return None
+class TypingCacheService:
+    """Service for caching typing status to reduce database load."""
+
+    def __init__(self):
+        self.cache_ttl = config.typing.cache_ttl or 60
+        self.channel_users_cache_ttl = config.typing.channel_users_cache_ttl or 5
+        self.typing_status_cache_ttl = config.typing.typing_status_cache_ttl or 2
 
     async def set_cached_typing_users(self, channel_id: str, users: list[str]) -> bool:
         """Cache typing users for a channel."""

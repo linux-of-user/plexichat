@@ -16,36 +16,49 @@ parts/
 sdist/
 var/
 wheels/
-share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
 MANIFEST
 
-# Virtual Env
+# Virtual Environment
 venv/
 env/
 ENV/
 
 # IDEs
-.idea/
 .vscode/
+.idea/
 *.swp
 *.swo
 
 # Logs
-logs/
 *.log
+logs/
 
 # Database
+*.sqlite
 *.db
-*.sqlite3
 
 # OS
 .DS_Store
 Thumbs.db
 
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
 # PlexiChat Specific
-uploads/
-backup_storage/
 data/
+uploads/
+vaults/
+backup_storage/
+config/local_config.yaml
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/

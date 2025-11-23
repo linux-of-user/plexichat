@@ -107,7 +107,7 @@ class MessageMetadata:
 
 
 @dataclass
-class Message:
+class SystemMessage:
     """Core message structure."""
 
     metadata: MessageMetadata
@@ -168,7 +168,7 @@ class MessageValidator:
             ".mp3",
         }
 
-    def validate_message(self, message: Message) -> tuple[bool, list[str]]:
+    def validate_message(self, message: SystemMessage) -> tuple[bool, list[str]]:
         """Validate message content and metadata."""
         issues = []
 
@@ -209,7 +209,7 @@ class MessageEncryption:
         self.encryption_keys: dict[str, str] = {}
 
     def encrypt_message(
-        self, message: Message, encryption_level: EncryptionLevel
+        self, message: SystemMessage, encryption_level: EncryptionLevel
     ) -> str:
         """Encrypt message content based on encryption level."""
         if encryption_level == EncryptionLevel.NONE:
@@ -260,7 +260,7 @@ class MessageRouter:
         """Add a message routing rule."""
         self.routing_rules[rule_name] = handler
 
-    def route_message(self, message: Message) -> list[str]:
+    def route_message(self, message: SystemMessage) -> list[str]:
         """Route message to appropriate destinations."""
         destinations = []
 
@@ -366,7 +366,7 @@ class MessagingSystem:
         self.threads_service = get_message_threads_service()
 
         # Message storage
-        self.messages: dict[str, Message] = {}
+        self.messages: dict[str, SystemMessage] = {}
         # Thread storage
         self.threads: dict[str, Thread] = {}
         self.thread_messages: dict[str, list[str]] = {}
@@ -410,7 +410,7 @@ class MessagingSystem:
         attachments: list[dict[str, Any]] | None = None,
         reply_to: str | None = None,
         thread_id: str | None = None,
-    ) -> tuple[bool, str, Message | None]:
+    ) -> tuple[bool, str, SystemMessage | None]:
         """
         Send a message with comprehensive security validation.
 
@@ -443,7 +443,7 @@ class MessagingSystem:
                 thread_id=thread_id,
             )
 
-            message = Message(
+            message = SystemMessage(
                 metadata=metadata, content=content, attachments=attachments or []
             )
 
@@ -504,7 +504,7 @@ class MessagingSystem:
             self.metrics["messages_failed"] += 1
             return False, f"Internal error: {e!s}", None
 
-    async def _deliver_message(self, message: Message, destinations: list[str]):
+    async def _deliver_message(self, message: SystemMessage, destinations: list[str]):
         """Deliver message to all destinations."""
         for destination in destinations:
             if destination in self.subscribers:
@@ -515,7 +515,7 @@ class MessagingSystem:
                         logger.error(f"Error delivering message to {destination}: {e}")
 
     async def _trigger_message_notifications(
-        self, message: Message, destinations: list[str]
+        self, message: SystemMessage, destinations: list[str]
     ):
         """Trigger notifications for message events."""
         try:
@@ -583,7 +583,7 @@ class MessagingSystem:
             logger.error(f"Error triggering message notifications: {e}")
 
     async def _trigger_thread_message_notifications(
-        self, message: Message, destinations: list[str]
+        self, message: SystemMessage, destinations: list[str]
     ):
         """Trigger notifications for thread message events."""
         try:
@@ -686,7 +686,7 @@ class MessagingSystem:
 
     async def get_channel_messages(
         self, channel_id: str, limit: int = 50, before_message_id: str | None = None
-    ) -> list[Message]:
+    ) -> list[SystemMessage]:
         """Get messages from a channel with pagination."""
         if channel_id not in self.message_history:
             return []
@@ -716,7 +716,7 @@ class MessagingSystem:
                 )
                 # Apply rich text formatting
                 formatted_content = message_formatter.format_message(decrypted_content)
-                display_message = Message(
+                display_message = SystemMessage(
                     metadata=message.metadata,
                     content=formatted_content,
                     attachments=message.attachments,
@@ -729,7 +729,7 @@ class MessagingSystem:
                     message.content, message.metadata.encryption_level
                 )
                 # Create a copy with decrypted content
-                display_message = Message(
+                display_message = SystemMessage(
                     metadata=message.metadata,
                     content=decrypted_content,
                     attachments=message.attachments,
@@ -794,7 +794,7 @@ class MessagingSystem:
         message_type: MessageType = MessageType.TEXT,
         attachments: list[dict[str, Any]] | None = None,
         reply_to: str | None = None,
-    ) -> tuple[bool, str, Message | None]:
+    ) -> tuple[bool, str, SystemMessage | None]:
         """Send a message in a thread."""
         try:
             if thread_id not in self.threads:

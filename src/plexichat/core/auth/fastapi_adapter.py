@@ -14,8 +14,8 @@ from typing import Any
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from src.plexichat.core.authentication import get_auth_manager
-from src.plexichat.core.security import (
+from plexichat.core.auth import get_auth_manager
+from plexichat.core.security import (
     NetworkProtection,
     RateLimitRequest,
     get_network_protection,

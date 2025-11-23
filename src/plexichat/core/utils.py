@@ -32,6 +32,7 @@ from typing import (
 )
 
 from plexichat.core.logging import get_logger
+from plexichat.core.exceptions import ValidationError, ErrorCode
 
 logger = get_logger(__name__)
 
@@ -224,7 +225,6 @@ class DateTimeUtils:
                     # Attempt parsing as float string (unix)
                     return datetime.fromtimestamp(float(timestamp), tz=timezone.utc)
                 except Exception:
-                    from plexichat.core.exceptions import ValidationError, ErrorCode
                     raise ValidationError(
                         f"Unrecognized timestamp format: {timestamp}",
                         ErrorCode.VALIDATION_INVALID_FORMAT,

@@ -18,7 +18,6 @@ from fastapi import (
 from fastapi.responses import JSONResponse
 
 from plexichat.core.auth.fastapi_adapter import get_auth_adapter
-from plexichat.features.users.user import User
 from plexichat.websockets.messaging_websocket import messaging_websocket_manager
 
 """
@@ -37,7 +36,7 @@ router = APIRouter(prefix="/ws", tags=["WebSocket Messaging"])
 
 async def get_websocket_user(
     websocket: WebSocket, token: str | None = None
-) -> User | None:
+) -> Any | None:
     """Get user from WebSocket connection token."""
     try:
         if not token:
@@ -271,7 +270,7 @@ async def guild_messaging_websocket(websocket: WebSocket, guild_id: int):
 
 @router.get("/messaging/stats")
 async def get_messaging_stats(
-    current_user: User = Depends(get_auth_adapter().get_current_user),
+    current_user: Any = Depends(get_auth_adapter().get_current_user),
 ):
     """
     Get real-time messaging statistics.
@@ -299,7 +298,7 @@ async def broadcast_admin_message(
     message: str,
     channel_id: int | None = None,
     guild_id: int | None = None,
-    current_user: User = Depends(get_auth_adapter().get_current_user),
+    current_user: Any = Depends(get_auth_adapter().get_current_user),
 ):
     """
     Broadcast an admin message to all connected users or specific channel/guild.

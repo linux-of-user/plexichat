@@ -22,101 +22,44 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set, Union
 
-# Import shared components (with fallbacks)
-try:
-    from src.plexichat.shared.models import Event, Plugin, Priority, Status
-except ImportError:
-    # Create placeholder classes
-    class Plugin:
-        pass
+# Import shared components
+from plexichat.shared.models import Event, Plugin, Priority, Status
+from plexichat.shared.types import PluginConfig, PluginId, PluginResult
 
-    class Event:
-        pass
-
-    class Priority:
-        pass
-
-    class Status:
-        pass
+from plexichat.shared.exceptions import (
+    PluginError,
+    SecurityError,
+    ValidationError,
+)
 
 
-try:
-    from src.plexichat.shared.types import PluginConfig, PluginId, PluginResult
-except ImportError:
-    # Use basic types as fallbacks
-    PluginId = str
-    PluginConfig = dict
-    PluginResult = dict
-
-try:
-    from src.plexichat.shared.exceptions import (
-        PluginError,
-        SecurityError,
-        ValidationError,
-    )
-except ImportError:
-    # Create basic exception classes
-    class PluginError(Exception):
-        pass
-
-    class ValidationError(Exception):
-        pass
-
-    class SecurityError(Exception):
-        pass
+from plexichat.core.config import (
+    get_max_plugin_memory,
+    get_plugin_sandbox_enabled,
+    get_plugin_timeout,
+)
 
 
-try:
-    from src.plexichat.core.config import (
-        get_max_plugin_memory,
-        get_plugin_sandbox_enabled,
-        get_plugin_timeout,
-    )
-except ImportError:
-    # Provide default functions
-    def get_plugin_timeout():
-        return 30
-
-    def get_max_plugin_memory():
-        return 100 * 1024 * 1024  # 100MB
-
-    def get_plugin_sandbox_enabled():
-        return True
-
-
-# Core imports (with fallbacks)
-try:
-    from src.plexichat.core.database.manager import database_manager
-except ImportError:
-    database_manager = None
+# Core imports
+from plexichat.core.database.manager import database_manager
 
 # SDK generator - ensure plugins_internal exists
-try:
-    from src.plexichat.core.plugins.sdk_generator import (
-        generate_plugins_internal,
-        regenerate_plugins_internal_if_needed,
-        sdk_generator,
-    )
-except ImportError:
-    sdk_generator = None
-    regenerate_plugins_internal_if_needed = None
-    generate_plugins_internal = None
+# SDK generator
+from plexichat.core.plugins.sdk_generator import (
+    generate_plugins_internal,
+    regenerate_plugins_internal_if_needed,
+    sdk_generator,
+)
 
 # Security manager integration
-try:
-    from src.plexichat.core.plugins.security_manager import (
-        PermissionType,
-        PluginSecurityManager,
-        create_plugin_sandbox,
-        get_security_manager,
-        plugin_security_manager,
-    )
-except ImportError:
-    plugin_security_manager = None
-    get_security_manager = None
-    create_plugin_sandbox = None
-    PluginSecurityManager = None
-    PermissionType = None
+# Security manager integration
+from plexichat.core.plugins.security_manager import (
+    PermissionType,
+    PluginSecurityManager,
+    create_plugin_sandbox,
+    get_security_manager,
+    plugin_security_manager,
+)
 
 # Enhanced plugin systems (optional)
 plugin_security = None

@@ -1,21 +1,37 @@
-server:
-  host: "0.0.0.0"
-  port: 8000
-  debug: false
+# PlexiChat Configuration
 
-logging:
-  level: "INFO"
-  dir: "logs"
-  filename: "plexichat.log"
-  rotation: "10 MB"
-  retention: "10 days"
-  compression: "zip"
+system:
+  environment: development
+  debug: true
+  log_level: INFO
+  app_name: PlexiChat
+  version: a.1.1-100
+
+network:
+  host: 0.0.0.0
+  port: 8000
+  cors_origins:
+    - "*"
+  ssl_enabled: false
 
 database:
-  type: "sqlite"
-  path: "data/plexichat.db"
+  path: data/plexichat.db
+  pool_size: 20
+  timeout: 30.0
 
 security:
-  secret_key: "CHANGE_ME_IN_PROD"
-  algorithm: "HS256"
+  secret_key: CHANGE_ME_IN_PROD
+  algorithm: HS256
   access_token_expire_minutes: 30
+  enable_mfa: true
+
+logging:
+  file_path: logs/plexichat.log
+  max_bytes: 10485760 # 10MB
+  backup_count: 5
+  json_format: false
+
+ai:
+  enabled: true
+  provider: openai
+  model: gpt-4

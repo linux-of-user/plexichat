@@ -15,33 +15,22 @@ import time
 from typing import Any
 from uuid import uuid4
 
-try:
-    from plexichat.core.database.manager import database_manager, execute_query
-except ImportError:
-    database_manager = None
-    execute_query = None
-
-try:
-    from plexichat.core.threading.thread_manager import (
-        async_thread_manager,
-        submit_task,
-    )
-except ImportError:
-    async_thread_manager = None
-    submit_task = None
+from plexichat.core.database.manager import database_manager, execute_query
+from plexichat.core.threading.thread_manager import (
+    async_thread_manager,
+    submit_task,
+)
 
 # Analytics manager is optional
 track_event = None
 
-try:
-    from plexichat.core.logging import MetricType, get_performance_logger
-    from plexichat.core.performance.optimization_engine import (
-        PerformanceOptimizationEngine,
-    )
-except ImportError:
-    PerformanceOptimizationEngine = None
-    get_performance_logger = None
-    MetricType = None
+# Performance imports
+# from plexichat.core.logging import MetricType, get_performance_logger # TODO: Implement performance logger
+# from plexichat.core.performance.optimization_engine import PerformanceOptimizationEngine # TODO: Implement optimization engine
+
+PerformanceOptimizationEngine = None
+get_performance_logger = None
+MetricType = None
 
 logger = logging.getLogger(__name__)
 performance_logger = get_performance_logger() if get_performance_logger else None

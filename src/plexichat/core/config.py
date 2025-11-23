@@ -2,82 +2,84 @@
 PlexiChat Configuration System
 ==============================
 
-Centralized configuration management using Pydantic.
-Supports loading from environment variables and .env files.
+Centralized configuration management using YAML.
 """
 
 import os
-from functools import lru_cache
-from typing import Optional, List, Dict, Any
-from pydantic import Field, BaseModel
-from pydantic_settings import BaseSettings, SettingsConfigDict
+import yaml
+from typing import Dict, Any
+from pathlib import Path
+from pydantic import BaseModel, Field
 
+# Define configuration models
 class DatabaseConfig(BaseModel):
-    """Database configuration."""
-    path: str = Field(default="data/plexichat.db", description="Path to SQLite database")
-    pool_size: int = Field(default=20, description="Connection pool size")
-    timeout: float = Field(default=30.0, description="Connection timeout in seconds")
+    path: str = "data/plexichat.db"
+    pool_size: int = 20
+    timeout: float = 30.0
 
 class SecurityConfig(BaseModel):
-    """Security configuration."""
-    secret_key: str = Field(default="CHANGE_ME_IN_PROD", description="Secret key for JWT signing")
-    algorithm: str = Field(default="HS256", description="JWT algorithm")
-    access_token_expire_minutes: int = Field(default=30, description="Token expiration time")
-    enable_mfa: bool = Field(default=True, description="Enable Multi-Factor Authentication")
+    secret_key: str = "CHANGE_ME_IN_PROD"
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30
+    enable_mfa: bool = True
+
+class LoggingConfig(BaseModel):
+    file_path: str = "logs/plexichat.log"
+    max_bytes: int = 10485760
+    backup_count: int = 5
+    json_format: bool = False
 
 class AIConfig(BaseModel):
-    """AI/LLM configuration."""
-    enabled: bool = Field(default=True, description="Enable AI features")
-    provider: str = Field(default="openai", description="Default AI provider")
-    api_key: Optional[str] = Field(default=None, description="API Key for AI provider")
-    model: str = Field(default="gpt-4", description="Default model to use")
+    enabled: bool = True
+    provider: str = "openai"
+    model: str = "gpt-4"
+    api_key: str = ""
 
 class NetworkConfig(BaseModel):
-    """Network and API configuration."""
-    host: str = Field(default="0.0.0.0", description="Host to bind to")
-    port: int = Field(default=8000, description="Port to bind to")
-    cors_origins: List[str] = Field(default=["*"], description="Allowed CORS origins")
-    ssl_enabled: bool = Field(default=False, description="Enable SSL/TLS")
+    host: str = "0.0.0.0"
+    port: int = 8000
+    cors_origins: list[str] = ["*"]
+    ssl_enabled: bool = False
 
 class SystemConfig(BaseModel):
-    """General system configuration."""
-    environment: str = Field(default="development", description="Environment (development, production)")
-    debug: bool = Field(default=True, description="Enable debug mode")
-    log_level: str = Field(default="INFO", description="Logging level")
-    app_name: str = Field(default="PlexiChat", description="Application name")
-    version: str = Field(default="2.0.0", description="Application version")
+    environment: str = "development"
+    debug: bool = True
+    log_level: str = "INFO"
+    app_name: str = "PlexiChat"
+    version: str = "a.1.1-100"
 
-class Settings(BaseSettings):
-    """
-    Global Application Settings.
-    Hierarchical configuration for all system components.
-    """
+class Config(BaseModel):
     system: SystemConfig = Field(default_factory=SystemConfig)
     network: NetworkConfig = Field(default_factory=NetworkConfig)
     database: DatabaseConfig = Field(default_factory=DatabaseConfig)
     security: SecurityConfig = Field(default_factory=SecurityConfig)
+    logging: LoggingConfig = Field(default_factory=LoggingConfig)
     ai: AIConfig = Field(default_factory=AIConfig)
 
-    # Allow loading from .env file
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        env_nested_delimiter="__",
-        extra="ignore"
-    )
-    
-    # Flattened accessors for backward compatibility or convenience
-    @property
-    def app_name(self) -> str:
-        return self.system.app_name
-        
-    @property
-    def version(self) -> str:
-        return self.system.version
+_config_instance = None
 
-@lru_cache()
-def get_config() -> Settings:
-    """
-    Get the cached configuration instance.
-    """
-    return Settings()
+def load_config(config_path: str = "config.yaml") -> Config:
+    """Load configuration from a YAML file."""
+    global _config_instance
+    
+    path = Path(config_path)
+    if not path.exists():
+        # Return default config if file doesn't exist
+        _config_instance = Config()
+        return _config_instance
+
+    with open(path, "r") as f:
+        config_data = yaml.safe_load(f) or {}
+
+    _config_instance = Config(**config_data)
+    return _config_instance
+
+def get_config() -> Config:
+    """Get the loaded configuration instance."""
+    global _config_instance
+    if _config_instance is None:
+        return load_config()
+    return _config_instance
+
+# Global config instance
+config = get_config()

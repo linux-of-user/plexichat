@@ -1,7 +1,15 @@
 """
 PlexiChat Web Interface
+"""
 
+import logging
+from plexichat.core.logging import get_logger
 
+logger = get_logger(__name__)
+
+try:
+    from fastapi import FastAPI
+    from fastapi.middleware.cors import CORSMiddleware
     logger.info("FastAPI imports successful")
 except ImportError as e:
     logger.error(f"FastAPI import failed: {e}")
@@ -34,10 +42,23 @@ else:
         # Routers
         try:
             from plexichat.interfaces.web.routers.logs import router as logs_router
+            from plexichat.interfaces.web.routers.setup import router as setup_router
+            from plexichat.interfaces.web.routers.login import router as login_router
+            from plexichat.interfaces.web.routers.users import router as users_router
+            from plexichat.interfaces.web.routers.admin import router as admin_router
+            from plexichat.interfaces.web.routers.webui import router as webui_router
+            from plexichat.interfaces.web.routers.messages import router as messages_router
 
             app.include_router(logs_router)
+            app.include_router(setup_router)
+            app.include_router(login_router)
+            app.include_router(users_router)
+            app.include_router(admin_router)
+            app.include_router(webui_router)
+            app.include_router(messages_router)
+            
         except Exception as e:
-            logger.warning(f"Failed to include logs router: {e}")
+            logger.warning(f"Failed to include some routers: {e}")
 
         # Basic endpoints
         @app.get("/")

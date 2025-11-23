@@ -18,12 +18,9 @@ from fastapi.responses import HTMLResponse
 
 # Use EXISTING database abstraction layer
 try:
-    from plexichat.core.database import execute_query, get_session
     from plexichat.core.database.manager import database_manager
 except ImportError:
     database_manager = None
-    get_session = None
-    execute_query = None
 
 # Use EXISTING performance optimization engine
 try:
@@ -85,35 +82,35 @@ class WebService:
                     if self.performance_logger and timer:
                         with timer("user_message_count"):
                             result = await self.db_manager.execute_query(
-                                "SELECT COUNT(*) FROM messages WHERE sender_id = ?",
+                                "SELECT COUNT(*) as count FROM messages WHERE sender_id = :sender_id",
                                 {"sender_id": user_id},
                             )
                             dashboard_data["total_messages"] = (
-                                result[0][0] if result else 0
+                                result[0]["count"] if result else 0
                             )
                     else:
                         result = await self.db_manager.execute_query(
-                            "SELECT COUNT(*) FROM messages WHERE sender_id = ?",
+                            "SELECT COUNT(*) as count FROM messages WHERE sender_id = :sender_id",
                             {"sender_id": user_id},
                         )
-                        dashboard_data["total_messages"] = result[0][0] if result else 0
+                        dashboard_data["total_messages"] = result[0]["count"] if result else 0
 
                     # Get user's file count
                     if self.performance_logger and timer:
                         with timer("user_file_count"):
                             result = await self.db_manager.execute_query(
-                                "SELECT COUNT(*) FROM files WHERE user_id = ?",
+                                "SELECT COUNT(*) as count FROM files WHERE user_id = :user_id",
                                 {"user_id": user_id},
                             )
                             dashboard_data["total_files"] = (
-                                result[0][0] if result else 0
+                                result[0]["count"] if result else 0
                             )
                     else:
                         result = await self.db_manager.execute_query(
-                            "SELECT COUNT(*) FROM files WHERE user_id = ?",
+                            "SELECT COUNT(*) as count FROM files WHERE user_id = :user_id",
                             {"user_id": user_id},
                         )
-                        dashboard_data["total_files"] = result[0][0] if result else 0
+                        dashboard_data["total_files"] = result[0]["count"] if result else 0
 
                     # Get recent activity
                     if self.performance_logger and timer:
@@ -121,7 +118,7 @@ class WebService:
                             result = await self.db_manager.execute_query(
                                 """
                                 SELECT content, timestamp FROM messages
-                                WHERE sender_id = ?
+                                WHERE sender_id = :sender_id
                                 ORDER BY timestamp DESC
                                 LIMIT 5
                                 """,
@@ -131,11 +128,11 @@ class WebService:
                                 dashboard_data["recent_activity"] = [
                                     {
                                         "content": (
-                                            row[0][:50] + "..."
-                                            if len(row[0]) > 50
-                                            else row[0]
+                                            row["content"][:50] + "..."
+                                            if len(row["content"]) > 50
+                                            else row["content"]
                                         ),
-                                        "timestamp": row[1],
+                                        "timestamp": row["timestamp"],
                                     }
                                     for row in result
                                 ]
@@ -143,7 +140,7 @@ class WebService:
                         result = await self.db_manager.execute_query(
                             """
                             SELECT content, timestamp FROM messages
-                            WHERE sender_id = ?
+                            WHERE sender_id = :sender_id
                             ORDER BY timestamp DESC
                             LIMIT 5
                             """,
@@ -153,11 +150,11 @@ class WebService:
                             dashboard_data["recent_activity"] = [
                                 {
                                     "content": (
-                                        row[0][:50] + "..."
-                                        if len(row[0]) > 50
-                                        else row[0]
+                                        row["content"][:50] + "..."
+                                        if len(row["content"]) > 50
+                                        else row["content"]
                                     ),
-                                    "timestamp": row[1],
+                                    "timestamp": row["timestamp"],
                                 }
                                 for row in result
                             ]

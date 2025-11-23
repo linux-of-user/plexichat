@@ -402,26 +402,4 @@ async def cleanup_expired_states() -> int:
     return await typing_service.cleanup_expired_states()
 
 
-# Global service instance
-typing_service = TypingService()
 
-
-# Convenience functions
-async def start_typing(user_id: str, channel_id: str) -> bool:
-    """Start typing via global service."""
-    return await typing_service.start_typing(user_id, channel_id)
-
-
-async def stop_typing(user_id: str, channel_id: str) -> bool:
-    """Stop typing via global service."""
-    return await typing_service.stop_typing(user_id, channel_id)
-
-
-async def get_typing_users(channel_id: str) -> list[str]:
-    """Get typing users via global service."""
-    return await typing_service.get_typing_users(channel_id)
-
-
-async def cleanup_expired_states() -> int:
-    """Clean up expired states via global service."""
-    return await typing_service.cleanup_expired_states()

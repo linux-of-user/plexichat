@@ -123,17 +123,20 @@ class DatabaseManager:
                 raise DatabaseError(f"Database initialization failed: {e}") from e
 
     @asynccontextmanager
-    async def get_session(self) -> AsyncGenerator[DatabaseSession, None]:
+    async def get_session(self, security_context: Optional[Any] = None) -> AsyncGenerator[DatabaseSession, None]:
         """
         Provide a transactional database session.
-        Usage:
-            async with database_manager.get_session() as session:
-                await session.execute(...)
+        
+        Args:
+            security_context: Optional security context for row-level security.
         """
         if not self._initialized or not self._connection:
             await self.initialize()
 
         session = DatabaseSession(self._connection)
+        # TODO: Attach security context to session for RLS
+        # session.security_context = security_context
+        
         try:
             yield session
             await session.commit()
@@ -152,6 +155,14 @@ class DatabaseManager:
             self._connection = None
             self._initialized = False
             logger.info("Database connection closed.")
+
+    async def execute_query(self, query: str, params: Union[tuple, dict] = ()) -> List[Dict[str, Any]]:
+        """
+        Execute a query and return all results as a list of dictionaries.
+        Manages its own session/transaction.
+        """
+        async with self.get_session() as session:
+            return await session.fetch_all(query, params)
 
     def get_database_status(self) -> Dict[str, Any]:
         """Return status information."""

@@ -69,8 +69,24 @@ class ThreadManager:
 
     def _start_worker(self) -> None:
         """Start background worker thread."""
+        # Ensure table exists
+        if self.db_manager:
+            try:
+                loop = asyncio.new_event_loop()
+                loop.run_until_complete(self._ensure_table())
+                loop.close()
+            except Exception as e:
+                logger.error(f"Failed to ensure thread_tasks table: {e}")
+
         self._worker_thread = threading.Thread(target=self._worker_loop, daemon=True)
         self._worker_thread.start()
+
+    async def _ensure_table(self) -> None:
+        """Ensure thread_tasks table exists."""
+        from plexichat.core.database.models import THREAD_TASKS_SCHEMA
+        if self.db_manager and hasattr(self.db_manager, "execute_query"):
+             # Split schema into individual statements if needed, but here it's one table
+             await self.db_manager.execute_query(THREAD_TASKS_SCHEMA)
 
     def _worker_loop(self) -> None:
         """Main worker loop."""

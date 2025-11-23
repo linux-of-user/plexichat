@@ -5,13 +5,6 @@ Web interface for initial setup, database configuration, and admin account creat
 Provides a complete setup wizard accessible via web browser.
 """
 
-import os
-import sys
-
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../."))
-)
-
 from datetime import datetime
 import hashlib
 import json
@@ -21,18 +14,16 @@ from typing import Any
 
 # Import database abstraction layer
 from plexichat.core.database.manager import database_manager
-from plexichat.features.users.message import MessageUpdate
-from plexichat.features.users.models import User, UserModelService, UserRole, UserStatus
-from plexichat.features.users.user import UserCreate, UserService
+from plexichat.core.database.models import User, Channel, Message
+from plexichat.core.services.user_service import UserService
+# from plexichat.core.messaging.models import MessageUpdate
 
-database_manager = None
-User = None
+# Placeholders for missing services
+UserCreate = None
+UserModelService = None # TODO: Consolidate with UserService
+MessageUpdate = None
 UserRole = None
 UserStatus = None
-UserService = None
-UserCreate = None
-UserModelService = None
-MessageUpdate = None
 
 import base64
 import re
@@ -613,9 +604,7 @@ async def add_message_custom_field(
     _: None = Depends(enforce_global_rate_limit),
 ):
     value = validate_and_cast_custom_field(field_name, field_value, field_type)
-    from plexichat.features.users.message import MessageService
-
-    message_service = MessageService()
+    from plexichat.core.services.message_service import message_service
     message = await message_service.get_message_by_id(message_id)
     if not message:
         raise HTTPException(status_code=404, detail="Message not found.")
@@ -629,9 +618,7 @@ async def add_message_custom_field(
 async def get_message_custom_fields(
     message_id: int, _: None = Depends(enforce_global_rate_limit)
 ):
-    from plexichat.features.users.message import MessageService
-
-    message_service = MessageService()
+    from plexichat.core.services.message_service import message_service
     message = await message_service.get_message_by_id(message_id)
     if not message:
         raise HTTPException(status_code=404, detail="Message not found.")
@@ -685,9 +672,7 @@ async def get_user(user_id: int, _: None = Depends(enforce_global_rate_limit)):
 
 @router.get("/message/{message_id}", response_class=JSONResponse)
 async def get_message(message_id: int, _: None = Depends(enforce_global_rate_limit)):
-    from plexichat.features.users.message import MessageService
-
-    message_service = MessageService()
+    from plexichat.core.services.message_service import message_service
     message = await message_service.get_message_by_id(message_id)
     if not message:
         raise HTTPException(status_code=404, detail="Message not found.")

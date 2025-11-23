@@ -31,6 +31,7 @@ from plexichat.core.authentication import Role
 from plexichat.core.config import settings
 from plexichat.core.logging import get_logger
 from plexichat.core.plugins.manager import plugin_manager
+from plexichat.core.security.security_manager import get_security_module
 
 # Security headers from security.txt
 SECURITY_HEADERS = {
@@ -209,7 +210,7 @@ class AdminManagerWrapper:
         """Return list of admin-like user representations."""
         try:
             creds_map = getattr(
-                self.auth_manager.security_system, "user_credentials", {}
+                get_security_module(), "user_credentials", {}
             )
             admins = []
             for username, cred in creds_map.items():
@@ -283,7 +284,7 @@ class AdminManagerWrapper:
             admin_obj = SimpleNamespace(
                 username=user_id,
                 email=getattr(
-                    self.auth_manager.security_system.user_credentials.get(user_id, {}),
+                    get_security_module().user_credentials.get(user_id, {}),
                     "email",
                     None,
                 ),
@@ -337,7 +338,7 @@ class AdminManagerWrapper:
                 return False
             # Try to set email if credentials model supports it
             try:
-                creds = self.auth_manager.security_system.user_credentials.get(username)
+                creds = get_security_module().user_credentials.get(username)
                 if creds is not None:
                     if hasattr(creds, "email"):
                         creds.email = email
@@ -383,7 +384,7 @@ class AdminManagerWrapper:
         """
         try:
             creds_map = getattr(
-                self.auth_manager.security_system, "user_credentials", {}
+                get_security_module(), "user_credentials", {}
             )
             creds = creds_map.get(username)
             if not creds:
@@ -393,7 +394,7 @@ class AdminManagerWrapper:
             if by_admin:
                 try:
                     password_hash, salt = (
-                        self.auth_manager.security_system.password_manager.hash_password(
+                        get_security_module().password_manager.hash_password(
                             new_password
                         )
                     )
@@ -411,7 +412,7 @@ class AdminManagerWrapper:
                 try:
                     # Try to use password_manager.verify_password if available
                     verify_fn = getattr(
-                        self.auth_manager.security_system.password_manager,
+                        get_security_module().password_manager,
                         "verify_password",
                         None,
                     )
@@ -425,7 +426,7 @@ class AdminManagerWrapper:
                             return False
                     # Hash and set new password
                     password_hash, salt = (
-                        self.auth_manager.security_system.password_manager.hash_password(
+                        get_security_module().password_manager.hash_password(
                             new_password
                         )
                     )

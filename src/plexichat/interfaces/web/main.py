@@ -22,12 +22,10 @@ except ImportError as e:
     print(f"Failed to import app from plexichat.interfaces.web: {e}")
     app = None
 
-# Setup logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+from plexichat.core.config import get_config
+from plexichat.core.logging import get_logger
 
+logger = get_logger(__name__)
 
 def create_webui_app():
     """Create and configure the WebUI application."""
@@ -39,11 +37,15 @@ def create_webui_app():
     return app
 
 
-def run_webui_server(host: str = "0.0.0.0", port: int = 8080, reload: bool = False):
+def run_webui_server(host: str = None, port: int = None, reload: bool = False):
     """Run the WebUI server."""
     if not uvicorn:
         logger.error("uvicorn not available - install with: pip install uvicorn")
         return False
+
+    config = get_config()
+    host = host or config.network.host
+    port = port or config.network.port
 
     webui_app = create_webui_app()
     if not webui_app:
@@ -53,7 +55,7 @@ def run_webui_server(host: str = "0.0.0.0", port: int = 8080, reload: bool = Fal
     logger.info(f"Starting PlexiChat WebUI server on {host}:{port}")
 
     try:
-        uvicorn.run(webui_app, host=host, port=port, reload=reload, log_level="info")
+        uvicorn.run(webui_app, host=host, port=port, reload=reload, log_level=config.system.log_level.lower())
         return True
     except Exception as e:
         logger.error(f"Failed to start WebUI server: {e}")

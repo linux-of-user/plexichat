@@ -15,11 +15,18 @@ try:
 except ImportError:
     Console = Table = Panel = None
 
-# Mock imports for dependencies that might not be installed
-plugin_manager = None
-database_manager = None
-thread_manager = None
-message_processor = None
+# Real imports
+from plexichat.core.plugins.manager import plugin_manager
+from plexichat.core.database.manager import database_manager
+# from plexichat.core.threading.manager import thread_manager
+# from plexichat.core.messaging.processor import message_processor
+
+# Command imports
+# from plexichat.interfaces.cli.commands import admin as admin_cmd
+# from plexichat.interfaces.cli.commands import backup as backup_cmd
+# from plexichat.interfaces.cli.commands import system as system_cmd
+
+# Initialize placeholders for now until commands are fully implemented
 admin_cmd = None
 backup_cmd = None
 system_cmd = None
