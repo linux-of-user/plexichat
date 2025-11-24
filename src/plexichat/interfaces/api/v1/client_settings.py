@@ -74,7 +74,7 @@ except Exception:
     repository = MockRepository()  # type: ignore
 
 try:
-    from plexichat.core.config_manager import get_config  # type: ignore
+    from plexichat.core.config import get_config  # type: ignore
 except Exception:
     # Fallback config reader
     def get_config(section: str):

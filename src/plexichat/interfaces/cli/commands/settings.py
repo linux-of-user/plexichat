@@ -18,7 +18,7 @@ import yaml
 
 # Import configuration and client settings service
 try:
-    from plexichat.core.config_manager import get_config, get_config_manager
+    from plexichat.core.config import get_config, get_config_manager
     from plexichat.infrastructure.services.client_settings_service import (
         RateLimitError,
         SettingType,

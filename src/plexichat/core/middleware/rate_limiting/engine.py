@@ -48,7 +48,7 @@ except Exception:
 
 # Config
 try:
-    from plexichat.core.config_manager import get_config_manager
+    from plexichat.core.config import get_config_manager
 
     CONFIG = get_config_manager()
 except Exception:

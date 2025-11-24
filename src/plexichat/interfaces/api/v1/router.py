@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from plexichat.core.authentication import get_auth_manager
-from plexichat.core.logging.logger import get_logger
+from plexichat.core.logging import get_logger
 
 security = HTTPBearer()
 

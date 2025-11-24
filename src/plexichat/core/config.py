@@ -83,3 +83,37 @@ def get_config() -> Config:
 
 # Global config instance
 config = get_config()
+
+def get_setting(key: str, default: Any = None) -> Any:
+    """Get a setting value from config using dot notation.
+    
+    Examples:
+        get_setting('system.debug')
+        get_setting('database.path')
+    """
+    parts = key.split('.')
+    value = config
+    for part in parts:
+        if hasattr(value, part):
+            value = getattr(value, part)
+        else:
+            return default
+    return value
+
+def get_config_manager() -> Config:
+    """Get the config manager (alias for get_config for backward compatibility)."""
+    return get_config()
+
+# ConfigCategory stub for backward compatibility
+class ConfigCategory:
+    """Config category enumeration for backward compatibility."""
+    SYSTEM = "system"
+    NETWORK = "network"
+    DATABASE = "database"
+    SECURITY = "security"
+    LOGGING = "logging"
+    AI = "ai"
+
+def get_app_version() -> str:
+    """Get application version."""
+    return config.system.version

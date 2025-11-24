@@ -25,7 +25,7 @@ from plexichat.core.logging import LogCategory, get_logger
 logger = get_logger(__name__)
 
 # Version information
-from plexichat.core.config_manager import get_config
+from plexichat.core.config import get_config
 
 __version__ = get_config("system.version", "0.0.0")
 __author__ = "PlexiChat Team"

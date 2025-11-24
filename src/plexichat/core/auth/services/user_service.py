@@ -6,7 +6,7 @@ Handles user management operations with repository pattern.
 from datetime import UTC, datetime
 
 from plexichat.core.authentication import Role
-from plexichat.core.logging.logger import get_logger
+from plexichat.core.logging import get_logger
 from plexichat.core.security import get_security_module
 
 from ..config import get_auth_config

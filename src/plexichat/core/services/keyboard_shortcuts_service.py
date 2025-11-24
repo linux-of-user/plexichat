@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
-from plexichat.core.database import execute_query
+from plexichat.core.database.manager import database_manager
 from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)

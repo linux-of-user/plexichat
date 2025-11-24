@@ -3,7 +3,7 @@ from typing import Any
 
 # Centralized logging system
 try:
-    from plexichat.core.logging.logger import get_logger
+    from plexichat.core.logging import get_logger
 
     logger = get_logger(__name__)
 except Exception:  # Fallback to std logging if centralized logging not available

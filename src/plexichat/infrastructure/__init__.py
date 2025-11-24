@@ -30,7 +30,6 @@ import importlib
 from plexichat.shared.models import Event, Priority, Status
 from plexichat.shared.types import JSON, ConfigDict
 from plexichat.shared.exceptions import ServiceUnavailableError, ValidationError
-# from ..shared.constants import *  # Removed due to invalid wildcard import
 
 # Infrastructure imports
 
@@ -125,6 +124,9 @@ def register_core_components():
             infrastructure_manager.register_component("cache_manager", False)
 
         # Monitoring components
+        try:
+            importlib.import_module("plexichat.infrastructure.monitoring")
+            infrastructure_manager.register_component("monitoring", True)
         except ImportError:
             infrastructure_manager.register_component("monitoring", False)
 
@@ -173,7 +175,6 @@ def import_infrastructure_modules():
     """Import infrastructure modules with error handling."""
     try:
         # Utils modules
-        # Import consolidated utils
         try:
             importlib.import_module("plexichat.infrastructure.utils")
             logger.info("Infrastructure utils imported successfully")
@@ -205,6 +206,11 @@ def import_infrastructure_modules():
 
         # Monitoring
         if monitoring_available():
+            try:
+                importlib.import_module("plexichat.infrastructure.monitoring")
+                logger.info("Monitoring imported successfully")
+            except ImportError as e:
+                logger.warning(f"Could not import monitoring: {e}")
 
     except Exception as e:
         logger.error(f"Error importing infrastructure modules: {e}")
@@ -235,6 +241,6 @@ __all__ = [
 ]
 
 # Version info
-from src.plexichat.core.config_manager import get_config
+from plexichat.core.config import get_config
 
-__version__ = get_config("system.version", "0.0.0")
+__version__ = get_config().system.version

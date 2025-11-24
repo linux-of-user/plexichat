@@ -69,7 +69,7 @@ security_manager = get_security_module()
 analytics_manager = get_analytics_manager()
 
 try:
-    from plexichat.core.logging.logger import get_performance_logger
+    from plexichat.core.logging import get_logger as get_performance_logger
 except ImportError:
     get_performance_logger = None
 

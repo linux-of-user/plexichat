@@ -47,7 +47,7 @@ AuthManager = None
 
 # Try to import core modules with fallbacks
 try:
-    from src.plexichat.core.database.manager import database_manager
+    from plexichat.core.database.manager import database_manager
     _basic_logger.info("Database manager imported successfully")
 except ImportError as e:
     _basic_logger.warning(f"Database manager not available: {e}")
@@ -55,7 +55,7 @@ except ImportError as e:
 
 # Try to import authentication class for type/reference (not initializing yet)
 try:
-    from src.plexichat.core.auth import AuthenticationService as AuthManager  # type: ignore
+    from plexichat.core.auth import AuthenticationService as AuthManager  # type: ignore
     _basic_logger.info("Auth manager class imported successfully")
 except Exception as e:
     # Not fatal here; we'll initialize the auth manager during startup

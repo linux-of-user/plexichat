@@ -12,7 +12,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 try:
-    from plexichat.core.config_manager import get_app_version
+    from plexichat.core.config import get_app_version
 
     PLEXICHAT_VERSION = get_app_version()
 except ImportError:

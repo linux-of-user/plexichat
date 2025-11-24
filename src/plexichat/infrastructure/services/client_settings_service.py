@@ -19,7 +19,7 @@ from typing import Any
 
 # Core imports
 try:
-    from plexichat.core.config_manager import get_config, get_config_manager
+    from plexichat.core.config import get_config, get_config_manager
     from plexichat.core.database.manager import database_manager, get_session
     from plexichat.core.middleware.rate_limiting import get_rate_limiter
     from plexichat.core.security.security_context import SecurityContext, SecurityLevel

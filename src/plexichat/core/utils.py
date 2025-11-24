@@ -8,6 +8,7 @@ Consolidated utility functions for the entire application.
 
 import hashlib
 import json
+import logging
 import re
 import secrets
 import time

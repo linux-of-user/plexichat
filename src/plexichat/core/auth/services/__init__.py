@@ -4,7 +4,7 @@ Provides service layer for authentication operations with dependency injection.
 """
 
 from .audit_service import AuditService
-from .authentication_service import AuthenticationService
+from .authentication import AuthenticationService
 from .interfaces import (
     IAuditService,
     IAuthenticationService,

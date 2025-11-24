@@ -16,7 +16,7 @@ from plexichat.core.plugins.manager import plugin_manager
 logger = get_logger(__name__)
 
 
-def setuprouters(app: FastAPI):
+def setup_routers(app: FastAPI):
     """Setup API routers with error handling, including dynamic plugin routers."""
     # --- Core Routers ---
     core_routers = {

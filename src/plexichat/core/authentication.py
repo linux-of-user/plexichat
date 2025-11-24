@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Any, Optional
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from plexichat.core.auth.services.authentication import auth_service
 from plexichat.core.logging import get_logger
@@ -14,11 +14,42 @@ class Role(str, Enum):
     USER = "user"
     SYSTEM = "system"
     GUEST = "guest"
+    MODERATOR = "moderator"
+    SUPER_ADMIN = "super_admin"
+
+class AuthProvider(str, Enum):
+    LOCAL = "local"
+    GOOGLE = "google"
+    GITHUB = "github"
+    DISCORD = "discord"
+
+class MFAMethod(str, Enum):
+    TOTP = "totp"
+    SMS = "sms"
+    EMAIL = "email"
+    BACKUP_CODE = "backup_code"
+
+@dataclass
+class MFAChallenge:
+    challenge_id: str
+    method: MFAMethod
+    expires_at: datetime
+    user_id: str
+
+@dataclass
+class SessionInfo:
+    session_id: str
+    user_id: str
+    created_at: datetime
+    expires_at: datetime
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    is_active: bool = True
 
 @dataclass
 class AuthResult:
     success: bool
-    user_id: Optional[int] = None
+    user_id: Optional[str] = None
     token: Optional[str] = None
     permissions: set[str] = field(default_factory=set)
     security_context: Any = None

@@ -22,7 +22,7 @@ from pydantic import BaseModel, Field
 
 # Use EXISTING database abstraction layer
 try:
-    from plexichat.core.database import execute_query, get_session
+    from plexichat.core.database.manager import database_manager
     from plexichat.core.database.manager import database_manager
 except ImportError:
     database_manager = None

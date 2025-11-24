@@ -128,7 +128,7 @@ class MFAManager:
             device_id = secrets.token_hex(16)
             # Use TOTP issuer from config if present
             try:
-                from plexichat.core.config_manager import get_config
+                from plexichat.core.config import get_config
 
                 issuer = str(get_config("security.totp_issuer", "PlexiChat"))
             except Exception:
@@ -298,7 +298,7 @@ class MFAManager:
         """Generate backup codes for a user and store them in unified storage (encrypted)."""
         # Generate backup codes, count is configurable in security.backup_codes_count
         try:
-            from plexichat.core.config_manager import get_config
+            from plexichat.core.config import get_config
 
             count = int(
                 get_config(

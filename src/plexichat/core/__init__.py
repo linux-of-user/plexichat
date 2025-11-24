@@ -17,12 +17,12 @@ import importlib
 from typing import Any, Dict, Optional
 
 # Import consolidated systems
-from plexichat.core.logging.logger import get_logger
+from plexichat.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 try:
-    from plexichat.core.config_manager import get_config
+    from plexichat.core.config import get_config
 
     config: Any | None = get_config()
 except ImportError:
@@ -360,6 +360,6 @@ __all__ = [
 ]
 
 # Version info
-from plexichat.core.config import settings
+from plexichat.core.config import config
 
-__version__: str = settings.version
+__version__: str = config.system.version

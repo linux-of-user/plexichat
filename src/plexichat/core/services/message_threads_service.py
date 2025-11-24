@@ -1,3 +1,18 @@
+"""
+PlexiChat - Real-time Communication Platform
+Copyright (C) 2025 PlexiChat Contributors
+
+Message Threads Service
+"""
+
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from typing import Dict, List, Optional
+
+from plexichat.core.logging import get_logger
+from plexichat.infrastructure.services.base_service import BaseService
+
+logger = get_logger(__name__)
 
 
 @dataclass
